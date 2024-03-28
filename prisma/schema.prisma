@@ -1,0 +1,99 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Merchant {
+  merchant_id        Int         @id @default(autoincrement())
+  merchant_name      String
+  merchant_company   String
+  domain             String
+  status_subscriber  String      @default("Aktif")
+  start_date         DateTime?  
+  end_date           DateTime?
+  email              String      @unique
+  password           String
+  vehicles           Vehicle[]
+  schedules          Schedule[]
+  bookings           Booking[]
+  payments           Payment[]
+}
+
+
+model Vehicle {
+  vehicles_id      Int        @id @default(autoincrement())
+  merchant_id      Int
+  name             String
+  model            String
+  year             Int
+  capacity         Int
+  Merchant         Merchant     @relation(fields: [merchant_id], references: [merchant_id])
+  Schedule         Schedule?    @relation
+}
+
+model Schedule {
+  schedules_id     Int        @id @default(autoincrement())
+  merchant_id      Int      
+  vehicles_id      Int?       @unique
+  start_date       DateTime
+  end_date         DateTime
+  price            Int
+  Merchant         Merchant    @relation(fields: [merchant_id], references: [merchant_id])
+  Vehicle          Vehicle?    @relation(fields: [vehicles_id], references: [vehicles_id])
+  bookings         Booking[]
+}
+
+model Booking {
+  booking_id      Int       @id @default(autoincrement())
+  schedules_id    Int  
+  start_date      DateTime
+  end_date        DateTime
+  customer_name   String
+  merchant_id     Int
+  total_amount    Int      
+  Merchant        Merchant    @relation(fields: [merchant_id], references: [merchant_id])
+  Schedule        Schedule    @relation(fields: [schedules_id], references: [schedules_id])
+  Payment         Payment?    @relation
+}
+
+model Payment {
+  payment_id      Int       @id @default(autoincrement())
+  booking_id      Int       @unique         
+  amount          Int      
+  merchant_id     Int
+  payment_method  String    
+  status          String    @default("Pending") 
+  payment_date    DateTime? 
+  Booking         Booking    @relation(fields: [booking_id], references: [booking_id])
+  Merchant        Merchant    @relation(fields: [merchant_id], references: [merchant_id])
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
