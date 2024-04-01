@@ -37,7 +37,6 @@ export async function POST(req: Request) {
     const token = jwt.sign(
       { merchantId: merchant.merchant_id, email: merchant.email, merchant_company: merchant.merchant_company },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" }
     );
 
     return NextResponse.json({ token });

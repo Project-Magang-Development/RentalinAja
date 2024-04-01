@@ -31,25 +31,25 @@ model Merchant {
 
 
 model Vehicle {
-  vehicles_id      Int        @id @default(autoincrement())
+  vehicles_id      Int         @id @default(autoincrement())
   merchant_id      Int
   name             String
   model            String
   year             Int
   capacity         Int
   Merchant         Merchant     @relation(fields: [merchant_id], references: [merchant_id])
-  Schedule         Schedule?    @relation
+  Schedules        Schedule[] 
 }
 
 model Schedule {
-  schedules_id     Int        @id @default(autoincrement())
-  merchant_id      Int      
-  vehicles_id      Int?       @unique
+  schedules_id     Int         @id @default(autoincrement())
+  merchant_id      Int
+  vehicles_id      Int         
   start_date       DateTime
   end_date         DateTime
   price            Int
   Merchant         Merchant    @relation(fields: [merchant_id], references: [merchant_id])
-  Vehicle          Vehicle?    @relation(fields: [vehicles_id], references: [vehicles_id])
+  Vehicle          Vehicle     @relation(fields: [vehicles_id], references: [vehicles_id])  // Menghapus tanda tanya untuk menunjukkan bahwa ini adalah relasi yang required
   bookings         Booking[]
 }
 
