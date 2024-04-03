@@ -169,9 +169,8 @@ export default function AdminDashboard() {
       return data.map((item: any) => ({
         ...item,
         month: moment.months(item.month - 1),
-        TotalPendapatan: item.amount, // Nilai numerik untuk plot chart
+        TotalPendapatan: item.amount,
         TotalPendapatanFormatted: new Intl.NumberFormat("id-ID", {
-          // Nilai terformat untuk tooltip atau label
           style: "currency",
           currency: "IDR",
         }).format(item.amount),
@@ -273,7 +272,9 @@ export default function AdminDashboard() {
         />
       ) : (
         <>
-          <Title level={3} style={{ marginBottom: "20px" }}>{currentMonthYearSentence}</Title>
+          <Title level={3} style={{ marginBottom: "20px" }}>
+            {currentMonthYearSentence}
+          </Title>
           <Row gutter={16} style={{ margin: "20px 0" }}>
             <Col span={6}>
               <Card
@@ -370,6 +371,8 @@ export default function AdminDashboard() {
                       dataKey="Jumlah Penyewaan"
                       stroke="#8884d8"
                       activeDot={{ r: 8 }}
+                      animationBegin={500}
+                      animationDuration={2000}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -409,6 +412,8 @@ export default function AdminDashboard() {
                       stroke="#82ca9d"
                       name="Total Pendapatan"
                       activeDot={{ r: 8 }}
+                      animationBegin={500}
+                      animationDuration={2000}
                     />
                   </LineChart>
                 </ResponsiveContainer>

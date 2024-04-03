@@ -14,19 +14,32 @@ datasource db {
 }
 
 model Merchant {
-  merchant_id        Int         @id @default(autoincrement())
+  merchant_id        Int               @id @default(autoincrement())
   merchant_name      String
   merchant_company   String
   domain             String
-  status_subscriber  String      @default("Aktif")
+  status_subscriber  String            @default("Aktif")
   start_date         DateTime?  
   end_date           DateTime?
-  email              String      @unique
+  email              String            @unique
   password           String
   vehicles           Vehicle[]
   schedules          Schedule[]
   bookings           Booking[]
   payments           Payment[]
+  merchantPayment    MerchantPayment?  
+}
+
+model MerchantPayment {
+  id              Int      @id @default(autoincrement())
+  merchant_id     Int      @unique
+  amount          Int
+  payment_method  String
+  status          String   @default("Pending")
+  payment_date    DateTime? 
+  description     String?  
+
+  Merchant        Merchant @relation(fields: [merchant_id], references: [merchant_id])
 }
 
 
@@ -77,6 +90,7 @@ model Payment {
   Booking         Booking    @relation(fields: [booking_id], references: [booking_id])
   Merchant        Merchant    @relation(fields: [merchant_id], references: [merchant_id])
 }
+
 
 
 
