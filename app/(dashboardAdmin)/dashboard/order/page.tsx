@@ -5,8 +5,8 @@ import { message, Table } from "antd";
 import moment from "moment";
 import Title from "antd/es/typography/Title";
 
-interface Booking {
-  booking_id: number;
+interface Order {
+  order_id: number;
   merchant_id: number;
   vehicles_id: number;
   start_date: string;
@@ -19,6 +19,7 @@ interface Booking {
       name: string;
       imageUrl: string;
       model: string;
+      no_plat: string
     };
     schedules_id: number;
     merchant_id: number;
@@ -29,12 +30,12 @@ interface Booking {
   };
 }
 
-export default function AdminBookingDashboard() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+export default function AdminOrderDashboard() {
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
 
-  const fetchBookings = async () => {
+  const fetchOrders = async () => {
     setLoading(true);
     const token = localStorage.getItem("token");
     if (!token) {
@@ -43,7 +44,7 @@ export default function AdminBookingDashboard() {
       return;
     }
     try {
-      const response = await fetch("/api/booking/show", {
+      const response = await fetch("/api/order/show", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -51,20 +52,21 @@ export default function AdminBookingDashboard() {
         },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch bookings.");
+      if (!response.ok) throw new Error("Failed to fetch orders.");
 
       const data = await response.json();
-      setBookings(data);
+      console.log(data)
+      setOrders(data);
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching bookings:", error);
-      message.error("Failed to fetch bookings.");
+      console.error("Error fetching orders:", error);
+      message.error("Failed to fetch orders.");
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBookings();
+    fetchOrders();
   }, []);
 
   const columns = [
@@ -81,15 +83,21 @@ export default function AdminBookingDashboard() {
       key: "customer_name",
     },
     {
+      title: "No Plat",
+      key: "no_plat",
+      render: (record: Order) =>
+        record?.Schedule.Vehicle?.no_plat || "Tidak tersedia",
+    },
+    {
       title: "Nama Kendaraan",
       key: "vehicleName",
-      render: (record: Booking) =>
+      render: (record: Order) =>
         record?.Schedule?.Vehicle?.name || "Tidak tersedia",
     },
     {
       title: "Model Kendaraan",
       key: "vehicleModel",
-      render: (record: Booking) =>
+      render: (record: Order) =>
         record?.Schedule?.Vehicle?.model || "Tidak tersedia",
     },
     {
@@ -135,9 +143,9 @@ export default function AdminBookingDashboard() {
       <Title level={3}>Data Penyewaan Kendaraan</Title>
       <Table
         columns={columns}
-        dataSource={bookings}
+        dataSource={orders}
         loading={loading}
-        rowKey="booking_id"
+        rowKey="order_id"
         onChange={(pagination) => {
           setPagination({
             pageSize: pagination.pageSize || 10,

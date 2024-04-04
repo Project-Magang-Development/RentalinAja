@@ -2,8 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 import { Layout, Row, Col, Card, Typography } from "antd";
-import Meta from "antd/es/card/Meta";
-import { useRouter } from "next/navigation";
+import Meta from "antd/lib/card/Meta";
+import { useRouter, useSearchParams } from "next/navigation"; // Perbaikan import ini
+import Image from "next/image";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -25,18 +26,46 @@ interface Schedule {
 
 const VehiclePage = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
+   const startDate = searchParams.get("startDate");
+   const endDate = searchParams.get("endDate");
 
   useEffect(() => {
-    const storedData = sessionStorage.getItem("schedules");
-    if (storedData) {
-      const data = JSON.parse(storedData);
-      setSchedules(data || []);
-    }
-  }, []);
+    const fetchSchedules = async () => {
+      try {
+        const capacity = searchParams.get("capacity");
+        const capacityNumber = parseInt(capacity || "0");
 
+        const response = await fetch("/api/schedule/find", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            dateRange: [startDate, endDate],
+            capacityNumber
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setSchedules(data || []);
+      } catch (error) {
+        console.error("Failed to fetch schedules:", error);
+      }
+    };
+
+    fetchSchedules();
+  }, [searchParams, startDate, endDate]);
+  
   const handleCardClick = (vehicles_id: number) => {
-    router.push(`/vehicles/${vehicles_id}`);
+    router.push(
+      `/vehicles/${vehicles_id}?startDate=${startDate}&endDate=${endDate}`
+    );
   };
 
   return (
@@ -48,12 +77,27 @@ const VehiclePage = () => {
               <Col key={index} span={8} style={{ marginBottom: 20 }}>
                 <Card
                   hoverable
-                  onClick={() => handleCardClick(schedule.Vehicle.vehicles_id)}
+                  onClick={() =>
+                    handleCardClick(
+                      schedule.Vehicle.vehicles_id,
+                    )
+                  }
                   cover={
-                    <img
-                      alt={schedule.Vehicle.name}
-                      src={schedule.Vehicle.imageUrl || "/default_image.jpg"}
-                    />
+                    <div
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        height: "200px",
+                      }}
+                    >
+                      <Image
+                        src={schedule.Vehicle.imageUrl}
+                        alt="vehicle"
+                        layout="fill"
+                        objectFit="cover"
+                        unoptimized={true}
+                      />
+                    </div>
                   }
                 >
                   <Meta

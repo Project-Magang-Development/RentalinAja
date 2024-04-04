@@ -9,7 +9,7 @@ export async function POST(req: Request) {
     const { dateRange, capacity } = body;
     const [startDate, endDate] = dateRange;
 
-    const bookedVehiclesIds = await prisma.booking.findMany({
+    const bookedVehiclesIds = await prisma.order.findMany({
       where: {
         OR: [
           {

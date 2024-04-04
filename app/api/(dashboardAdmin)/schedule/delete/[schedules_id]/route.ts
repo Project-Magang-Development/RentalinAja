@@ -3,11 +3,10 @@ import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
-export async function PUT(req: Request) {
+export async function DELETE(req: Request) {
   const url = new URL(req.url);
   const pathnameParts = url.pathname.split("/");
-  const vehicles_id = pathnameParts[pathnameParts.length - 1];
-
+  const schedules_id = pathnameParts[pathnameParts.length - 1];
 
   try {
     const tokenHeader = req.headers.get("Authorization");
@@ -35,30 +34,28 @@ export async function PUT(req: Request) {
       });
     }
 
-     const body = await req.json();
-     const { name, capacity, model, year} = body;
-
-     if (!name || !capacity ||  !model || !year ) {
-       return new NextResponse(
-         JSON.stringify({ error: "Please provide all required fields" }),
-         {
-           status: 400,
-           headers: {
-             "Content-Type": "application/json",
-           },
-         }
-       );
-     }
+    if (!schedules_id) {
+      return new NextResponse(
+        JSON.stringify({ error: "Please provide all required fields" }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
     try {
-      const vehicle = await prisma.vehicle
+      const vehicle = await prisma.schedule
         .findUnique({
-          where: { vehicles_id: Number(vehicles_id) },
+          where: { schedules_id: Number(schedules_id) },
         })
         .catch((error) => {
           throw error;
         });
 
+     
       if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
         return new NextResponse(
           JSON.stringify({ error: "Vehicle not found or access denied" }),
@@ -71,23 +68,19 @@ export async function PUT(req: Request) {
         );
       }
 
-      const updatedVehicle = await prisma.vehicle.update({
-        where: 
-        { vehicles_id: Number(vehicles_id), 
-        },
-        data: {
-          name,
-          capacity,
-          model,
-          year,
-          merchant_id: decoded.merchantId,
-        },
-      });
+      await prisma.schedule
+        .delete({
+          where: {
+            schedules_id: Number(schedules_id),
+          },
+        })
+        .catch((error) => {
+          throw error;
+        });
 
       return new NextResponse(
         JSON.stringify({
-          message: "Vehicle update successfully",
-          vehicle: updatedVehicle
+          message: "Vehicle deleted successfully",
         }),
         {
           status: 200,
@@ -109,6 +102,7 @@ export async function PUT(req: Request) {
       );
     }
   } finally {
+    // Add await to disconnect() call and catch any errors
     await prisma.$disconnect().catch((error) => {
       console.error("Error disconnecting from database:", error);
     });

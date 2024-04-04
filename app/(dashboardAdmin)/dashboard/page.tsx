@@ -33,8 +33,8 @@ interface TotalAmount {
 
 export default function AdminDashboard() {
   const [totalVehicles, setTotalVehicles] = useState(0);
-  const [totalBookings, setTotalBookings] = useState(0);
-  const [monthlyBookings, setMonthlyBookings] = useState([]);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [monthlyOrders, setMonthlyOrders] = useState([]);
   const [monthlyTotalAmount, setMonthlyTotalAmount] = useState<TotalAmount | null>(null);
   const [selectedYear, setSelectedYear] = useState(moment().year());
   const [totalPayments, setTotalPayments] = useState(0);
@@ -48,12 +48,12 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true); // Set loading to true when starting to fetch data
+      setLoading(true); 
       try {
         await fetchTotalVehicles();
-        await fetchTotalBookings();
+        await fetchTotalOrders();
         await fetchMonthlyTotalAmount();
-        await fetchMonthlyBookings(selectedYear);
+        await fetchMonthlyOrders(selectedYear);
         await fetchTotalPayments();
         await fetchMonthlyPayments(selectedYear);
       } catch (error) {
@@ -93,14 +93,14 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchTotalBookings = async () => {
+  const fetchTotalOrders = async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("Authentication token not found.");
       return;
     }
     try {
-      const response = await fetch("/api/booking/totalBooking", {
+      const response = await fetch("/api/order/totalOrder", {
         method: "GET",
         cache: "no-cache",
         headers: {
@@ -110,10 +110,10 @@ export default function AdminDashboard() {
       });
 
       if (!response.ok)
-        throw new Error("Failed to fetch the total number of Bookings.");
+        throw new Error("Failed to fetch the total number of Orders.");
 
       const data = await response.json();
-      setTotalBookings(data);
+      setTotalOrders(data);
     } catch (error) {
       console.error("Error fetching the total number of vehicles:", error);
       setError("Failed to fetch the total number of vehicles.");
@@ -137,7 +137,7 @@ export default function AdminDashboard() {
       });
 
       if (!response.ok)
-        throw new Error("Failed to fetch the total number of Bookings.");
+        throw new Error("Failed to fetch the total number of Orders.");
 
       const data = await response.json();
       setTotalPayments(data);
@@ -187,14 +187,14 @@ export default function AdminDashboard() {
  };
 
 
-  const fetchMonthlyBookings = async (year: number) => {
+  const fetchMonthlyOrders = async (year: number) => {
     const token = localStorage.getItem("token");
     if (!token) {
       setError("Authentication token not found.");
       return;
     }
     try {
-      const response = await fetch(`/api/booking/${year}`, {
+      const response = await fetch(`/api/order/${year}`, {
         method: "GET",
         cache: "no-cache",
         headers: {
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
         },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch monthly bookings.");
+      if (!response.ok) throw new Error("Failed to fetch monthly orders.");
 
       const data = await response.json();
       const transformData = (data: any) => {
@@ -214,10 +214,10 @@ export default function AdminDashboard() {
         }));
       };
       const transformedData = transformData(data);
-      setMonthlyBookings(transformedData);
+      setMonthlyOrders(transformedData);
     } catch (error) {
-      console.error("Error fetching monthly bookings:", error);
-      setError("Failed to fetch monthly bookings.");
+      console.error("Error fetching monthly orders:", error);
+      setError("Failed to fetch monthly orders.");
     }
   };
 
@@ -292,8 +292,8 @@ export default function AdminDashboard() {
               <Card
                 title={
                   <Statistic
-                    title="Total Booking"
-                    value={totalBookings}
+                    title="Total Order"
+                    value={totalOrders}
                     prefix={<BookOutlined />}
                   />
                 }
@@ -304,7 +304,7 @@ export default function AdminDashboard() {
               <Card
                 title={
                   <Statistic
-                    title="Total Pembayaran"
+                    title="Total Booking"
                     value={totalPayments}
                     prefix={<BookOutlined />}
                   />
@@ -350,7 +350,7 @@ export default function AdminDashboard() {
               >
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart
-                    data={monthlyBookings}
+                    data={monthlyOrders}
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />

@@ -16,14 +16,18 @@ import {
   Space,
   message,
   notification,
+  Popconfirm,
+  Tooltip
 } from "antd";
 import moment from "moment";
 import Title from "antd/es/typography/Title";
+import { DeleteOutlined } from "@ant-design/icons";
 
 interface Vehicle {
   vehicles_id: number;
   name: string;
   model: string;
+  no_plat: string;
 }
 
 interface Schedule {
@@ -40,7 +44,7 @@ type PayloadType = {
   end_date: any;
   vehicles_id: number | undefined;
   price: any;
-  schedules_id?: number; // add schedules_id to the type
+  schedules_id?: number; 
 };
 
 function Calendar() {
@@ -55,7 +59,7 @@ function Calendar() {
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const fetchSchedule = async () => {
-    if (!vehicles_id) return; // Pastikan vehicle_id tersedia
+    if (!vehicles_id) return;
     setLoading(true);
     const token = localStorage.getItem("token");
     if (!token) {
@@ -192,22 +196,97 @@ function Calendar() {
     setIsModalVisible(true);
   };
 
-  // const handleCloseModal = () => {
-  //   setSelectedEvent(null);
-  // };
+  // Function to handle deletion of an event
+  const handleDeleteEvent = async (schedules_id: number) => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`/api/schedule/delete/${schedules_id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete schedule");
+      }
+
+      // Success - Remove the schedule from state to update UI
+      const newSchedules = schedules.filter(
+        (schedule) => schedule.schedules_id !== schedules_id
+      );
+      setSchedules(newSchedules);
+      notification.success({
+        message: "Berhasil",
+        description: "Berhasil Menghapus Jadwal.",
+      });
+    } catch (error) {
+      console.error("Failed to delete schedule:", error);
+      notification.error({
+        message: "Gagal",
+        description: "Berhasil Menghapus Jadwal.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Adjusted eventContent to include a Popconfirm for deletion
+  const eventContent = (eventInfo: any) => {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          <b>{eventInfo.timeText}</b>
+          <br />
+          {eventInfo.event.title}
+        </div>
+        <Tooltip title="Hapus Jadwal">
+          <Popconfirm
+            title="Apakah Anda yakin ingin menghapus jadwal ini?"
+            onConfirm={(e) => {
+              e?.stopPropagation(); // Prevent the modal from opening
+              handleDeleteEvent(eventInfo.event.extendedProps.schedules_id);
+            }}
+            onCancel={(e) => e?.stopPropagation()} // Prevent the modal from opening
+            okText="Ya"
+            cancelText="Tidak"
+            placement="topRight"
+          >
+            <Button
+              type="text"
+              icon={<DeleteOutlined />}
+              size="small"
+              style={{ color: "red", marginLeft: 8 }}
+              onClick={(e) => e.stopPropagation()} // Prevent the event click from being triggered
+            />
+          </Popconfirm>
+        </Tooltip>
+      </div>
+    );
+  };
 
   const getRandomColor = () => {
     const r = Math.floor(Math.random() * 256);
     const g = Math.floor(Math.random() * 256);
     const b = Math.floor(Math.random() * 256);
-    return `rgb(${r},${g},${b})`; 
+    return `rgb(${r},${g},${b})`;
   };
 
   return (
     <div>
       {vehicleDetails && (
         <Title level={2}>
-          {vehicleDetails.name} - {vehicleDetails.model}
+          {vehicleDetails.name} - {vehicleDetails.model} -{" "}
+          {vehicleDetails.no_plat}
         </Title>
       )}
       <FullCalendar
@@ -227,11 +306,12 @@ function Calendar() {
           start: schedule.start_date,
           end: schedule.end_date,
           extendedProps: schedule,
-          backgroundColor: getRandomColor(), 
+          backgroundColor: getRandomColor(),
           borderColor: getRandomColor(),
         }))}
         eventClick={handleEventClick}
         dateClick={handleDateClick}
+        eventContent={eventContent}
       />
       {isModalVisible && (
         <Modal

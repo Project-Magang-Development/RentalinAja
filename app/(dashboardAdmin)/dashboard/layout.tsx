@@ -24,12 +24,12 @@ const items: MenuItem[] = [
     label: <Link href="/dashboard/vehicle">Kendaraan</Link>,
   },
   {
-    key: "4",
+    key: "3",
     icon: <VerifiedOutlined />,
-    label: <Link href="/dashboard/booking">Penyewaan</Link>,
+    label: <Link href="/dashboard/order">Order</Link>,
   },
   {
-    key: "5",
+    key: "4",
     icon: <LogoutOutlined />,
     label: "Logout",
     onClick: () => {

@@ -32,30 +32,24 @@ export async function GET(req: Request) {
       });
     }
 
-    const now = new Date();
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-
-    const totalVehicles = await prisma.booking.count({
+    const booking = await prisma.order.findMany({
       where: {
         merchant_id: decoded.merchantId,
-        AND: [
-          {
-            start_date: {
-              gte: firstDayOfMonth,
-            },
+      },
+      orderBy: {
+        order_id: "desc",
+      },
+      include: {
+        Schedule: {
+          include: {
+            Vehicle: true,
           },
-          {
-            end_date: {
-              lte: lastDayOfMonth,
-            },
-          },
-        ],
+        },
       },
     });
 
-    return new NextResponse(JSON.stringify(totalVehicles), {
+
+    return new NextResponse(JSON.stringify(booking), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

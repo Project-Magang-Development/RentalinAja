@@ -14,10 +14,12 @@ import {
   Modal
 } from "antd";
 import moment from "moment";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 const { Title, Paragraph } = Typography;
 const { Content } = Layout;
+
 
 interface Vehicle {
   vehicles_id: number;
@@ -25,19 +27,22 @@ interface Vehicle {
   capacity: number;
   price: number;
   imageUrl: string;
+  model: string;
+  no_plat: string;
+  year: number;
+  Schedules?: Schedule[];
 }
 
 interface Schedule {
-  schedules_id: number;
   merchant_id: number;
+  schedules_id: number;
   start_date: string;
   end_date: string;
-  Vehicle: Vehicle;
   price: number;
 }
 
 interface InvoiceData {
-  booking_id: number;
+  order_id: number;
   customer_name: string;
   start_date: Date;
   end_date: Date;
@@ -45,43 +50,78 @@ interface InvoiceData {
 }
 
 export default function DetailVehiclePage() {
-  const [schedule, setSchedule] = useState<Schedule | null>(null);
+  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
+    null
+  );
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [initialValues, setInitialValues] = useState({});
   const [loading, setLoading] = useState(false);
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const query = useParams();
   const vehicles_id = query.vehicles_id;
+  const searchParams = useSearchParams();
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+
+  const getDetailVehicle = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/vehicle/detail/${vehicles_id}`, {
+        headers: {
+          method: "GET",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch vehicle details");
+      }
+
+      const data = await response.json();
+      if (data.Schedules && data.Schedules.length > 0) {
+        setSelectedSchedule(data.Schedules[0]);
+      }
+      setVehicle(data);
+    } catch (error) {
+      notification.error({
+        message: "Error",
+        description: "Failed to load vehicle details.",
+      });
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const storedData = sessionStorage.getItem("schedules");
-    if (storedData) {
-      const schedules = JSON.parse(storedData);
-      const foundSchedule = schedules.find(
-        (sch: Schedule) =>
-          sch.Vehicle.vehicles_id === parseInt(vehicles_id as string, 10)
-      );
-      setSchedule(foundSchedule);
-      sessionStorage.removeItem("schedules");
+    if (vehicles_id) {
+      getDetailVehicle();
     }
   }, [vehicles_id]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedStartDate = sessionStorage.getItem("startDate");
-      const storedEndDate = sessionStorage.getItem("endDate");
-
       setInitialValues({
-        startDate: storedStartDate ? moment(storedStartDate) : undefined,
-        endDate: storedEndDate ? moment(storedEndDate) : undefined,
+        startDate: startDate ? moment(startDate) : moment(),
+        endDate: endDate ? moment(endDate) : moment(),
       });
     }
-  }, []);
+  }, [startDate, endDate]);
 
   const onFinish = async (values: any) => {
+    if (!selectedSchedule) {
+      notification.error({
+        message: "Submission Error",
+        description: "No schedule has been selected.",
+      });
+      return; 
+    }
+
     try {
       setLoading(true);
-      const response = await fetch("/api/booking/create", {
+
+      const response = await fetch("/api/order/create", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -90,9 +130,9 @@ export default function DetailVehiclePage() {
           customer_name: values.name,
           start_date: values.startDate.format("YYYY-MM-DD"),
           end_date: values.endDate.format("YYYY-MM-DD"),
-          schedules_id: schedule?.schedules_id,
-          merchant_id: schedule?.merchant_id,
-          price: schedule?.price,
+          schedules_id: selectedSchedule.schedules_id,
+          merchant_id: selectedSchedule.merchant_id,
+          price: selectedSchedule.price,
         }),
       });
 
@@ -101,31 +141,34 @@ export default function DetailVehiclePage() {
       }
 
       const data = await response.json();
-      const randomBookingId = Math.floor(Math.random() * 1000000);
-      const newData = { ...data, booking_id: randomBookingId };
+      const newData = {
+        ...data,
+        order_id: data.order_id || Math.floor(Math.random() * 1000000), // Use server-generated ID if available
+      };
 
       notification.success({
-        message: "Booking Successful",
-        description: "Your booking has been successfully created.",
-        duration: 5, 
+        message: "Order Successful",
+        description: "Your order has been successfully created.",
+        duration: 5,
       });
 
       setIsModalVisible(true);
-
       sessionStorage.removeItem("startDate");
       sessionStorage.removeItem("endDate");
       setInvoiceData(newData);
-
-      setLoading(false);
     } catch (error) {
+      console.error(error);
       notification.error({
-        message: "Booking Failed",
-        description:
-        "Something went wrong. Please try again later.",
+        message: "Order Failed",
+        description: "Something went wrong. Please try again later.",
         duration: 5,
       });
+    } finally {
+      setLoading(false);
     }
   };
+
+
 
   const dateFormat = "DD MMMM YYYY"; 
   const handleCancel = () => {
@@ -139,26 +182,30 @@ export default function DetailVehiclePage() {
   return (
     <Layout>
       <Content style={{ padding: "24px" }}>
-        {schedule ? (
+        {vehicle ? (
           <>
             <Row gutter={24}>
               <Col xs={24} md={12}>
-                <img
-                  src={schedule.Vehicle.imageUrl || "/default_image.jpg"}
-                  alt={schedule.Vehicle.name}
-                  style={{
-                    width: "100%",
-                    height: "auto",
-                    marginBottom: "24px",
-                  }}
+                <Image
+                  src={vehicle.imageUrl}
+                  alt="vehicle"
+                  width={500}
+                  height={300}
+                  layout="responsive"
                 />
               </Col>
               <Col xs={24} md={12}>
-                <Title>{schedule.Vehicle.name}</Title>
-                <Paragraph>Capacity: {schedule.Vehicle.capacity}</Paragraph>
+                <Title>{vehicle.name}</Title>
+                <Paragraph>Capacity: {vehicle.capacity}</Paragraph>
                 <Paragraph>
-                  Price: Rp{" "}
-                  {new Intl.NumberFormat("id-ID").format(schedule.price)} / Hari
+                  Price: Rp
+                  {selectedSchedule
+                    ? new Intl.NumberFormat("id-ID").format(
+                        selectedSchedule.price
+                      )
+                    : ")" 
+                  }
+                  / Hari
                 </Paragraph>
                 <Form
                   onFinish={onFinish}
@@ -190,7 +237,7 @@ export default function DetailVehiclePage() {
                     rules={[
                       { required: true, message: "Please select end date!" },
                     ]}
-                    style={{ display: "none" }} // Menyembunyikan Form.Item
+                    style={{ display: "none" }}
                   >
                     <DatePicker format={dateFormat} />
                   </Form.Item>
@@ -216,7 +263,7 @@ export default function DetailVehiclePage() {
               {invoiceData && (
                 <>
                   <Paragraph>
-                    <strong>Booking ID:</strong> {invoiceData.booking_id}
+                    <strong>Order ID:</strong> {invoiceData.order_id}
                   </Paragraph>
                   <Paragraph>
                     <strong>Name:</strong> {invoiceData.customer_name}

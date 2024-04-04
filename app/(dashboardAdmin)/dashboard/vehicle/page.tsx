@@ -1,11 +1,28 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Space, Table, Modal, Form, Input, Select, Flex } from "antd";
+import {
+  Button,
+  Space,
+  Table,
+  Modal,
+  Form,
+  Input,
+  Select,
+  Flex,
+  Upload,
+} from "antd";
 import Title from "antd/es/typography/Title";
-import { DeleteOutlined, EditOutlined, ScheduleOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  InboxOutlined,
+  ScheduleOutlined,
+} from "@ant-design/icons";
 import { notification } from "antd";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { UploadChangeParam, UploadFile } from "antd/lib/upload/interface";
 
 interface Vehicle {
   vehicles_id: number;
@@ -14,7 +31,10 @@ interface Vehicle {
   model: string;
   year: number;
   price: number;
+  imageUrl: string;
 }
+
+
 
 export default function AdminVehicleDashboard() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -25,6 +45,7 @@ export default function AdminVehicleDashboard() {
   const [loading, setLoading] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [form] = Form.useForm();
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
   const router = useRouter();
 
   const handleDelete = async (vehicles_id: number) => {
@@ -75,13 +96,60 @@ export default function AdminVehicleDashboard() {
     });
   };
 
+  useEffect(() => {
+    if (editingVehicle && editingVehicle.imageUrl) {
+      setFileList([
+        {
+          uid: "-1",
+          name: "image.png",
+          status: "done",
+          url: editingVehicle.imageUrl,
+        },
+      ]);
+    } else {
+      setFileList([]);
+    }
+  }, [editingVehicle]);
+
+ 
+const handleFileChange = (info: UploadChangeParam) => {
+  let newFileList = [...info.fileList];
+  newFileList = newFileList.slice(-1); // Menyimpan hanya file terakhir yang ditambahkan
+
+  // Konversi file terakhir ke base64
+  if (newFileList[0] && newFileList[0].originFileObj) {
+    convertFileToBase64(newFileList[0].originFileObj, (base64) => {
+      const fileInBase64 = base64 as string;
+
+      // Simpan base64 sebagai fileList state
+      setFileList([
+        {
+          uid: "-1",
+          name: newFileList[0].name,
+          status: "done",
+          url: fileInBase64, // Gunakan base64 sebagai url
+        },
+      ]);
+    });
+  } else {
+    // Jika tidak ada file yang diupload, kosongkan fileList
+    setFileList([]);
+  }
+};
+
+
   const handleEdit = (vehicles_id: number) => {
     const vehicleToEdit = vehicles.find(
       (vehicle) => vehicle.vehicles_id === vehicles_id
     );
     if (vehicleToEdit) {
       setEditingVehicle(vehicleToEdit);
-      form.setFieldsValue(vehicleToEdit);
+      form.setFieldsValue({
+        ...vehicleToEdit,
+        imageUrl: vehicleToEdit.imageUrl
+          ? [{ url: vehicleToEdit.imageUrl }]
+          : [],
+      });
       setIsModalVisible(true);
     }
   };
@@ -93,11 +161,14 @@ export default function AdminVehicleDashboard() {
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
+      const imageUrl = fileList.length > 0 ? fileList[0].url : "";
       const payload = {
         name: values.name,
         capacity: parseInt(values.capacity, 10),
         model: values.model,
         year: parseInt(values.year, 10),
+        no_plat: values.no_plat,
+        imageUrl,
       };
       setLoading(true);
 
@@ -211,6 +282,15 @@ export default function AdminVehicleDashboard() {
     fetchVehicles();
   }, []);
 
+  const convertFileToBase64 = (
+    file: Blob,
+    callback: (result: string | ArrayBuffer | null) => void
+  ) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => callback(reader.result);
+  };
+
   const columns = [
     {
       title: "No",
@@ -218,6 +298,20 @@ export default function AdminVehicleDashboard() {
       key: "index",
       render: (text: any, record: any, index: any) =>
         index + 1 + (pagination.current - 1) * pagination.pageSize,
+    },
+    {
+      title: "Gambar",
+      dataIndex: "imageUrl",
+      key: "imageUrl",
+      render: (imageUrl: string) => (
+        <Image
+          src={imageUrl}
+          alt="vehicle"
+          width={100}
+          height={60}
+          unoptimized={true}
+        />
+      ),
     },
     {
       title: "Nama",
@@ -233,6 +327,11 @@ export default function AdminVehicleDashboard() {
       title: "Model",
       dataIndex: "model",
       key: "model",
+    },
+    {
+      title: "Nomer Plat",
+      dataIndex: "no_plat",
+      key: "no_plat",
     },
     {
       title: "Tahun",
@@ -301,10 +400,11 @@ export default function AdminVehicleDashboard() {
       <Modal
         title={<div style={{ marginBottom: "16px" }}>{modalTitle}</div>}
         visible={isModalVisible}
-        footer={null} // This removes the footer buttons
+        footer={null}
+        onCancel={handleCancel}
       >
         <Form
-          form={form} // Make sure to use the form instance created with Form.useForm()
+          form={form}
           name="addVehicleForm"
           initialValues={{ remember: true }}
           onFinish={handleOk}
@@ -344,6 +444,98 @@ export default function AdminVehicleDashboard() {
             ]}
           >
             <Input placeholder="Tahun" />
+          </Form.Item>
+          <Form.Item
+            name="no_plat"
+            rules={[
+              {
+                required: true,
+                message: "Tolong Masukan Nomor Plat Kendaraan!",
+              },
+            ]}
+          >
+            <Input placeholder="Nomor Plat" />
+          </Form.Item>
+          <Form.Item
+            name="imageUrl"
+            valuePropName="fileList"
+            getValueFromEvent={({ fileList: newFileList }) => {
+              if (newFileList.length > 1) {
+                const lastFile = newFileList[newFileList.length - 1];
+                return [lastFile].map((file) => ({
+                  ...file,
+                  url: file.originFileObj
+                    ? URL.createObjectURL(file.originFileObj)
+                    : file.url,
+                }));
+              }
+              return newFileList.map((file: any) => ({
+                ...file,
+                url: file.originFileObj
+                  ? URL.createObjectURL(file.originFileObj)
+                  : file.url,
+              }));
+            }}
+          >
+            <Upload.Dragger
+              name="files"
+              listType="picture-card"
+              fileList={fileList}
+              onChange={handleFileChange}
+              beforeUpload={() => false} // Menghentikan upload otomatis
+              showUploadList={false} // Menyembunyikan daftar upload standar
+            >
+              {fileList.length > 0 ? (
+                fileList.map((file) => (
+                  <div
+                    key={file.uid}
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      height: "200px",
+                      marginBottom: "16px",
+                    }}
+                  >
+                    <Image
+                      src={file.url ?? (file.thumbUrl || "")}
+                      alt={file.name}
+                      layout="fill"
+                      objectFit="contain"
+                    />
+                    {file.status === "uploading" && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: 0,
+                          right: 0,
+                          bottom: 0,
+                          left: 0,
+                          background: "rgba(255,255,255,0.5)",
+                          display: "flex",
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }}
+                      >
+                        {/* Ganti dengan komponen animasi loading yang diinginkan */}
+                        <div>Loading...</div>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div>
+                  <p className="ant-upload-drag-icon">
+                    <InboxOutlined />
+                  </p>
+                  <p className="ant-upload-text">
+                    Klik atau drag file ke area ini untuk upload
+                  </p>
+                  <p className="ant-upload-hint">
+                    Support untuk single upload.
+                  </p>
+                </div>
+              )}
+            </Upload.Dragger>
           </Form.Item>
           <Form.Item>
             <Space>

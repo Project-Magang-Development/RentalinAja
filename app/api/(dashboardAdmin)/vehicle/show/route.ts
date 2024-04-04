@@ -36,6 +36,9 @@ export async function GET(req: Request) {
       where: {
         merchant_id: decoded.merchantId,
       },
+      orderBy: {
+        vehicles_id: "desc", 
+      },
     });
 
     return new NextResponse(JSON.stringify(vehicles), {

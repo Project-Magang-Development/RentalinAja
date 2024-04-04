@@ -32,9 +32,9 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, capacity, model, year} = body;
+    const { name, capacity, model, year, no_plat, imageUrl } = body;
 
-    if (!name || !capacity ||  !model || !year ) {
+    if (!name || !capacity || !model || !year || !no_plat || !imageUrl) {
       return new NextResponse(
         JSON.stringify({ error: "Please provide all required fields" }),
         {
@@ -52,7 +52,9 @@ export async function POST(req: Request) {
         capacity,
         model,
         year,
-        merchant_id: decoded.merchantId, 
+        no_plat, // Pastikan field ini sudah ditambahkan di Prisma Schema
+        imageUrl, // Pastikan field ini sudah ditambahkan di Prisma Schema
+        merchant_id: decoded.merchantId,
       },
     });
 

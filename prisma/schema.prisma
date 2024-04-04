@@ -14,25 +14,26 @@ datasource db {
 }
 
 model Merchant {
-  merchant_id        Int               @id @default(autoincrement())
+  merchant_id        Int                @id @default(autoincrement())
   merchant_name      String
   merchant_company   String
   domain             String
-  status_subscriber  String            @default("Aktif")
+  status_subscriber  String             @default("Aktif")
   start_date         DateTime?  
   end_date           DateTime?
-  email              String            @unique
+  email              String             @unique
   password           String
   vehicles           Vehicle[]
   schedules          Schedule[]
-  bookings           Booking[]
-  payments           Payment[]
-  merchantPayment    MerchantPayment?  
+  orders             Order[]
+  merchantPayments   MerchantPayment[]
+  payment            Payment[]
+  booking            Booking[]
 }
 
 model MerchantPayment {
   id              Int      @id @default(autoincrement())
-  merchant_id     Int      @unique
+  merchant_id     Int
   amount          Int
   payment_method  String
   status          String   @default("Pending")
@@ -42,15 +43,16 @@ model MerchantPayment {
   Merchant        Merchant @relation(fields: [merchant_id], references: [merchant_id])
 }
 
-
 model Vehicle {
   vehicles_id      Int         @id @default(autoincrement())
   merchant_id      Int
   name             String
   model            String
   year             Int
+  no_plat          String      @unique
+  imageUrl         String      @db.Text
   capacity         Int
-  Merchant         Merchant     @relation(fields: [merchant_id], references: [merchant_id])
+  Merchant         Merchant    @relation(fields: [merchant_id], references: [merchant_id])
   Schedules        Schedule[] 
 }
 
@@ -62,34 +64,50 @@ model Schedule {
   end_date         DateTime
   price            Int
   Merchant         Merchant    @relation(fields: [merchant_id], references: [merchant_id])
-  Vehicle          Vehicle     @relation(fields: [vehicles_id], references: [vehicles_id])  // Menghapus tanda tanya untuk menunjukkan bahwa ini adalah relasi yang required
-  bookings         Booking[]
+  Vehicle          Vehicle     @relation(fields: [vehicles_id], references: [vehicles_id])
+  orders           Order[]
+}
+
+
+
+model Payment {
+  payment_id     Int      @id @default(autoincrement())
+  order_id       Int
+  merchant_id    Int      // Menambahkan merchant_id
+  amount         Int
+  payment_method String
+  status         String   @default("Pending")
+  payment_date   DateTime?
+
+  Order          Order    @relation(fields: [order_id], references: [order_id])
+  Merchant       Merchant @relation(fields: [merchant_id], references: [merchant_id]) // Menambahkan relasi ke Merchant
+}
+
+model Order {
+  order_id       Int       @id @default(autoincrement())
+  schedules_id   Int
+  merchant_id    Int      // Sudah ada
+  start_date     DateTime
+  end_date       DateTime
+  customer_name  String
+  total_amount   Int
+  status         String   @default("Pending")
+  
+  Merchant       Merchant    @relation(fields: [merchant_id], references: [merchant_id]) // Sudah ada
+  Schedule       Schedule    @relation(fields: [schedules_id], references: [schedules_id])
+  payments       Payment[]
+  booking        Booking?    
 }
 
 model Booking {
-  booking_id      Int       @id @default(autoincrement())
-  schedules_id    Int  
-  start_date      DateTime
-  end_date        DateTime
-  customer_name   String
-  merchant_id     Int
-  total_amount    Int      
-  Merchant        Merchant    @relation(fields: [merchant_id], references: [merchant_id])
-  Schedule        Schedule    @relation(fields: [schedules_id], references: [schedules_id])
-  Payment         Payment?    @relation
+  booking_id     Int      @id @default(autoincrement())
+  order_id       Int       @unique
+  merchant_id    Int       // Menambahkan merchant_id
+
+  Order          Order    @relation(fields: [order_id], references: [order_id])
+  Merchant       Merchant @relation(fields: [merchant_id], references: [merchant_id]) // Menambahkan relasi ke Merchant
 }
 
-model Payment {
-  payment_id      Int       @id @default(autoincrement())
-  booking_id      Int       @unique         
-  amount          Int      
-  merchant_id     Int
-  payment_method  String    
-  status          String    @default("Pending") 
-  payment_date    DateTime? 
-  Booking         Booking    @relation(fields: [booking_id], references: [booking_id])
-  Merchant        Merchant    @relation(fields: [merchant_id], references: [merchant_id])
-}
 
 
 

@@ -13,7 +13,6 @@ import {
 
 import { useRouter } from "next/navigation";
 import Loading from "../components/loading";
-import moment from "moment";
 
 const { Option } = Select;
 const { Content } = Layout;
@@ -30,40 +29,17 @@ const Schedules: React.FC = () => {
   const onFinish = async (values: any) => {
     const startDateFormatted = values.startDate.format("YYYY-MM-DD");
     const endDateFormatted = values.endDate.format("YYYY-MM-DD");
-
-    sessionStorage.setItem("startDate", startDateFormatted);
-    sessionStorage.setItem("endDate", endDateFormatted);
-
     try {
-      setIsLoading(true);
-      const response = await fetch("/api/schedule/find", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          dateRange: [
-            values.startDate.format("YYYY-MM-DD"),
-            values.endDate.format("YYYY-MM-DD"),
-          ],
-          capacity: values.capacity,
-        }),
-      });
+      const queryString = `startDate=${startDateFormatted}&endDate=${endDateFormatted}&capacity=${values.capacity}`;
+      router.push(`/vehicles?${queryString}`);
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      sessionStorage.setItem("schedules", JSON.stringify(data));
-      message.success("Search successful!");
       setIsLoading(false);
-      router.push("/vehicles");
     } catch (error) {
       console.error("Failed to fetch schedules:", error);
       message.error("Search failed.");
     }
   };
+
 
   if (isLoading) {
     return <Loading />;
