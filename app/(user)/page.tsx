@@ -30,7 +30,7 @@ const Schedules: React.FC<SchedulesProps> = ({ onFinish }) => {
     const endDateFormatted = values.endDate.format("YYYY-MM-DD");
     try {
       const queryString = `startDate=${startDateFormatted}&endDate=${endDateFormatted}&capacity=${values.capacity}`;
-      window.location.href = `http://localhost:3001/vehicles?${queryString}`;
+      window.location.href = `http://localhost:3000/vehicles?${queryString}`;
       setIsLoading(false);
     } catch (error) {
       console.error("Failed to fetch schedules:", error);
