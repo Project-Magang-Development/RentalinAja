@@ -33,8 +33,8 @@ interface Vehicle {
 interface Schedule {
   schedules_id?: number;
   vehicles_id?: number;
-  start_date?: Date;
-  end_date?: Date;
+  start_date?: any;
+  end_date?: any;
   price?: number;
   Vehicle?: Vehicle;
 }
@@ -45,12 +45,13 @@ interface Holiday {
 }
 
 type PayloadType = {
-  start_date: any;
-  end_date: any;
+  start_date: Date | undefined;
+  end_date: Date | undefined;
   vehicles_id: number | undefined;
   price: any;
   schedules_id?: number;
 };
+
 
 function Calendar() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
@@ -181,7 +182,6 @@ function Calendar() {
         throw new Error(errorData.message || "Failed to process request");
       }
 
-      const data = await response.json();
       showSuccessNotification(!!payload.schedules_id);
       setIsModalVisible(false);
       fetchSchedule();
@@ -202,9 +202,9 @@ function Calendar() {
     }
   }, [selectedEvent, isModalVisible, form]);
 
-  const handleDateClick = (dateClickInfo: any) => {
+  const handleDateClick = (clickInfo: any) => {
     const newSelectedEvent = {
-      start_date: moment(dateClickInfo.dateStr),
+      start_date: moment(clickInfo.dateStr),
       end_date: undefined,
       price: 0,
     };
@@ -213,15 +213,21 @@ function Calendar() {
     setIsModalVisible(true);
   };
 
-  const handleEventClick = (clickInfo: any) => {
-    const { event } = clickInfo;
-    setSelectedEvent({
-      ...event.extendedProps,
-      start_date: moment(event.start),
-      end_date: moment(event.end),
-    });
-    setIsModalVisible(true);
-  };
+   const handleEventClick = (clickInfo: any) => {
+     const { event } = clickInfo;
+     const endDate = event.end ? moment(event.end) : undefined;
+
+     if (endDate && endDate.isSame(endDate.clone().startOf("day"))) {
+       endDate.subtract(1, "days");
+     }
+
+     setSelectedEvent({
+       ...event.extendedProps,
+       start_date: moment(event.start),
+       end_date: endDate,
+     });
+     setIsModalVisible(true);
+   };
 
   const handleDeleteEvent = async (schedules_id: number) => {
     setLoading(true);
