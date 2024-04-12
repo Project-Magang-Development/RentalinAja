@@ -20,3 +20,8 @@ export const getCompanyName = (token: string) => {
   const decoded = jwtDecode<MyTokenPayload>(token);
   return decoded.merchant_company;
 };
+
+export const getName = (token: string) => {
+  const decoded = jwtDecode<MyTokenPayload>(token);
+  return decoded.merchant_name;
+};

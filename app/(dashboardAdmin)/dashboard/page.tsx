@@ -29,13 +29,12 @@ interface TotalAmount {
   };
 }
 
-
-
 export default function AdminDashboard() {
   const [totalVehicles, setTotalVehicles] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [monthlyOrders, setMonthlyOrders] = useState([]);
-  const [monthlyTotalAmount, setMonthlyTotalAmount] = useState<TotalAmount | null>(null);
+  const [monthlyTotalAmount, setMonthlyTotalAmount] =
+    useState<TotalAmount | null>(null);
   const [selectedYear, setSelectedYear] = useState(moment().year());
   const [totalPayments, setTotalPayments] = useState(0);
   const [error, setError] = useState("");
@@ -44,11 +43,11 @@ export default function AdminDashboard() {
   moment.locale("id");
   const currentMonth = moment().format("MMMM");
   const currentYear = moment().year();
-  const currentMonthYearSentence = `Bulan ${currentMonth} Tahun ${currentYear}`; 
+  const currentMonthYearSentence = `Bulan ${currentMonth} Tahun ${currentYear}`;
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true); 
+      setLoading(true);
       try {
         await fetchTotalVehicles();
         await fetchTotalOrders();
@@ -60,7 +59,7 @@ export default function AdminDashboard() {
         console.error("Fetching data failed:", error);
         setError("Failed to fetch data.");
       }
-      setLoading(false); 
+      setLoading(false);
     };
 
     fetchData();
@@ -147,45 +146,42 @@ export default function AdminDashboard() {
     }
   };
 
- const fetchMonthlyPayments = async (year: number) => {
-   const token = localStorage.getItem("token");
-   if (!token) {
-     setError("Authentication token not found.");
-     return;
-   }
-   try {
-     const response = await fetch(`/api/payment/${year}`, {
-       method: "GET",
-       headers: {
-         "Content-Type": "application/json",
-         Authorization: `Bearer ${token}`,
-       },
-     });
+  const fetchMonthlyPayments = async (year: number) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Authentication token not found.");
+      return;
+    }
+    try {
+      const response = await fetch(`/api/payment/${year}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-     if (!response.ok) throw new Error("Failed to fetch monthly payments.");
+      if (!response.ok) throw new Error("Failed to fetch monthly payments.");
 
-     const data = await response.json();
-    const transformData = (data: any) => {
-      return data.map((item: any) => ({
-        ...item,
-        month: moment.months(item.month - 1),
-        TotalPendapatan: item.amount,
-        TotalPendapatanFormatted: new Intl.NumberFormat("id-ID", {
-          style: "currency",
-          currency: "IDR",
-        }).format(item.amount),
-      }));
-    };
-    const transformedData = transformData(data);
-    setMonthlyPayments(transformedData);
-
-
-   } catch (error) {
-     console.error("Error fetching monthly payments:", error);
-     setError("Failed to fetch monthly payments.");
-   }
- };
-
+      const data = await response.json();
+      const transformData = (data: any) => {
+        return data.map((item: any) => ({
+          ...item,
+          month: moment.months(item.month - 1),
+          TotalPendapatan: item.amount,
+          TotalPendapatanFormatted: new Intl.NumberFormat("id-ID", {
+            style: "currency",
+            currency: "IDR",
+          }).format(item.amount),
+        }));
+      };
+      const transformedData = transformData(data);
+      setMonthlyPayments(transformedData);
+    } catch (error) {
+      console.error("Error fetching monthly payments:", error);
+      setError("Failed to fetch monthly payments.");
+    }
+  };
 
   const fetchMonthlyOrders = async (year: number) => {
     const token = localStorage.getItem("token");
@@ -255,6 +251,12 @@ export default function AdminDashboard() {
     );
   }
 
+  const colors = [
+    "rgb(229, 115, 115)",
+    "rgb(255, 182, 77)",
+    "rgb(78, 182, 171)",
+  ];
+
   if (error) {
     return <Alert message="Error" description={error} type="error" showIcon />;
   }
@@ -276,57 +278,62 @@ export default function AdminDashboard() {
             {currentMonthYearSentence}
           </Title>
           <Row gutter={16} style={{ margin: "20px 0" }}>
-            <Col span={6}>
-              <Card
-                title={
-                  <Statistic
-                    title="Total Kendaraan"
-                    value={totalVehicles}
-                    prefix={<CarOutlined />}
-                  />
-                }
-                bordered={true}
-              />
-            </Col>
-            <Col span={6}>
-              <Card
-                title={
-                  <Statistic
-                    title="Total Order"
-                    value={totalOrders}
-                    prefix={<BookOutlined />}
-                  />
-                }
-                bordered={true}
-              />
-            </Col>
-            <Col span={6}>
-              <Card
-                title={
-                  <Statistic
-                    title="Total Booking"
-                    value={totalPayments}
-                    prefix={<BookOutlined />}
-                  />
-                }
-                bordered={true}
-              />
-            </Col>
-            <Col span={6}>
-              <Card
-                title={
-                  <Statistic
-                    title={`Total Pendapatan Bulanan`}
-                    value={`Rp ${
-                      monthlyTotalAmount?._sum?.amount?.toLocaleString() ?? "0"
-                    }`}
-                    prefix={<DollarCircleOutlined />}
-                  />
-                }
-                bordered={true}
-              />
-            </Col>
-            <Col span={24} style={{ marginTop: 20 }}>
+            {[
+              {
+                title: "Total Kendaraan",
+                value: totalVehicles,
+                icon: <CarOutlined />,
+              },
+              {
+                title: "Total Order",
+                value: totalOrders,
+                icon: <BookOutlined />,
+              },
+              {
+                title: "Total Booking",
+                value: totalPayments,
+                icon: <BookOutlined />,
+              },
+              {
+                title: "Total Pendapatan Bulanan",
+                value: `Rp ${
+                  monthlyTotalAmount?._sum?.amount?.toLocaleString() ?? "0"
+                }`,
+                icon: <DollarCircleOutlined />,
+              },
+            ].map((item, index) => (
+              <Col span={6} key={index}>
+                <Card
+                  title={
+                    <Statistic
+                      title={
+                        <span style={{ color: "white" }}>{item.title}</span>
+                      }
+                      value={item.value}
+                      prefix={React.cloneElement(item.icon, {
+                        style: { color: "white" },
+                      })}
+                      valueStyle={{ color: "white" }}
+                    />
+                  }
+                  bordered={true}
+                  bodyStyle={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: "100%",
+                  }}
+                  style={{
+                    backgroundColor: colors[index % colors.length],
+                    color: "white",
+                    border: "none",
+                    height: "120%",
+                  }}
+                />
+              </Col>
+            ))}
+            <Col span={24} style={{ marginTop: 40 }}>
               <Col span={6}>
                 <Select
                   defaultValue={selectedYear}

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { getCompanyName } from "../services/authService";
+import { getCompanyName, getName } from "../services/authService";
 import { useRouter } from "next/navigation";
 
-export const useLogin = () => {
+export const useCompanyName = () => {
   const [companyName, setCompanyName] = useState("");
   const router = useRouter();
   useEffect(() => {
@@ -14,4 +14,18 @@ export const useLogin = () => {
     }
   }, []);
   return companyName;
+};
+
+export const useMerchantName = () => {
+  const [merchantName, setMerchantName] = useState("");
+  const router = useRouter();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setMerchantName(getName(token));
+    } else {
+      // router.push("/dahboard/login");
+    }
+  }, []);
+  return merchantName;
 };

@@ -17,7 +17,7 @@ import {
   message,
   notification,
   Popconfirm,
-  Tooltip
+  Tooltip,
 } from "antd";
 import moment from "moment";
 import Title from "antd/es/typography/Title";
@@ -39,12 +39,17 @@ interface Schedule {
   Vehicle?: Vehicle;
 }
 
+interface Holiday {
+  holiday_name: string;
+  holiday_date: Date;
+}
+
 type PayloadType = {
   start_date: any;
   end_date: any;
   vehicles_id: number | undefined;
   price: any;
-  schedules_id?: number; 
+  schedules_id?: number;
 };
 
 function Calendar() {
@@ -57,6 +62,7 @@ function Calendar() {
   const [vehicleDetails, setVehicleDetails] = useState<Vehicle | null>(null);
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [holidays, setHolidays] = useState<Holiday[]>([]); // Add this line>
 
   const fetchSchedule = async () => {
     if (!vehicles_id) return;
@@ -92,9 +98,30 @@ function Calendar() {
   };
 
   useEffect(() => {
-    if (vehicles_id) {
-      fetchSchedule();
-    }
+    const fetchHolidays = async () => {
+      try {
+        const response = await fetch("https://api-harilibur.vercel.app/api");
+        const data = await response.json();
+        const holidayEvents = data.map((holiday: any) => ({
+          title: holiday.holiday_name,
+          start: holiday.holiday_date,
+          allDay: true,
+          backgroundColor: "red",
+          borderColor: "darkred",
+        }));
+        setHolidays(holidayEvents); // Assuming you have a useState to hold holidays
+      } catch (error) {
+        console.error("Error fetching holiday data:", error);
+      }
+    };
+
+    fetchHolidays();
+  }, []);
+
+  
+  useEffect(() => {
+    // Panggil fungsi fetchSchedule dan fetchHolidays di sini
+    fetchSchedule(); // Misalkan Anda memiliki fungsi ini untuk memuat jadwalkan di atas
   }, [vehicles_id]);
 
   const showSuccessNotification = (isUpdate: any) => {
@@ -196,7 +223,6 @@ function Calendar() {
     setIsModalVisible(true);
   };
 
-  // Function to handle deletion of an event
   const handleDeleteEvent = async (schedules_id: number) => {
     setLoading(true);
     try {
@@ -214,7 +240,6 @@ function Calendar() {
         throw new Error(errorData.message || "Failed to delete schedule");
       }
 
-      // Success - Remove the schedule from state to update UI
       const newSchedules = schedules.filter(
         (schedule) => schedule.schedules_id !== schedules_id
       );
@@ -234,8 +259,14 @@ function Calendar() {
     }
   };
 
-  // Adjusted eventContent to include a Popconfirm for deletion
   const eventContent = (eventInfo: any) => {
+    const priceFormatted = eventInfo.event.extendedProps.price
+      ? `<b>${new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+        }).format(eventInfo.event.extendedProps.price)}</b>`
+      : "<b>Price not available</b>";
+
     return (
       <div
         style={{
@@ -245,18 +276,23 @@ function Calendar() {
         }}
       >
         <div>
-          <b>{eventInfo.timeText}</b>
+          <span style={{ fontSize: "14px", fontWeight: "bold" }}>
+            {eventInfo.timeText}
+          </span>
           <br />
-          {eventInfo.event.title}
+          <span
+            style={{ fontSize: "14px", fontWeight: "bold" }}
+            dangerouslySetInnerHTML={{ __html: priceFormatted }}
+          />
         </div>
-        <Tooltip title="Hapus Jadwal">
+        <Tooltip>
           <Popconfirm
             title="Apakah Anda yakin ingin menghapus jadwal ini?"
             onConfirm={(e) => {
-              e?.stopPropagation(); // Prevent the modal from opening
+              e?.stopPropagation();
               handleDeleteEvent(eventInfo.event.extendedProps.schedules_id);
             }}
-            onCancel={(e) => e?.stopPropagation()} // Prevent the modal from opening
+            onCancel={(e) => e?.stopPropagation()}
             okText="Ya"
             cancelText="Tidak"
             placement="topRight"
@@ -266,7 +302,7 @@ function Calendar() {
               icon={<DeleteOutlined />}
               size="small"
               style={{ color: "red", marginLeft: 8 }}
-              onClick={(e) => e.stopPropagation()} // Prevent the event click from being triggered
+              onClick={(e) => e.stopPropagation()}
             />
           </Popconfirm>
         </Tooltip>
@@ -274,11 +310,14 @@ function Calendar() {
     );
   };
 
-  const getRandomColor = () => {
-    const r = Math.floor(Math.random() * 256);
-    const g = Math.floor(Math.random() * 256);
-    const b = Math.floor(Math.random() * 256);
-    return `rgb(${r},${g},${b})`;
+  const colors = [
+    "rgb(229, 115, 115)",
+    "rgb(255, 182, 77)",
+    "rgb(78, 182, 171)",
+  ];
+
+  const addOneDay = (date: any) => {
+    return moment(date).add(1, "days").toDate();
   };
 
   return (
@@ -294,21 +333,39 @@ function Calendar() {
         initialView="dayGridMonth"
         locales={allLocales}
         locale="id"
-        events={schedules.map((schedule) => ({
-          title: `Harga: ${
-            schedule.price
-              ? new Intl.NumberFormat("id-ID", {
-                  style: "currency",
-                  currency: "IDR",
-                }).format(schedule.price)
-              : "Price not available"
-          }`,
-          start: schedule.start_date,
-          end: schedule.end_date,
-          extendedProps: schedule,
-          backgroundColor: getRandomColor(),
-          borderColor: getRandomColor(),
-        }))}
+        events={[
+          ...schedules.map((schedule, index) => ({
+            title: `Harga: ${
+              schedule.price
+                ? new Intl.NumberFormat("id-ID", {
+                    style: "currency",
+                    currency: "IDR",
+                  }).format(schedule.price)
+                : "Price not available"
+            }`,
+            start: schedule.start_date,
+            end: addOneDay(schedule.end_date),
+            allDay: true,
+            extendedProps: schedule,
+            backgroundColor: colors[index % colors.length],
+            borderColor: colors[index % colors.length],
+          })),
+          ...holidays.map((holiday) => ({
+            title: `Holiday: ${holiday.holiday_name}`,
+            start: holiday.holiday_date,
+            allDay: true,
+            backgroundColor: "red",
+            borderColor: "darkred",
+          })),
+        ].map((event) => {
+          if (event.title.includes("Holiday")) {
+            return {
+              ...event,
+              title: event.title.split(":")[1].trim(),
+            };
+          }
+          return event;
+        })}
         eventClick={handleEventClick}
         dateClick={handleDateClick}
         eventContent={eventContent}

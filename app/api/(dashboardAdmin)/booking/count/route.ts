@@ -30,26 +30,22 @@ export async function GET(req: Request) {
 
     const url = new URL(req.url);
     const searchParams = new URLSearchParams(url.search);
-    const statusQuery = searchParams.get("status");
+    const lastChecked = searchParams.get("lastChecked");
+    const lastCheckedNumber = Number(lastChecked);
+    const lastCheckedDate = !isNaN(lastCheckedNumber)
+      ? new Date(lastCheckedNumber)
+      : new Date(0);
 
-    const orders = await prisma.order.findMany({
+    const newBookingCount = await prisma.booking.count({
       where: {
         merchant_id: decoded.merchantId,
-        ...(statusQuery && { status: statusQuery }), 
-      },
-      orderBy: {
-        order_id: "desc",
-      },
-      include: {
-        Schedule: {
-          include: {
-            Vehicle: true,
-          },
+        created_at: {
+          gt: lastCheckedDate,
         },
       },
     });
 
-    return new NextResponse(JSON.stringify(orders), {
+    return new NextResponse(JSON.stringify({ count: newBookingCount }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

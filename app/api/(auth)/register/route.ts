@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import moment from "moment"; 
 import nodemailer from "nodemailer"; 
+import crypto from "crypto"; 
 
 const prisma = new PrismaClient();
 
@@ -38,6 +39,8 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Invalid plan duration" });
     }
 
+    const generateApiKey = () => crypto.randomBytes(32).toString("hex");
+
     const newUser = await prisma.merchant.create({
       data: {
         merchant_name: name,
@@ -46,6 +49,7 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         start_date: startDate,
+        api_key: generateApiKey(),
         end_date: endDate.toDate(),
       },
     });

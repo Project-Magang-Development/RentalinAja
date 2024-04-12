@@ -43,7 +43,6 @@ const RegisterDashboard: React.FC = () => {
         throw new Error(`Error: ${response.status}`);
       }
       localStorage.removeItem("planDuration")
-      // router.push("/dashboard/login");
       message.success("Registration successful!");
       setLoading(false);
     } catch {

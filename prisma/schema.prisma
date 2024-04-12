@@ -23,6 +23,7 @@ model Merchant {
   end_date           DateTime?
   email              String             @unique
   password           String
+  api_key            String             @unique
   vehicles           Vehicle[]
   schedules          Schedule[]
   orders             Order[]
@@ -73,25 +74,27 @@ model Schedule {
 model Payment {
   payment_id     Int      @id @default(autoincrement())
   order_id       Int
-  merchant_id    Int      // Menambahkan merchant_id
+  merchant_id    Int     
   amount         Int
   payment_method String
   status         String   @default("Pending")
   payment_date   DateTime?
 
   Order          Order    @relation(fields: [order_id], references: [order_id])
-  Merchant       Merchant @relation(fields: [merchant_id], references: [merchant_id]) // Menambahkan relasi ke Merchant
+  Merchant       Merchant @relation(fields: [merchant_id], references: [merchant_id])
+  Booking        Booking?
 }
 
 model Order {
   order_id       Int       @id @default(autoincrement())
   schedules_id   Int
-  merchant_id    Int      // Sudah ada
+  merchant_id    Int
   start_date     DateTime
   end_date       DateTime
   customer_name  String
   total_amount   Int
   status         String   @default("Pending")
+  created_at     DateTime @default(now())
   
   Merchant       Merchant    @relation(fields: [merchant_id], references: [merchant_id]) // Sudah ada
   Schedule       Schedule    @relation(fields: [schedules_id], references: [schedules_id])
@@ -101,11 +104,14 @@ model Order {
 
 model Booking {
   booking_id     Int      @id @default(autoincrement())
-  order_id       Int       @unique
-  merchant_id    Int       // Menambahkan merchant_id
+  order_id       Int      @unique
+  payment_id     Int      @unique
+  merchant_id    Int       
+  created_at     DateTime @default(now())
 
   Order          Order    @relation(fields: [order_id], references: [order_id])
-  Merchant       Merchant @relation(fields: [merchant_id], references: [merchant_id]) // Menambahkan relasi ke Merchant
+  Payment        Payment  @relation(fields: [payment_id], references: [payment_id])
+  Merchant       Merchant @relation(fields: [merchant_id], references: [merchant_id])
 }
 
 

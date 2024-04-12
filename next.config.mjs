@@ -8,7 +8,6 @@ const nextConfig = {
         hostname: "assets.example.com",
         pathname: "/account123/**",
       },
-      // Jika Anda ingin menggunakan remotePatterns untuk Unsplash atau domain lain, tambahkan blok baru di sini
     ],
   },
 

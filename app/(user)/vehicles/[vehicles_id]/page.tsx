@@ -121,6 +121,8 @@ export default function DetailVehiclePage() {
     try {
       setLoading(true);
 
+      const tokenMerchant = localStorage.getItem("token");
+
       const response = await fetch("/api/order/create", {
         method: "POST",
         headers: {
@@ -133,6 +135,7 @@ export default function DetailVehiclePage() {
           schedules_id: selectedSchedule.schedules_id,
           merchant_id: selectedSchedule.merchant_id,
           price: selectedSchedule.price,
+          token: tokenMerchant,
         }),
       });
 

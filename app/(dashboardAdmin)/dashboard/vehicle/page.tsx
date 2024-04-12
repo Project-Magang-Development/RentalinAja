@@ -11,6 +11,7 @@ import {
   Select,
   Flex,
   Upload,
+  DatePicker,
 } from "antd";
 import Title from "antd/es/typography/Title";
 import {
@@ -24,6 +25,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { UploadChangeParam, UploadFile } from "antd/lib/upload/interface";
 
+const { RangePicker } = DatePicker;
+
 interface Vehicle {
   vehicles_id: number;
   name: string;
@@ -33,8 +36,6 @@ interface Vehicle {
   price: number;
   imageUrl: string;
 }
-
-
 
 export default function AdminVehicleDashboard() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -111,32 +112,27 @@ export default function AdminVehicleDashboard() {
     }
   }, [editingVehicle]);
 
- 
-const handleFileChange = (info: UploadChangeParam) => {
-  let newFileList = [...info.fileList];
-  newFileList = newFileList.slice(-1); // Menyimpan hanya file terakhir yang ditambahkan
+  const handleFileChange = (info: UploadChangeParam) => {
+    let newFileList = [...info.fileList];
+    newFileList = newFileList.slice(-1);
 
-  // Konversi file terakhir ke base64
-  if (newFileList[0] && newFileList[0].originFileObj) {
-    convertFileToBase64(newFileList[0].originFileObj, (base64) => {
-      const fileInBase64 = base64 as string;
+    if (newFileList[0] && newFileList[0].originFileObj) {
+      convertFileToBase64(newFileList[0].originFileObj, (base64) => {
+        const fileInBase64 = base64 as string;
 
-      // Simpan base64 sebagai fileList state
-      setFileList([
-        {
-          uid: "-1",
-          name: newFileList[0].name,
-          status: "done",
-          url: fileInBase64, // Gunakan base64 sebagai url
-        },
-      ]);
-    });
-  } else {
-    // Jika tidak ada file yang diupload, kosongkan fileList
-    setFileList([]);
-  }
-};
-
+        setFileList([
+          {
+            uid: "-1",
+            name: newFileList[0].name,
+            status: "done",
+            url: fileInBase64, // Gunakan base64 sebagai url
+          },
+        ]);
+      });
+    } else {
+      setFileList([]);
+    }
+  };
 
   const handleEdit = (vehicles_id: number) => {
     const vehicleToEdit = vehicles.find(
@@ -214,6 +210,7 @@ const handleFileChange = (info: UploadChangeParam) => {
       form.resetFields();
       setIsModalVisible(false);
       setEditingVehicle(null);
+      setFileList([]);
       setLoading(false);
       fetchVehicles();
     } catch (error) {
@@ -233,6 +230,47 @@ const handleFileChange = (info: UploadChangeParam) => {
     setIsModalVisible(false); // Close the modal
   };
 
+  const handleSubmit = async (values: any) => {
+    const [startDate, endDate] = values.dateRange;
+
+    const formattedStartDate = startDate.format("YYYY-MM-DD");
+    const formattedEndDate = endDate.format("YYYY-MM-DD");
+
+    setLoading(true);
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setError("Authentication token not found.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/schedule/findVehicle", {
+        method: "POST",
+        cache: "no-cache",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          startDate: formattedStartDate,
+          endDate: formattedEndDate,
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch vehicles.");
+
+      const data = await response.json();
+      setVehicles(data);
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
+      setError("Failed to fetch vehicles.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSchedule = (vehicles_id: number) => {
     router.push(`/dashboard/vehicle/calendar/${vehicles_id}`);
   };
@@ -242,9 +280,12 @@ const handleFileChange = (info: UploadChangeParam) => {
   };
 
   const filteredVehicles = vehicles.filter((vehicle) => {
+    const name = vehicle.name || "";
+    const model = vehicle.model || "";
+
     return (
-      vehicle.name.toLowerCase().includes(searchText.toLowerCase()) ||
-      vehicle.model.toLowerCase().includes(searchText.toLowerCase())
+      name.toLowerCase().includes(searchText.toLowerCase()) ||
+      model.toLowerCase().includes(searchText.toLowerCase())
     );
   });
 
@@ -373,6 +414,25 @@ const handleFileChange = (info: UploadChangeParam) => {
           Tambah Data Kendaraan
         </Button>
 
+        <div style={{}}>
+          <Form
+            onFinish={handleSubmit} 
+            style={{ display: "flex", alignItems: "center", gap: "10px" }}
+          >
+            <Form.Item
+              name="dateRange"
+              rules={[
+                { required: true, message: "Please select a date range!" },
+              ]}
+            >
+              <RangePicker />
+            </Form.Item>
+            <Button type="primary" htmlType="submit">
+              Filter
+            </Button>
+          </Form>
+        </div>
+
         <Input
           placeholder="Cari Kendaraan..."
           value={searchText}
@@ -380,7 +440,6 @@ const handleFileChange = (info: UploadChangeParam) => {
           style={{ width: "50%" }}
         />
       </Flex>
-
       <Table
         columns={columns}
         dataSource={filteredVehicles.map((vehicle, index) => ({
@@ -482,8 +541,8 @@ const handleFileChange = (info: UploadChangeParam) => {
               listType="picture-card"
               fileList={fileList}
               onChange={handleFileChange}
-              beforeUpload={() => false} // Menghentikan upload otomatis
-              showUploadList={false} // Menyembunyikan daftar upload standar
+              beforeUpload={() => false}
+              showUploadList={false}
             >
               {fileList.length > 0 ? (
                 fileList.map((file) => (

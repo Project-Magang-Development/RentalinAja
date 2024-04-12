@@ -32,24 +32,31 @@ export async function GET(req: Request) {
     const searchParams = new URLSearchParams(url.search);
     const statusQuery = searchParams.get("status");
 
-    const orders = await prisma.order.findMany({
+    const bookings = await prisma.booking.findMany({
       where: {
         merchant_id: decoded.merchantId,
-        ...(statusQuery && { status: statusQuery }), 
+        Order: {
+          status: statusQuery ? statusQuery : undefined,
+        },
       },
       orderBy: {
-        order_id: "desc",
+        created_at: "desc",
       },
       include: {
-        Schedule: {
+        Order: {
           include: {
-            Vehicle: true,
+            Schedule: {
+              include: {
+                Vehicle: true,
+              },
+            },
           },
         },
+        Payment: true, 
       },
     });
 
-    return new NextResponse(JSON.stringify(orders), {
+    return new NextResponse(JSON.stringify(bookings), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

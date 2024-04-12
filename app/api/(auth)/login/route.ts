@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     const token = jwt.sign(
-      { merchantId: merchant.merchant_id, email: merchant.email, merchant_company: merchant.merchant_company },
+      { merchantId: merchant.merchant_id, email: merchant.email, merchant_company: merchant.merchant_company, merchant_name: merchant.merchant_name },
       process.env.JWT_SECRET as string,
     );
 

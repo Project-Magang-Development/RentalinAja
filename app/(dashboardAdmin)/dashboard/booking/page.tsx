@@ -4,6 +4,21 @@ import React, { useEffect, useState } from "react";
 import { message, Radio, Space, Table } from "antd";
 import moment from "moment";
 import Title from "antd/es/typography/Title";
+import { ColumnType } from "antd/es/table";
+
+interface Booking {
+  booking_id: number;
+  merchant_id: number;
+  Order: Order;
+  Payment: Payment;
+}
+
+interface Payment {
+  payment_id: number;
+  amount: number;
+  payment_method: string;
+  status: string;
+}
 
 interface Order {
   order_id: number;
@@ -31,13 +46,13 @@ interface Order {
   };
 }
 
-export default function AdminOrderDashboard() {
-  const [orders, setOrders] = useState<Order[]>([]);
+export default function AdminBookingDashboard() {
+  const [bookings, setBookings] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
   const [filterStatus, setFilterStatus] = useState<string>("");
 
-  const fetchOrders = async (status?: string) => {
+  const fetchBooking = async (status?: string) => {
     setLoading(true);
     const token = localStorage.getItem("token");
     if (!token) {
@@ -47,7 +62,7 @@ export default function AdminOrderDashboard() {
     }
     try {
       const query = status ? `?status=${status}` : "";
-      const response = await fetch(`/api/order/show${query}`, {
+      const response = await fetch(`/api/booking/show${query}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +73,7 @@ export default function AdminOrderDashboard() {
       if (!response.ok) throw new Error("Failed to fetch orders.");
 
       const data = await response.json();
-      setOrders(data);
+      setBookings(data);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -68,14 +83,14 @@ export default function AdminOrderDashboard() {
   };
 
   useEffect(() => {
-    fetchOrders(filterStatus);
+    fetchBooking(filterStatus);
   }, [filterStatus]);
 
   const StatusFilter = () => (
     <Radio.Group onChange={handleFilterChange} value={filterStatus}>
       <Radio.Button value="">Semua</Radio.Button>
       <Radio.Button value="Berhasil">Berhasil</Radio.Button>
-      <Radio.Button value="Pending">Pending</Radio.Button>
+      <Radio.Button value="Gagal">Gagal</Radio.Button>
     </Radio.Group>
   );
 
@@ -83,7 +98,7 @@ export default function AdminOrderDashboard() {
     setFilterStatus(e.target.value);
   };
 
-  const columns = [
+  const column = [
     {
       title: "No",
       dataIndex: "index",
@@ -95,24 +110,26 @@ export default function AdminOrderDashboard() {
       title: "Nama Pelanggan",
       dataIndex: "customer_name",
       key: "customer_name",
+      render: (text: any, record: any) =>
+        record?.Order?.customer_name || "Data tidak tersedia",
     },
     {
       title: "No Plat",
       key: "no_plat",
-      render: (record: Order) =>
-        record?.Schedule.Vehicle?.no_plat || "Tidak tersedia",
+      render: (record: any) =>
+        record?.Order?.Schedule.Vehicle?.no_plat || "Tidak tersedia",
     },
     {
       title: "Nama Kendaraan",
       key: "vehicleName",
-      render: (record: Order) =>
-        record?.Schedule?.Vehicle?.name || "Tidak tersedia",
+      render: (record: any) =>
+        record?.Order?.Schedule?.Vehicle?.name || "Tidak tersedia",
     },
     {
       title: "Model Kendaraan",
       key: "vehicleModel",
-      render: (record: Order) =>
-        record?.Schedule?.Vehicle?.model || "Tidak tersedia",
+      render: (record: any) =>
+        record?.Order?.Schedule?.Vehicle?.model || "Tidak tersedia",
     },
     {
       title: "Tanggal Mulai",
@@ -130,39 +147,39 @@ export default function AdminOrderDashboard() {
       title: "Total Harga",
       dataIndex: "total_amount",
       key: "total_amount",
-      render: (data: any) => {
+      render: (_: any, record: any) => {
         const formattedPrice = new Intl.NumberFormat("id-ID", {
           style: "currency",
           currency: "IDR",
-        }).format(data);
+        }).format(record.Payment.amount); // Use Payment from Booking
         return formattedPrice;
       },
     },
-    // {
-    //   title: "Metode Pembayaran",
-    //   dataIndex: "status",
-    //   key: "status",
-    //   render: (text: any, record: any) => record?.Payment?.payment_method || "",
-    // },
+    {
+      title: "Metode Pembayaran",
+      dataIndex: "payment_method",
+      key: "payment_method",
+      render: (_: any, record: any) => record.Payment.payment_method, // Use Payment from Booking
+    },
     {
       title: "Status Pembayaran",
-      dataIndex: "status",
-      key: "status",
-      // render: (text: any, record: any) => record?.Payment?.status || "Pending",
+      dataIndex: "payment_status",
+      key: "payment_status",
+      render: (_: any, record: any) => record.Payment.status, // Use Payment from Booking
     },
   ];
 
   return (
     <div>
-      <Title level={3}>Data Penyewaan Kendaraan</Title>
+      <Title level={3}>Data Booking Kendaraan</Title>
       <Space direction="vertical" style={{ marginBottom: 16 }}>
         <StatusFilter />
       </Space>
       <Table
-        columns={columns}
-        dataSource={orders}
+        columns={column}
+        dataSource={bookings}
         loading={loading}
-        rowKey="order_id"
+        rowKey="booking_id"
         onChange={(pagination) => {
           setPagination({
             pageSize: pagination.pageSize || 10,
