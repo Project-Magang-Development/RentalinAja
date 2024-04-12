@@ -204,7 +204,7 @@ function Calendar() {
 
   const handleDateClick = (dateClickInfo: any) => {
     const newSelectedEvent = {
-      start_date: moment(dateClickInfo.dateStr),
+      start_date: moment(dateClickInfo.dateStr).toDate(),
       end_date: undefined,
       price: 0,
     };

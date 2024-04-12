@@ -1,20 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Button,
-  DatePicker,
-  Form,
-  InputNumber,
-  Select,
-  Layout,
-  message,
-} from "antd";
-
-import { useRouter } from "next/navigation";
+import { Button, DatePicker, Form, InputNumber, Layout, message } from "antd";
 import Loading from "../components/loading";
 
-const { Option } = Select;
 const { Content } = Layout;
 
 const formItemLayout = {
@@ -22,24 +11,32 @@ const formItemLayout = {
   wrapperCol: { span: 16 },
 };
 
-const Schedules: React.FC = () => {
-  const router = useRouter();
+interface SchedulesProps {
+  onFinish: (queryString: string) => void;
+}
+
+interface FormValues {
+  startDate: moment.Moment;
+  endDate: moment.Moment;
+  capacity: number;
+}
+
+const Schedules: React.FC<SchedulesProps> = ({ onFinish }) => {
   const [isLoading, setIsLoading] = useState(false);
   const dateFormat = "DD MMMM YYYY";
-  const onFinish = async (values: any) => {
+
+  const handleFinish = async (values: any) => {
     const startDateFormatted = values.startDate.format("YYYY-MM-DD");
     const endDateFormatted = values.endDate.format("YYYY-MM-DD");
     try {
       const queryString = `startDate=${startDateFormatted}&endDate=${endDateFormatted}&capacity=${values.capacity}`;
-      router.push(`/vehicles?${queryString}`);
-
+      window.location.href = `http://localhost:3001/vehicles?${queryString}`;
       setIsLoading(false);
     } catch (error) {
       console.error("Failed to fetch schedules:", error);
       message.error("Search failed.");
     }
   };
-
 
   if (isLoading) {
     return <Loading />;
@@ -63,7 +60,7 @@ const Schedules: React.FC = () => {
             padding: "20px",
             borderRadius: "8px",
           }}
-          onFinish={onFinish}
+          onFinish={handleFinish}
           variant="filled"
         >
           <Form.Item
