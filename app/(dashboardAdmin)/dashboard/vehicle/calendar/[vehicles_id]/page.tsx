@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -63,9 +63,9 @@ function Calendar() {
   const [vehicleDetails, setVehicleDetails] = useState<Vehicle | null>(null);
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [holidays, setHolidays] = useState<Holiday[]>([]); // Add this line>
+  const [holidays, setHolidays] = useState<Holiday[]>([]); 
 
-  const fetchSchedule = async () => {
+  const fetchSchedule = useCallback(async () => {
     if (!vehicles_id) return;
     setLoading(true);
     const token = localStorage.getItem("token");
@@ -96,7 +96,7 @@ function Calendar() {
       setError("Failed to fetch schedules.");
       setLoading(false);
     }
-  };
+  }, [vehicles_id, setLoading, setError, setVehicleDetails, setSchedules]);
 
   useEffect(() => {
     const fetchHolidays = async () => {
@@ -123,7 +123,7 @@ function Calendar() {
   useEffect(() => {
     // Panggil fungsi fetchSchedule dan fetchHolidays di sini
     fetchSchedule(); // Misalkan Anda memiliki fungsi ini untuk memuat jadwalkan di atas
-  }, [vehicles_id]);
+  }, [vehicles_id, fetchSchedule]);
 
   const showSuccessNotification = (isUpdate: any) => {
     notification.success({
@@ -372,6 +372,8 @@ function Calendar() {
           }
           return event;
         })}
+        // showNonCurrentDates={false} // Tidak menampilkan tanggal di luar bulan saat ini
+        fixedWeekCount={false}
         eventClick={handleEventClick}
         dateClick={handleDateClick}
         eventContent={eventContent}
