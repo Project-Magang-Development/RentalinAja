@@ -5,6 +5,31 @@ const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
+
+    const apiKeyHeader = req.headers.get("Authorization");
+    const apiKey = apiKeyHeader?.split(" ")[1];
+    
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: "API key not provided" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const merchant = await prisma.merchant.findUnique({
+      where: { api_key: apiKey },
+    });
+
+    if (!merchant) {
+      return new Response(
+        JSON.stringify({ error: "Merchant not found or inactive" }),
+        {
+          status: 404,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const body = await req.json();
     const { dateRange, capacity } = body;
     const [startDate, endDate] = dateRange;
@@ -39,6 +64,7 @@ export async function POST(req: Request) {
               capacity: {
                 gte: capacity,
               },
+              merchant_id: merchant.merchant_id,
             },
           },
           {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, DatePicker, Form, InputNumber, Layout, message } from "antd";
 import Loading from "../components/loading";
 
@@ -13,6 +13,7 @@ const formItemLayout = {
 
 interface SchedulesProps {
   onFinish: (queryString: string) => void;
+  apiKey: string;
 }
 
 interface FormValues {
@@ -23,13 +24,24 @@ interface FormValues {
 
 const Schedules: React.FC<SchedulesProps> = ({ onFinish }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKey, setApiKey] = useState("");
   const dateFormat = "DD MMMM YYYY";
+
+  useEffect(() => {
+    window.addEventListener("load", () => {
+      const scriptTag = document.querySelector("script[data-api-key]");
+      const key = scriptTag?.getAttribute("data-api-key");
+      if (key) {
+        setApiKey(key);
+      }
+    });
+  }, []);
 
   const handleFinish = async (values: any) => {
     const startDateFormatted = values.startDate.format("YYYY-MM-DD");
     const endDateFormatted = values.endDate.format("YYYY-MM-DD");
     try {
-      const queryString = `startDate=${startDateFormatted}&endDate=${endDateFormatted}&capacity=${values.capacity}`;
+      const queryString = `startDate=${startDateFormatted}&endDate=${endDateFormatted}&capacity=${values.capacity}&apiKey=${apiKey}`;
       window.location.href = `http://localhost:3000/vehicles?${queryString}`;
       setIsLoading(false);
     } catch (error) {

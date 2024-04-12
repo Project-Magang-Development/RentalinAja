@@ -39,7 +39,7 @@ export async function POST(req: Request) {
       process.env.JWT_SECRET as string,
     );
 
-    return NextResponse.json({ token });
+    return NextResponse.json({ token, apiKey: merchant.api_key });
   } catch (error) {
     console.error("Error accessing database:", error);
     return new NextResponse(

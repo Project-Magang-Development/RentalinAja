@@ -28,23 +28,26 @@ const VehiclePage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
-   const startDate = searchParams.get("startDate");
-   const endDate = searchParams.get("endDate");
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
 
   useEffect(() => {
     const fetchSchedules = async () => {
+      
       try {
         const capacity = searchParams.get("capacity");
         const capacityNumber = parseInt(capacity || "0");
+        const apiKey = searchParams.get("apiKey");
 
         const response = await fetch("/api/schedule/find", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${apiKey}`,
           },
           body: JSON.stringify({
             dateRange: [startDate, endDate],
-            capacityNumber
+            capacityNumber,
           }),
         });
 
@@ -61,7 +64,7 @@ const VehiclePage = () => {
 
     fetchSchedules();
   }, [searchParams, startDate, endDate]);
-  
+
   const handleCardClick = (vehicles_id: number) => {
     router.push(
       `/vehicles/${vehicles_id}?startDate=${startDate}&endDate=${endDate}`
@@ -77,11 +80,7 @@ const VehiclePage = () => {
               <Col key={index} span={8} style={{ marginBottom: 20 }}>
                 <Card
                   hoverable
-                  onClick={() =>
-                    handleCardClick(
-                      schedule.Vehicle.vehicles_id,
-                    )
-                  }
+                  onClick={() => handleCardClick(schedule.Vehicle.vehicles_id)}
                   cover={
                     <div
                       style={{

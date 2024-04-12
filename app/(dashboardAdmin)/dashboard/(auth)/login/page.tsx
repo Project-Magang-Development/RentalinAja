@@ -32,6 +32,7 @@ export default function LoginDashboard() {
 
       const data = await response.json();
       localStorage.setItem("token", data.token);
+      localStorage.setItem("apiKey", data.apiKey);
       message.success("Login successful!");
       setLoading(false);
       router.push("/dashboard");
