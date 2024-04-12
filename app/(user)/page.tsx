@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, DatePicker, Form, InputNumber, Layout, message } from "antd";
 import Loading from "../components/loading";
+import moment, { Moment } from "moment";
 
 const { Content } = Layout;
 
@@ -11,33 +12,30 @@ const formItemLayout = {
   wrapperCol: { span: 16 },
 };
 
-interface SchedulesProps {
-  onFinish: (queryString: string) => void;
-  apiKey: string;
-}
+
 
 interface FormValues {
-  startDate: moment.Moment;
-  endDate: moment.Moment;
+  startDate: Moment;
+  endDate: Moment;
   capacity: number;
 }
 
-const Schedules: React.FC<SchedulesProps> = ({ onFinish }) => {
+
+const Schedules: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKey] = useState('');
   const dateFormat = "DD MMMM YYYY";
 
   useEffect(() => {
-    window.addEventListener("load", () => {
-      const scriptTag = document.querySelector("script[data-api-key]");
-      const key = scriptTag?.getAttribute("data-api-key");
-      if (key) {
-        setApiKey(key);
-      }
-    });
+    const key = document
+      .querySelector("script[data-api-key]")
+      ?.getAttribute("data-api-key");
+    if (key) {
+      setApiKey(key);
+    }
   }, []);
 
-  const handleFinish = async (values: any) => {
+  const handleFinish = async (values: FormValues) => {
     const startDateFormatted = values.startDate.format("YYYY-MM-DD");
     const endDateFormatted = values.endDate.format("YYYY-MM-DD");
     try {
@@ -55,60 +53,54 @@ const Schedules: React.FC<SchedulesProps> = ({ onFinish }) => {
   }
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Content
+    <Content
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Form
+        {...formItemLayout}
         style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "50px",
+          background: "#f7f7f7",
+          padding: "20px",
+          borderRadius: "8px",
         }}
+        onFinish={handleFinish}
+        variant="filled"
       >
-        <Form
-          {...formItemLayout}
-          style={{
-            maxWidth: "600px",
-            background: "#f7f7f7",
-            padding: "20px",
-            borderRadius: "8px",
-          }}
-          onFinish={handleFinish}
-          variant="filled"
+        <Form.Item
+          label="Start Date"
+          name="startDate"
+          rules={[{ required: true, message: "Please select the start date!" }]}
         >
-          <Form.Item
-            label="Start Date"
-            name="startDate"
-            rules={[
-              { required: true, message: "Please select the start date!" },
-            ]}
-          >
-            <DatePicker format={dateFormat} />
-          </Form.Item>
+          <DatePicker format={dateFormat} />
+        </Form.Item>
 
-          <Form.Item
-            label="End Date"
-            name="endDate"
-            rules={[{ required: true, message: "Please select the end date!" }]}
-          >
-            <DatePicker format={dateFormat} />
-          </Form.Item>
+        <Form.Item
+          label="End Date"
+          name="endDate"
+          rules={[{ required: true, message: "Please select the end date!" }]}
+        >
+          <DatePicker format={dateFormat} />
+        </Form.Item>
 
-          <Form.Item
-            label="Capacity"
-            name="capacity"
-            rules={[{ required: true, message: "Please input the capacity!" }]}
-          >
-            <InputNumber min={1} style={{ width: "100%" }} />
-          </Form.Item>
+        <Form.Item
+          label="Capacity"
+          name="capacity"
+          rules={[{ required: true, message: "Please input the capacity!" }]}
+        >
+          <InputNumber min={1} style={{ width: "100%" }} />
+        </Form.Item>
 
-          <Form.Item wrapperCol={{ span: 24 }} style={{ textAlign: "center" }}>
-            <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
-              Submit
-            </Button>
-          </Form.Item>
-        </Form>
-      </Content>
-    </Layout>
+        <Form.Item wrapperCol={{ span: 24 }} style={{ textAlign: "center" }}>
+          <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
+            Submit
+          </Button>
+        </Form.Item>
+      </Form>
+    </Content>
   );
 };
 
