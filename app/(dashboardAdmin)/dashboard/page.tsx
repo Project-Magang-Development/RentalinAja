@@ -18,6 +18,7 @@ import {
   BookOutlined,
   CarOutlined,
   DollarCircleOutlined,
+  OrderedListOutlined,
 } from "@ant-design/icons";
 import Title from "antd/es/typography/Title";
 
@@ -43,7 +44,7 @@ export default function AdminDashboard() {
   moment.locale("id");
   const currentMonth = moment().format("MMMM");
   const currentYear = moment().year();
-  const currentMonthYearSentence = `Bulan ${currentMonth} Tahun ${currentYear}`;
+  const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -251,12 +252,6 @@ export default function AdminDashboard() {
     );
   }
 
-  const colors = [
-    "rgb(229, 115, 115)",
-    "rgb(255, 182, 77)",
-    "rgb(78, 182, 171)",
-  ];
-
   if (error) {
     return <Alert message="Error" description={error} type="error" showIcon />;
   }
@@ -274,28 +269,28 @@ export default function AdminDashboard() {
         />
       ) : (
         <>
-          <Title level={3} style={{ marginBottom: "20px" }}>
+          <Title level={3} style={{ marginBottom: "25px", marginTop: "-25px" }}>
             {currentMonthYearSentence}
           </Title>
           <Row gutter={16} style={{ margin: "20px 0" }}>
             {[
               {
-                title: "Total Kendaraan",
+                title: "TOTAL KENDARAAN",
                 value: totalVehicles,
                 icon: <CarOutlined />,
               },
               {
-                title: "Total Order",
+                title: "TOTAL ORDER",
                 value: totalOrders,
-                icon: <BookOutlined />,
+                icon: <OrderedListOutlined />,
               },
               {
-                title: "Total Booking",
+                title: "TOTAL BOOKING",
                 value: totalPayments,
                 icon: <BookOutlined />,
               },
               {
-                title: "Total Pendapatan Bulanan",
+                title: "TOTAL PENDAPATAN",
                 value: `Rp ${
                   monthlyTotalAmount?._sum?.amount?.toLocaleString() ?? "0"
                 }`,
@@ -304,33 +299,52 @@ export default function AdminDashboard() {
             ].map((item, index) => (
               <Col span={6} key={index}>
                 <Card
-                  title={
-                    <Statistic
-                      title={
-                        <span style={{ color: "white" }}>{item.title}</span>
-                      }
-                      value={item.value}
-                      prefix={React.cloneElement(item.icon, {
-                        style: { color: "white" },
-                      })}
-                      valueStyle={{ color: "white" }}
-                    />
-                  }
-                  bordered={true}
+                  bordered={false}
                   bodyStyle={{
+                    padding: "24px",
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
                     height: "100%",
                   }}
                   style={{
-                    backgroundColor: colors[index % colors.length],
-                    color: "white",
-                    border: "none",
-                    height: "120%",
+                    backgroundColor: "white",
+                    borderRadius: "10px",
+                    boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
                   }}
-                />
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <h3
+                      style={{ margin: 0, fontWeight: "bold", color: "gray" }}
+                    >
+                      {item.title}
+                    </h3>
+                    {React.cloneElement(item.icon, {
+                      style: { fontSize: "24px", color: "#8260FE" },
+                    })}
+                  </div>
+                  <div
+                    style={{
+                      alignSelf: "flex-start",
+                      margin: "10px 0 0",
+                      width: "100%",
+                    }}
+                  >
+                    <Statistic
+                      value={item.value}
+                      valueStyle={{
+                        color: "black",
+                        fontSize: "24px",
+                        fontWeight: "bold",
+                      }}
+                    />
+                  </div>
+                </Card>
               </Col>
             ))}
             <Col span={24} style={{ marginTop: 40 }}>
@@ -353,7 +367,11 @@ export default function AdminDashboard() {
               <Card
                 title={`Data Sewa Per Bulan Tahun ${selectedYear}`}
                 bordered={true}
-                style={{ marginBottom: 20 }}
+                style={{
+                  marginBottom: 20,
+                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)", // Menambahkan box shadow
+                  borderRadius: "10px", // Jika Anda ingin membulatkan sudut
+                }}
               >
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart
@@ -387,6 +405,11 @@ export default function AdminDashboard() {
               <Card
                 title={`Data Pendapatan Per Bulan Tahun ${selectedYear}`}
                 bordered={true}
+                style={{
+                  marginBottom: 20,
+                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                  borderRadius: "10px",
+                }}
               >
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart

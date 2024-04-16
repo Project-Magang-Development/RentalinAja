@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { message, Radio, Space, Table } from "antd";
+import { Divider, message, Radio, Space, Table } from "antd";
 import moment from "moment";
 import Title from "antd/es/typography/Title";
 
@@ -155,7 +155,8 @@ export default function AdminOrderDashboard() {
   return (
     <div>
       <Title level={3}>Data Penyewaan Kendaraan</Title>
-      <Space direction="vertical" style={{ marginBottom: 16 }}>
+      <Divider />
+      <Space direction="vertical" style={{ marginBottom: "24px" }}>
         <StatusFilter />
       </Space>
       <Table

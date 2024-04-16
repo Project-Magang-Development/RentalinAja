@@ -258,62 +258,11 @@ function Calendar() {
       console.error("Failed to delete schedule:", error);
       notification.error({
         message: "Gagal",
-        description: "Berhasil Menghapus Jadwal.",
+        description: "Gagal Menghapus Jadwal.",
       });
     } finally {
       setLoading(false);
     }
-  };
-
-  const eventContent = (eventInfo: any) => {
-    const priceFormatted = eventInfo.event.extendedProps.price
-      ? `<b>${new Intl.NumberFormat("id-ID", {
-          style: "currency",
-          currency: "IDR",
-        }).format(eventInfo.event.extendedProps.price)}</b>`
-      : "<b>Price not available</b>";
-
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
-      >
-        <div>
-          <span style={{ fontSize: "14px", fontWeight: "bold" }}>
-            {eventInfo.timeText}
-          </span>
-          <br />
-          <span
-            style={{ fontSize: "14px", fontWeight: "bold" }}
-            dangerouslySetInnerHTML={{ __html: priceFormatted }}
-          />
-        </div>
-        <Tooltip>
-          <Popconfirm
-            title="Apakah Anda yakin ingin menghapus jadwal ini?"
-            onConfirm={(e) => {
-              e?.stopPropagation();
-              handleDeleteEvent(eventInfo.event.extendedProps.schedules_id);
-            }}
-            onCancel={(e) => e?.stopPropagation()}
-            okText="Ya"
-            cancelText="Tidak"
-            placement="topRight"
-          >
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              size="small"
-              style={{ color: "red", marginLeft: 8 }}
-              onClick={(e) => e.stopPropagation()}
-            />
-          </Popconfirm>
-        </Tooltip>
-      </div>
-    );
   };
 
   const colors = [
@@ -326,6 +275,106 @@ function Calendar() {
     return moment(date).add(1, "days").toDate();
   };
 
+  const eventContent = (eventInfo: any) => {
+    const priceFormatted = eventInfo.event.extendedProps.price
+      ? `<b>${new Intl.NumberFormat("id-ID", {
+          style: "currency",
+          currency: "IDR",
+        }).format(eventInfo.event.extendedProps.price)}</b>`
+      : "<b>Price not available</b>";
+
+    return (
+      <Tooltip title="Edit">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <span style={{ fontSize: "14px", fontWeight: "bold" }}>
+              {eventInfo.timeText}
+            </span>
+            <br />
+            <span
+              style={{ fontSize: "14px", fontWeight: "bold" }}
+              dangerouslySetInnerHTML={{ __html: priceFormatted }}
+            />
+          </div>
+          <Tooltip title="Hapus">
+            <Popconfirm
+              title="Apakah Anda yakin ingin menghapus jadwal ini?"
+              onConfirm={(e) => {
+                e?.stopPropagation();
+                handleDeleteEvent(eventInfo.event.extendedProps.schedules_id);
+              }}
+              onCancel={(e) => e?.stopPropagation()}
+              okText="Ya"
+              cancelText="Tidak"
+              placement="topRight"
+            >
+              <Button
+                type="text"
+                icon={<DeleteOutlined />}
+                size="small"
+                style={{ color: "red", marginLeft: 8 }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </Popconfirm>
+          </Tooltip>
+        </div>
+      </Tooltip>
+    );
+  };
+
+ const checkOverlap = (holidayDate: any, schedules: any) => {
+   const holiday = new Date(holidayDate).getTime();
+   return schedules.some((schedule: any) => {
+     const start = new Date(schedule.start_date).getTime();
+     const end = new Date(schedule.end_date).getTime();
+     return holiday >= start && holiday <= end;
+   });
+ };
+
+ const calendarEvents = () => {
+   const events = schedules.map((schedule, index) => ({
+     title: `Price: ${
+       schedule.price
+         ? new Intl.NumberFormat("id-ID", {
+             style: "currency",
+             currency: "IDR",
+           }).format(schedule.price)
+         : "Price not available"
+     }`,
+     start: schedule.start_date,
+     end: addOneDay(schedule.end_date),
+     allDay: true,
+     extendedProps: schedule,
+     backgroundColor: colors[index % colors.length],
+     borderColor: colors[index % colors.length],
+   }));
+
+   const nonOverlappingHolidays = holidays.filter(
+     (holiday) => !checkOverlap(holiday.holiday_date, schedules)
+   );
+   nonOverlappingHolidays.forEach((holiday) => {
+     events.push({
+       title: `Holiday: ${holiday.holiday_name}`,
+       start: holiday.holiday_date,
+       end: holiday.holiday_date,
+       allDay: true,
+       backgroundColor: "red",
+       borderColor: "darkred",
+       extendedProps: {}, 
+     });
+   });
+
+   return events;
+ };
+
+
+
   return (
     <div>
       {vehicleDetails && (
@@ -334,50 +383,19 @@ function Calendar() {
           {vehicleDetails.no_plat}
         </Title>
       )}
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        locales={allLocales}
-        locale="id"
-        events={[
-          ...schedules.map((schedule, index) => ({
-            title: `Harga: ${
-              schedule.price
-                ? new Intl.NumberFormat("id-ID", {
-                    style: "currency",
-                    currency: "IDR",
-                  }).format(schedule.price)
-                : "Price not available"
-            }`,
-            start: schedule.start_date,
-            end: addOneDay(schedule.end_date),
-            allDay: true,
-            extendedProps: schedule,
-            backgroundColor: colors[index % colors.length],
-            borderColor: colors[index % colors.length],
-          })),
-          ...holidays.map((holiday) => ({
-            title: `Holiday: ${holiday.holiday_name}`,
-            start: holiday.holiday_date,
-            allDay: true,
-            backgroundColor: "red",
-            borderColor: "darkred",
-          })),
-        ].map((event) => {
-          if (event.title.includes("Holiday")) {
-            return {
-              ...event,
-              title: event.title.split(":")[1].trim(),
-            };
-          }
-          return event;
-        })}
-        // showNonCurrentDates={false} // Tidak menampilkan tanggal di luar bulan saat ini
-        fixedWeekCount={false}
-        eventClick={handleEventClick}
-        dateClick={handleDateClick}
-        eventContent={eventContent}
-      />
+      <div>
+        <FullCalendar
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          locales={allLocales}
+          locale="id"
+          events={calendarEvents()}
+          fixedWeekCount={false}
+          eventClick={handleEventClick}
+          dateClick={handleDateClick}
+          eventContent={eventContent}
+        />
+      </div>
       {isModalVisible && (
         <Modal
           title={selectedEvent?.schedules_id ? "Edit Jadwal" : "Tambah Jadwal"}

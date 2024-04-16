@@ -1,5 +1,4 @@
 /* eslint-disable react/no-deprecated */
-import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom";
 import "antd"; 
 import Schedules from "../(user)/page";

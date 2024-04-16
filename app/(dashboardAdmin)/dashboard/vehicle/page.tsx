@@ -12,6 +12,8 @@ import {
   Flex,
   Upload,
   DatePicker,
+  Divider,
+  Tooltip,
 } from "antd";
 import Title from "antd/es/typography/Title";
 import {
@@ -48,6 +50,7 @@ export default function AdminVehicleDashboard() {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const router = useRouter();
+  const [hoverDelete, setHoverDelete] = useState(false);
 
   const handleDelete = async (vehicles_id: number) => {
     Modal.confirm({
@@ -332,6 +335,14 @@ export default function AdminVehicleDashboard() {
     reader.onload = () => callback(reader.result);
   };
 
+  const handleMouseEnter = () => {
+    setHoverDelete(true);
+  };
+
+  const handleMouseLeave = () => {
+    setHoverDelete(false);
+  };
+
   const columns = [
     {
       title: "No",
@@ -382,17 +393,44 @@ export default function AdminVehicleDashboard() {
     {
       title: "Aksi",
       key: "action",
-      render: (text: any, data: any) => (
+      render: (text: any, record: any) => (
         <Space size="middle">
-          <button onClick={() => handleEdit(data.vehicles_id)}>
-            <EditOutlined />
-          </button>
-          <button onClick={() => handleDelete(data.vehicles_id)}>
-            <DeleteOutlined />
-          </button>
-          <button onClick={() => handleSchedule(data.vehicles_id)}>
-            <ScheduleOutlined />
-          </button>
+          <Tooltip title="Edit">
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record.vehicles_id)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Hapus">
+            <Button
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.vehicles_id)}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              danger={hoverDelete}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Jadwal">
+            <Button
+              icon={<ScheduleOutlined />}
+              onClick={() => handleSchedule(record.vehicles_id)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            />
+          </Tooltip>
         </Space>
       ),
     },
@@ -407,23 +445,33 @@ export default function AdminVehicleDashboard() {
     : "Tambah Data Kendaraan";
 
   return (
-    <div>
-      <Title level={3}>Data Kendaraan</Title>
-      <Flex justify="space-between" gap="16px" style={{ marginBottom: "16px" }}>
-        <Button type="primary" onClick={showModal}>
-          Tambah Data Kendaraan
-        </Button>
-
-        <div style={{}}>
+    <div style={{ background: "#FFF", padding: "16px" }}>
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "10px 0",
+          }}
+        >
+          <Title level={3} style={{ marginBottom: 0, marginRight: "auto" }}>
+            Data Kendaraan
+          </Title>
           <Form
-            onFinish={handleSubmit} 
-            style={{ display: "flex", alignItems: "center", gap: "10px" }}
+            onFinish={handleSubmit}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
           >
             <Form.Item
               name="dateRange"
               rules={[
-                { required: true, message: "Please select a date range!" },
+                { required: true, message: "Pilih Tanggal Mulai dan Selesai" },
               ]}
+              style={{ margin: 0 }}
             >
               <RangePicker />
             </Form.Item>
@@ -432,182 +480,193 @@ export default function AdminVehicleDashboard() {
             </Button>
           </Form>
         </div>
-
-        <Input
-          placeholder="Cari Kendaraan..."
-          value={searchText}
-          onChange={handleSearch}
-          style={{ width: "50%" }}
-        />
-      </Flex>
-      <Table
-        columns={columns}
-        dataSource={filteredVehicles.map((vehicle, index) => ({
-          ...vehicle,
-          index,
-          key: vehicle.vehicles_id,
-        }))}
-        pagination={pagination}
-        onChange={(pagination) => {
-          setPagination({
-            pageSize: pagination.pageSize || 10,
-            current: pagination.current || 1,
-          });
-        }}
-        loading={loading}
-      />
-      <Modal
-        title={<div style={{ marginBottom: "16px" }}>{modalTitle}</div>}
-        visible={isModalVisible}
-        footer={null}
-        onCancel={handleCancel}
-      >
-        <Form
-          form={form}
-          name="addVehicleForm"
-          initialValues={{ remember: true }}
-          onFinish={handleOk}
-          autoComplete="off"
+        <Divider />
+        <Flex
+          justify="space-between"
+          gap="16px"
+          style={{ marginBottom: "16px", marginTop: "24px" }}
         >
-          <Form.Item
-            name="name"
-            rules={[
-              { required: true, message: "Tolong Masukan Nama Kendaraan!" },
-            ]}
+          <Button type="primary" onClick={showModal}>
+            Tambah Data Kendaraan
+          </Button>
+
+          <Input
+            placeholder="Cari Kendaraan..."
+            value={searchText}
+            onChange={handleSearch}
+            style={{ width: "50%" }}
+          />
+        </Flex>
+        <Table
+          columns={columns}
+          dataSource={filteredVehicles.map((vehicle, index) => ({
+            ...vehicle,
+            index,
+            key: vehicle.vehicles_id,
+          }))}
+          pagination={pagination}
+          onChange={(pagination) => {
+            setPagination({
+              pageSize: pagination.pageSize || 10,
+              current: pagination.current || 1,
+            });
+          }}
+          loading={loading}
+          style={{ marginTop: "32px" }}
+        />
+        <Modal
+          title={<div style={{ marginBottom: "16px" }}>{modalTitle}</div>}
+          visible={isModalVisible}
+          footer={null}
+          onCancel={handleCancel}
+        >
+          <Form
+            form={form}
+            name="addVehicleForm"
+            initialValues={{ remember: true }}
+            onFinish={handleOk}
+            autoComplete="off"
           >
-            <Input placeholder="Nama Kendaraan" />
-          </Form.Item>
-          <Form.Item
-            name="capacity"
-            rules={[
-              {
-                required: true,
-                message: "Tolong Masukan Kapasitas Kendaraan!",
-              },
-            ]}
-          >
-            <Input placeholder="Kapasitas" />
-          </Form.Item>
-          <Form.Item
-            name="model"
-            rules={[
-              { required: true, message: "Tolong Masukan Model Kendaraan!" },
-            ]}
-          >
-            <Input placeholder="Model" />
-          </Form.Item>
-          <Form.Item
-            name="year"
-            rules={[
-              { required: true, message: "Tolong Masukan Tahun Kendaraan!" },
-            ]}
-          >
-            <Input placeholder="Tahun" />
-          </Form.Item>
-          <Form.Item
-            name="no_plat"
-            rules={[
-              {
-                required: true,
-                message: "Tolong Masukan Nomor Plat Kendaraan!",
-              },
-            ]}
-          >
-            <Input placeholder="Nomor Plat" />
-          </Form.Item>
-          <Form.Item
-            name="imageUrl"
-            valuePropName="fileList"
-            getValueFromEvent={({ fileList: newFileList }) => {
-              if (newFileList.length > 1) {
-                const lastFile = newFileList[newFileList.length - 1];
-                return [lastFile].map((file) => ({
+            <Form.Item
+              name="name"
+              rules={[
+                { required: true, message: "Tolong Masukan Nama Kendaraan!" },
+              ]}
+            >
+              <Input placeholder="Nama Kendaraan" />
+            </Form.Item>
+            <Form.Item
+              name="capacity"
+              rules={[
+                {
+                  required: true,
+                  message: "Tolong Masukan Kapasitas Kendaraan!",
+                },
+              ]}
+            >
+              <Input placeholder="Kapasitas" />
+            </Form.Item>
+            <Form.Item
+              name="model"
+              rules={[
+                { required: true, message: "Tolong Masukan Model Kendaraan!" },
+              ]}
+            >
+              <Input placeholder="Model" />
+            </Form.Item>
+            <Form.Item
+              name="year"
+              rules={[
+                { required: true, message: "Tolong Masukan Tahun Kendaraan!" },
+              ]}
+            >
+              <Input placeholder="Tahun" />
+            </Form.Item>
+            <Form.Item
+              name="no_plat"
+              rules={[
+                {
+                  required: true,
+                  message: "Tolong Masukan Nomor Plat Kendaraan!",
+                },
+              ]}
+            >
+              <Input placeholder="Nomor Plat" />
+            </Form.Item>
+            <Form.Item
+              name="imageUrl"
+              valuePropName="fileList"
+              getValueFromEvent={({ fileList: newFileList }) => {
+                if (newFileList.length > 1) {
+                  const lastFile = newFileList[newFileList.length - 1];
+                  return [lastFile].map((file) => ({
+                    ...file,
+                    url: file.originFileObj
+                      ? URL.createObjectURL(file.originFileObj)
+                      : file.url,
+                  }));
+                }
+                return newFileList.map((file: any) => ({
                   ...file,
                   url: file.originFileObj
                     ? URL.createObjectURL(file.originFileObj)
                     : file.url,
                 }));
-              }
-              return newFileList.map((file: any) => ({
-                ...file,
-                url: file.originFileObj
-                  ? URL.createObjectURL(file.originFileObj)
-                  : file.url,
-              }));
-            }}
-          >
-            <Upload.Dragger
-              name="files"
-              listType="picture-card"
-              fileList={fileList}
-              onChange={handleFileChange}
-              beforeUpload={() => false}
-              showUploadList={false}
+              }}
             >
-              {fileList.length > 0 ? (
-                fileList.map((file) => (
-                  <div
-                    key={file.uid}
-                    style={{
-                      position: "relative",
-                      width: "100%",
-                      height: "200px",
-                      marginBottom: "16px",
-                    }}
-                  >
-                    <Image
-                      src={file.url ?? (file.thumbUrl || "")}
-                      alt={file.name}
-                      layout="fill"
-                      objectFit="contain"
-                    />
-                    {file.status === "uploading" && (
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 0,
-                          right: 0,
-                          bottom: 0,
-                          left: 0,
-                          background: "rgba(255,255,255,0.5)",
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        {/* Ganti dengan komponen animasi loading yang diinginkan */}
-                        <div>Loading...</div>
-                      </div>
-                    )}
+              <Upload.Dragger
+                name="files"
+                listType="picture-card"
+                fileList={fileList}
+                onChange={handleFileChange}
+                beforeUpload={() => false}
+                showUploadList={false}
+              >
+                {fileList.length > 0 ? (
+                  fileList.map((file) => (
+                    <div
+                      key={file.uid}
+                      style={{
+                        position: "relative",
+                        width: "100%",
+                        height: "200px",
+                        marginBottom: "16px",
+                      }}
+                    >
+                      <Image
+                        src={file.url ?? (file.thumbUrl || "")}
+                        alt={file.name}
+                        layout="fill"
+                        objectFit="contain"
+                      />
+                      {file.status === "uploading" && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            right: 0,
+                            bottom: 0,
+                            left: 0,
+                            background: "rgba(255,255,255,0.5)",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          {/* Ganti dengan komponen animasi loading yang diinginkan */}
+                          <div>Loading...</div>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div>
+                    <p className="ant-upload-drag-icon">
+                      <InboxOutlined />
+                    </p>
+                    <p className="ant-upload-text">
+                      Klik atau drag file ke area ini untuk upload
+                    </p>
+                    <p className="ant-upload-hint">
+                      Support untuk single upload.
+                    </p>
                   </div>
-                ))
-              ) : (
-                <div>
-                  <p className="ant-upload-drag-icon">
-                    <InboxOutlined />
-                  </p>
-                  <p className="ant-upload-text">
-                    Klik atau drag file ke area ini untuk upload
-                  </p>
-                  <p className="ant-upload-hint">
-                    Support untuk single upload.
-                  </p>
-                </div>
-              )}
-            </Upload.Dragger>
-          </Form.Item>
-          <Form.Item>
-            <Space>
-              <Button key="back" onClick={handleCancel}>
-                Batal
-              </Button>
-              <Button key="submit" type="primary" htmlType="submit">
-                {editingVehicle ? "Update" : "Tambah"}
-              </Button>
-            </Space>
-          </Form.Item>
-        </Form>
-      </Modal>
+                )}
+              </Upload.Dragger>
+            </Form.Item>
+            <Form.Item>
+              <Space>
+                <Button key="back" onClick={handleCancel}>
+                  Batal
+                </Button>
+                <Button key="submit" type="primary" htmlType="submit">
+                  {editingVehicle ? "Update" : "Tambah"}
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
     </div>
   );
 }

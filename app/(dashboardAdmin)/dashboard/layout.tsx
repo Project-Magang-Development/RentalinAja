@@ -2,7 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import {
+  BankOutlined,
+  BookOutlined,
+  DashboardOutlined,
   LogoutOutlined,
+  OrderedListOutlined,
+  TruckOutlined,
   UserOutlined,
   VerifiedOutlined,
 } from "@ant-design/icons";
@@ -22,6 +27,7 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCompanyName, useMerchantName } from "../../hooks/useLogin";
+import Image from "next/image";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -45,53 +51,51 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const disableSidebar = ["/dashboard/login"];
   const shouldHideSidebar = disableSidebar.includes(pathname);
 
-const fetchDataWithLastChecked = async (
-  endpoint: string,
-  lastCheckedKey: string,
-  setStateCallback: React.Dispatch<React.SetStateAction<number>>
-) => {
-  const token = localStorage.getItem("token");
-  const lastChecked = localStorage.getItem(lastCheckedKey) || "";
+  const disableCompanyName = [
+    "/dashboard/vehicle",
+    "/dashboard/booking",
+    "/dashboard/order",
+    "/dashboard/calendar/[vehicles_id]",
+  ];
+  const shouldHideCompanyName = disableCompanyName.some((route) =>
+    pathname.includes(route)
+  );
 
-  if (!token) {
-    console.error("Authentication token not found.");
-    return;
-  }
+  const fetchDataWithLastChecked = async (
+    endpoint: string,
+    lastCheckedKey: string,
+    setStateCallback: React.Dispatch<React.SetStateAction<number>>
+  ) => {
+    const token = localStorage.getItem("token");
+    const lastChecked = localStorage.getItem(lastCheckedKey) || "";
 
-  try {
-    const query = lastChecked ? `?lastChecked=${lastChecked}` : "";
-    const response = await fetch(`${endpoint}${query}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch data. Status: ${response.status}`);
+    if (!token) {
+      console.error("Authentication token not found.");
+      return;
     }
 
-    const data = await response.json();
-    setStateCallback(data.count);
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  }
-};
+    try {
+      const query = lastChecked ? `?lastChecked=${lastChecked}` : "";
+      const response = await fetch(`${endpoint}${query}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-useEffect(() => {
-  fetchDataWithLastChecked(
-    "/api/order/count",
-    "lastCheckedOrderTime",
-    setNewOrdersCount
-  );
-  fetchDataWithLastChecked(
-    "/api/booking/count",
-    "lastCheckedBookingTime",
-    setNewBookingsCount
-  );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data. Status: ${response.status}`);
+      }
 
-  const intervalId = setInterval(() => {
+      const data = await response.json();
+      setStateCallback(data.count);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchDataWithLastChecked(
       "/api/order/count",
       "lastCheckedOrderTime",
@@ -102,11 +106,22 @@ useEffect(() => {
       "lastCheckedBookingTime",
       setNewBookingsCount
     );
-  }, 30000); 
 
-  return () => clearInterval(intervalId);
-}, []);
+    const intervalId = setInterval(() => {
+      fetchDataWithLastChecked(
+        "/api/order/count",
+        "lastCheckedOrderTime",
+        setNewOrdersCount
+      );
+      fetchDataWithLastChecked(
+        "/api/booking/count",
+        "lastCheckedBookingTime",
+        setNewBookingsCount
+      );
+    }, 30000);
 
+    return () => clearInterval(intervalId);
+  }, []);
 
   const handleOrderClick = () => {
     localStorage.setItem("lastCheckedOrderTime", Date.now().toString());
@@ -119,6 +134,7 @@ useEffect(() => {
     setNewBookingsCount(0);
     router.push("/dashboard/booking");
   };
+  
 
   if (shouldHideSidebar) {
     return <>{children}</>;
@@ -126,18 +142,18 @@ useEffect(() => {
 
   const items: MenuItem[] = [
     {
-      key: "1",
-      icon: <VerifiedOutlined />,
+      key: "/dashboard",
+      icon: <DashboardOutlined />,
       label: <Link href="/dashboard">Dashboard</Link>,
     },
     {
-      key: "2",
-      icon: <VerifiedOutlined />,
+      key: "/dashboard/vehicle",
+      icon: <TruckOutlined />,
       label: <Link href="/dashboard/vehicle">Kendaraan</Link>,
     },
     {
-      key: "3",
-      icon: <VerifiedOutlined />,
+      key: "/dashboard/order",
+      icon: <OrderedListOutlined />,
       label:
         newOrdersCount > 0 ? (
           <Badge count={newOrdersCount}>
@@ -158,8 +174,8 @@ useEffect(() => {
         ),
     },
     {
-      key: "4",
-      icon: <VerifiedOutlined />,
+      key: "/dashboard/booking",
+      icon: <BookOutlined />,
       label:
         newBookingsCount > 0 ? (
           <Badge count={newBookingsCount}>
@@ -180,6 +196,23 @@ useEffect(() => {
         ),
     },
   ];
+
+  const determineSelectedKeys = (pathname: any, items: any) => {
+    return items
+      .filter((item: any) => {
+        const routeParts = pathname.split("/").filter((part: any) => part);
+        const itemKeyParts = item.key.split("/").filter((part: any) => part);
+        return (
+          routeParts.length === itemKeyParts.length &&
+          routeParts.every(
+            (part: any, index: any) => part === itemKeyParts[index]
+          )
+        );
+      })
+      .map((item: any) => item.key);
+  };
+
+  const selectedKeys = determineSelectedKeys(pathname, items);
 
   const userMenu = (
     <Menu
@@ -212,29 +245,47 @@ useEffect(() => {
           position: "fixed",
           left: 0,
           zIndex: 999,
+          backgroundColor: "white",
+          boxShadow: "8px 0 10px -5px rgba(0, 0, 0, 0.2)",
         }}
       >
         <div
           className="logo"
-          style={{ margin: "16px", textAlign: "center", color: "white" }}
+          style={{ margin: "35px 10px", textAlign: "center" }}
         >
-          {collapsed ? "Logo" : companyName}
+          {collapsed ? (
+            <span>
+              <BankOutlined />
+            </span>
+          ) : (
+            <Image
+              src="/logo.png"
+              alt="Company Logo"
+              width={200}
+              height={200}
+            />
+          )}
         </div>
-        <Divider style={{ margin: "12px 0", color: "white" }} />
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
-          defaultSelectedKeys={["1"]}
           items={items}
+          selectedKeys={selectedKeys}
         />
       </Sider>
       <Layout
         style={{
           marginLeft: collapsed ? siderWidthCollapsed : siderWidthExpanded,
           transition: "margin 0.2s",
+          backgroundColor: "#F1F5F9",
         }}
       >
-        <Content style={{ margin: "100px 16px 0", overflow: "initial" }}>
+        <Content
+          style={{
+            margin: "100px 32px 0",
+            overflow: "initial",
+          }}
+        >
           <Flex
             align="center"
             justify="space-between"
@@ -246,7 +297,8 @@ useEffect(() => {
               left: 0,
               right: 0,
               zIndex: 998,
-              backgroundColor: "#0A142F",
+              backgroundColor: "#FFFFFF",
+              boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
             }}
           >
             <Flex
@@ -257,6 +309,7 @@ useEffect(() => {
                 margin: 0,
                 gap: 20,
               }}
+              // eslint-disable-next-line react/no-children-prop
               children={undefined}
             ></Flex>
             <Flex justify="center" align="center" gap={20}>
@@ -278,7 +331,7 @@ useEffect(() => {
                     }}
                   >
                     <Avatar icon={<UserOutlined />} style={{}} />
-                    <div style={{ color: "white", textAlign: "right" }}>
+                    <div style={{ color: "black", textAlign: "right" }}>
                       <div>{merchantName}</div>
                       <div style={{ fontSize: "smaller" }}>Admin</div>
                     </div>
@@ -287,14 +340,40 @@ useEffect(() => {
               </Dropdown>
             </Flex>
           </Flex>
-          <Breadcrumb
-            style={{ margin: "16px 0", fontSize: "22px", fontWeight: "bold" }}
-          >
-            <Breadcrumb.Item>{companyName}</Breadcrumb.Item>
-          </Breadcrumb>
-          <div style={{ padding: 24, background: "#fff" }}>{children}</div>
+          {!shouldHideCompanyName && (
+            <>
+              <Breadcrumb style={{ fontSize: "25px", fontWeight: "bold" }}>
+                <Breadcrumb.Item>Selamat Datang {companyName}</Breadcrumb.Item>
+              </Breadcrumb>
+              <Divider />
+            </>
+          )}
+          {shouldHideCompanyName ? (
+            <div
+              style={{
+                padding: 24,
+                backgroundColor: "#FFF",
+                borderRadius: "10px",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              {children}
+            </div>
+          ) : (
+            <div style={{ padding: 24 }}>{children}</div>
+          )}
         </Content>
-        <Footer style={{ textAlign: "center" }}>
+        <Footer
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            textAlign: "center",
+            background: "#FFF",
+            boxShadow: "0px -5px 10px rgba(0, 0, 0, 0.1)",
+            height: "45px",
+          }}
+        >
           RentalinAja ©{new Date().getFullYear()} Powered by RentalinAja
         </Footer>
       </Layout>
