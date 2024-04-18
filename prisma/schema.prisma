@@ -13,23 +13,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model SuperAdmin {
+  admin_id        Int       @id @default(autoincrement())
+  email           String    @unique
+  password        String
+}
+
 model Merchant {
-  merchant_id        Int                @id @default(autoincrement())
-  merchant_name      String
-  merchant_company   String
-  domain             String
-  status_subscriber  String             @default("Aktif")
-  start_date         DateTime?  
-  end_date           DateTime?
-  email              String             @unique
-  password           String
-  api_key            String             @unique
-  vehicles           Vehicle[]
-  schedules          Schedule[]
-  orders             Order[]
-  merchantPayments   MerchantPayment[]
-  payment            Payment[]
-  booking            Booking[]
+  merchant_id       Int               @id @default(autoincrement())
+  merchant_name     String
+  merchant_company  String
+  domain            String
+  status_subscriber String            @default("Aktif")
+  start_date        DateTime?  
+  end_date          DateTime?
+  email             String            @unique
+  password          String
+  api_key           String            @unique
+  used_storage      Int               @default(0)
+  vehicles          Vehicle[]
+  schedules         Schedule[]
+  orders            Order[]
+  merchantPayments  MerchantPayment[]
+  payment           Payment[]
+  booking           Booking[]
+  package_id        Int               
+  package           Package           @relation(fields: [package_id], references: [package_id])
+}
+
+model Package {
+  package_id    Int        @id @default(autoincrement())
+  package_name  String
+  package_price Int
+  storage_limit Int
+  duration      Int      
+  merchants     Merchant[]
 }
 
 model MerchantPayment {
@@ -108,6 +126,7 @@ model Booking {
   payment_id     Int      @unique
   merchant_id    Int       
   created_at     DateTime @default(now())
+  imageUrl       String?      @db.Text
 
   Order          Order    @relation(fields: [order_id], references: [order_id])
   Payment        Payment  @relation(fields: [payment_id], references: [payment_id])

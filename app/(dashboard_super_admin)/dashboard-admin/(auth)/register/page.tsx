@@ -4,10 +4,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Form, Input, Layout, Typography, message } from "antd";
 import {
-  UserOutlined,
   MailOutlined,
   LockOutlined,
-  BankOutlined,
 } from "@ant-design/icons";
 
 const { Content } = Layout;
@@ -18,20 +16,14 @@ const RegisterDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values: any) => {
-    const planDetailsString = localStorage.getItem("planDuration");
-    const duration = JSON.parse(planDetailsString || "{}");
     setLoading(true);
     try {
       const payload = {
-        name: values.name,
-        company: values.company,
-        domain: values.domain,
         email: values.email,
         password: values.password,
-        plan: duration,
       };
-      
-      const response = await fetch("/api/register_admin", {
+
+      const response = await fetch("/api/register_super_admin", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -42,7 +34,7 @@ const RegisterDashboard: React.FC = () => {
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
-      localStorage.removeItem("planDuration")
+      localStorage.removeItem("planDuration");
       message.success("Registration successful!");
       setLoading(false);
     } catch {
@@ -71,37 +63,8 @@ const RegisterDashboard: React.FC = () => {
             level={2}
             style={{ textAlign: "center", marginBottom: "24px" }}
           >
-            Register
+            Register Super Admin
           </Title>
-          <Form.Item
-            name="name"
-            rules={[{ required: true, message: "Please input your Name!" }]}
-          >
-            <Input
-              prefix={<UserOutlined className="site-form-item-icon" />}
-              placeholder="Name"
-            />
-          </Form.Item>
-          <Form.Item
-            name="company"
-            rules={[{ required: true, message: "Please input your Company!" }]}
-          >
-            <Input
-              prefix={<BankOutlined className="site-form-item-icon" />}
-              placeholder="Company"
-            />
-          </Form.Item>
-          <Form.Item
-            name="domain"
-            rules={[
-              { required: true, message: "Please input your Domain Company!" },
-            ]}
-          >
-            <Input
-              prefix={<UserOutlined className="site-form-item-icon" />}
-              placeholder="Domain Company"
-            />
-          </Form.Item>
           <Form.Item
             name="email"
             rules={[
