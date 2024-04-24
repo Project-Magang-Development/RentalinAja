@@ -24,9 +24,6 @@ import Title from "antd/es/typography/Title";
 import { DeleteOutlined } from "@ant-design/icons";
 import CalendarSkeleton from "@/app/components/calendarSkeleton";
 
-
-
-
 interface Vehicle {
   vehicles_id: number;
   name: string;
@@ -56,7 +53,6 @@ type PayloadType = {
   schedules_id?: number;
 };
 
-
 function Calendar() {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [loading, setLoading] = useState(false);
@@ -67,7 +63,7 @@ function Calendar() {
   const [vehicleDetails, setVehicleDetails] = useState<Vehicle | null>(null);
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [holidays, setHolidays] = useState<Holiday[]>([]); 
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
 
   const fetchSchedule = useCallback(async () => {
     if (!vehicles_id) return;
@@ -123,7 +119,6 @@ function Calendar() {
     fetchHolidays();
   }, []);
 
-  
   useEffect(() => {
     // Panggil fungsi fetchSchedule dan fetchHolidays di sini
     fetchSchedule(); // Misalkan Anda memiliki fungsi ini untuk memuat jadwalkan di atas
@@ -145,11 +140,9 @@ function Calendar() {
   };
 
   const handleOk = async () => {
-    setLoading(true); // Set loading to true when the operation starts
     const token = localStorage.getItem("token");
     if (!token) {
       message.error("Authentication token not found.");
-      setLoading(false); // Ensure loading is set to false on error
       return;
     }
 
@@ -157,7 +150,7 @@ function Calendar() {
       await form.validateFields();
       const formData = form.getFieldsValue();
 
-      const payload = {
+      const payload: PayloadType = {
         start_date: formData.start_date
           ? formData.start_date.format("YYYY-MM-DD")
           : undefined,
@@ -193,13 +186,10 @@ function Calendar() {
       fetchSchedule();
     } catch (error) {
       showFailureNotification();
-      console.error("Error:", error);
-    } finally {
-      setLoading(false); // Ensure loading is set to false when the operation is complete
       setIsModalVisible(false);
+      console.error("Error:", error);
     }
   };
-
 
   useEffect(() => {
     if (selectedEvent && isModalVisible) {
@@ -222,21 +212,21 @@ function Calendar() {
     setIsModalVisible(true);
   };
 
-   const handleEventClick = (clickInfo: any) => {
-     const { event } = clickInfo;
-     const endDate = event.end ? moment(event.end) : undefined;
+  const handleEventClick = (clickInfo: any) => {
+    const { event } = clickInfo;
+    const endDate = event.end ? moment(event.end) : undefined;
 
-     if (endDate && endDate.isSame(endDate.clone().startOf("day"))) {
-       endDate.subtract(1, "days");
-     }
+    if (endDate && endDate.isSame(endDate.clone().startOf("day"))) {
+      endDate.subtract(1, "days");
+    }
 
-     setSelectedEvent({
-       ...event.extendedProps,
-       start_date: moment(event.start),
-       end_date: endDate,
-     });
-     setIsModalVisible(true);
-   };
+    setSelectedEvent({
+      ...event.extendedProps,
+      start_date: moment(event.start),
+      end_date: endDate,
+    });
+    setIsModalVisible(true);
+  };
 
   const handleDeleteEvent = async (schedules_id: number) => {
     setLoading(true);
@@ -337,55 +327,54 @@ function Calendar() {
     );
   };
 
- const checkOverlap = (holidayDate: any, schedules: any) => {
-   const holiday = new Date(holidayDate).getTime();
-   return schedules.some((schedule: any) => {
-     const start = new Date(schedule.start_date).getTime();
-     const end = new Date(schedule.end_date).getTime();
-     return holiday >= start && holiday <= end;
-   });
- };
+  const checkOverlap = (holidayDate: any, schedules: any) => {
+    const holiday = new Date(holidayDate).getTime();
+    return schedules.some((schedule: any) => {
+      const start = new Date(schedule.start_date).getTime();
+      const end = new Date(schedule.end_date).getTime();
+      return holiday >= start && holiday <= end;
+    });
+  };
 
- const calendarEvents = () => {
-   const events = schedules.map((schedule, index) => ({
-     title: `Price: ${
-       schedule.price
-         ? new Intl.NumberFormat("id-ID", {
-             style: "currency",
-             currency: "IDR",
-           }).format(schedule.price)
-         : "Price not available"
-     }`,
-     start: schedule.start_date,
-     end: addOneDay(schedule.end_date),
-     allDay: true,
-     extendedProps: schedule,
-     backgroundColor: colors[index % colors.length],
-     borderColor: colors[index % colors.length],
-   }));
+  const calendarEvents = () => {
+    const events = schedules.map((schedule, index) => ({
+      title: `Price: ${
+        schedule.price
+          ? new Intl.NumberFormat("id-ID", {
+              style: "currency",
+              currency: "IDR",
+            }).format(schedule.price)
+          : "Price not available"
+      }`,
+      start: schedule.start_date,
+      end: addOneDay(schedule.end_date),
+      allDay: true,
+      extendedProps: schedule,
+      backgroundColor: colors[index % colors.length],
+      borderColor: colors[index % colors.length],
+    }));
 
-   const nonOverlappingHolidays = holidays.filter(
-     (holiday) => !checkOverlap(holiday.holiday_date, schedules)
-   );
-   nonOverlappingHolidays.forEach((holiday) => {
-     events.push({
-       title: `Holiday: ${holiday.holiday_name}`,
-       start: holiday.holiday_date,
-       end: holiday.holiday_date,
-       allDay: true,
-       backgroundColor: "red",
-       borderColor: "darkred",
-       extendedProps: {}, 
-     });
-   });
+    const nonOverlappingHolidays = holidays.filter(
+      (holiday) => !checkOverlap(holiday.holiday_date, schedules)
+    );
+    nonOverlappingHolidays.forEach((holiday) => {
+      events.push({
+        title: `Holiday: ${holiday.holiday_name}`,
+        start: holiday.holiday_date,
+        end: holiday.holiday_date,
+        allDay: true,
+        backgroundColor: "red",
+        borderColor: "darkred",
+        extendedProps: {},
+      });
+    });
 
-   return events;
- };
+    return events;
+  };
 
-
- if (loading) {
-   return <CalendarSkeleton />;
- }
+  if (loading) {
+    return <CalendarSkeleton />;
+  }
 
   return (
     <div>

@@ -82,7 +82,7 @@ export async function POST(req: Request) {
           error: "An existing schedule overlaps with the provided dates",
         }),
         {
-          status: 409, // Conflict
+          status: 409, 
           headers: {
             "Content-Type": "application/json",
           },

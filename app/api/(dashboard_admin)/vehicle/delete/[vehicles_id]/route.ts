@@ -54,7 +54,6 @@ export async function DELETE(req: Request) {
           throw error;
         });
 
-      // Check if vehicle exists and belongs to the tenant
       if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
         return new NextResponse(
           JSON.stringify({ error: "Vehicle not found or access denied" }),

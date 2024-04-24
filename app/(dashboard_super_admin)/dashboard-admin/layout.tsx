@@ -140,7 +140,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     {
       key: "/dashboard-admin",
       icon: <DashboardOutlined />,
-      label: <Link href="/dashboard_admin">Dashboard</Link>,
+      label: <Link href="/dashboard-admin">Dashboard</Link>,
     },
     {
       key: "/dashboard-admin/merchant",

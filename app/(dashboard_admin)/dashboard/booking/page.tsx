@@ -176,14 +176,14 @@ export default function AdminBookingDashboard() {
     }
   };
 
-  const handleUploadModalOk = () => {
+  const handleUploadModalOk = async () => {
     const imageUrl = fileList.length > 0 ? fileList[0].url : "";
     const payload = {
       imageUrl,
     };
     try {
       const token = localStorage.getItem("token");
-      const response = fetch(
+      const response = await fetch(
         `/api/booking/update/${selectedRecord?.booking_id}`,
         {
           method: "PUT",
@@ -195,21 +195,25 @@ export default function AdminBookingDashboard() {
         }
       );
 
-      notification.success({
-        message: "Sukses",
-        description: "Data Kredensial Berhasil Di Tambah.",
-      });
+      if (response.ok) {
+        notification.success({
+          message: "Sukses",
+          description: "Data Kredensial Berhasil Di Tambah.",
+        });
 
-      setLoading(true);
-      setIsUploadModalVisible(false);
-      setFileList([]);
-      form.resetFields();
-      fetchBooking();
+        fetchBooking(filterStatus);
+      } else {
+        throw new Error("Failed to update");
+      }
     } catch (error) {
       notification.error({
         message: "Gagal",
         description: "Data Kredensial Gagal Di Tambah.",
       });
+    } finally {
+      setIsUploadModalVisible(false);
+      setFileList([]);
+      form.resetFields();
     }
   };
 
@@ -380,8 +384,21 @@ export default function AdminBookingDashboard() {
     },
     {
       key: "imageUrl",
-      attribute: "Gambar Kredensial",
+      attribute: "Foto Kredensial",
       value: selectedRecord?.imageUrl || "N/A",
+      render: (imageUrl: any) => {
+        return imageUrl !== "N/A" ? (
+          <a href={imageUrl} target="_blank" rel="noopener noreferrer">
+            <Image
+              src={imageUrl}
+              alt="Kredensial"
+              style={{ width: "100px", height: "auto" }}
+            />
+          </a>
+        ) : (
+          "N/A"
+        );
+      },
     },
   ];
 
@@ -443,7 +460,7 @@ export default function AdminBookingDashboard() {
           onCancel={handleCancel}
           footer={[
             <Button key="back" onClick={handleCancel}>
-              Close
+              Kembali
             </Button>,
           ]}
         >
@@ -463,7 +480,7 @@ export default function AdminBookingDashboard() {
           onCancel={handleCancel}
           footer={[
             <Button key="back" onClick={handleCancel}>
-              Close
+              Kembali
             </Button>,
             <Button key="submit" type="primary" onClick={handleUploadModalOk}>
               Upload
@@ -496,6 +513,7 @@ export default function AdminBookingDashboard() {
                 onChange={handleFileChange}
                 beforeUpload={() => false}
                 showUploadList={false}
+                accept="image/png, image/jpeg"
               >
                 {fileList.length > 0 ? (
                   fileList.map((file) => (
@@ -542,7 +560,8 @@ export default function AdminBookingDashboard() {
                       Klik atau drag file ke area ini untuk upload
                     </p>
                     <p className="ant-upload-hint">
-                      Support untuk single upload.
+                      Support untuk single upload. Hanya file PNG, JPEG, dan JPG
+                      yang diterima.
                     </p>
                   </div>
                 )}

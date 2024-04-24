@@ -6,7 +6,6 @@ export async function GET(req: Request) {
   try {
     const tokenHeader = req.headers.get("Authorization");
     const token = tokenHeader?.split(" ")[1];
-    console.log(token)
 
     if (!token) {
       return new NextResponse(JSON.stringify({ error: "Token not provided" }), {

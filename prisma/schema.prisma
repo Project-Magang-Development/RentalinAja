@@ -30,7 +30,7 @@ model Merchant {
   email             String            @unique
   password          String
   api_key           String            @unique
-  used_storage      Int               @default(0)
+  used_storage      Decimal           @default(0)
   vehicles          Vehicle[]
   schedules         Schedule[]
   orders            Order[]
@@ -69,7 +69,7 @@ model Vehicle {
   model            String
   year             Int
   no_plat          String      @unique
-  imageUrl         String      @db.Text
+  imageUrl         String      @db.LongText
   capacity         Int
   Merchant         Merchant    @relation(fields: [merchant_id], references: [merchant_id])
   Schedules        Schedule[] 
@@ -126,7 +126,7 @@ model Booking {
   payment_id     Int      @unique
   merchant_id    Int       
   created_at     DateTime @default(now())
-  imageUrl       String?      @db.Text
+  imageUrl       String?  @db.LongText
 
   Order          Order    @relation(fields: [order_id], references: [order_id])
   Payment        Payment  @relation(fields: [payment_id], references: [payment_id])

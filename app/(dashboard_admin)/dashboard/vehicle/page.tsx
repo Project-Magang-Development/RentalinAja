@@ -23,15 +23,13 @@ import {
   ScheduleOutlined,
 } from "@ant-design/icons";
 import { notification } from "antd";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { UploadChangeParam, UploadFile } from "antd/lib/upload/interface";
 import dynamic from "next/dynamic";
 import TableSkeleton from "@/app/components/tableSkeleton";
 
-
 const { RangePicker } = DatePicker;
-
 
 interface Vehicle {
   vehicles_id: number;
@@ -41,6 +39,7 @@ interface Vehicle {
   year: number;
   price: number;
   imageUrl: string;
+  status: string;
 }
 
 export default function AdminVehicleDashboard() {
@@ -55,6 +54,12 @@ export default function AdminVehicleDashboard() {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const router = useRouter();
   const [hoverDelete, setHoverDelete] = useState(false);
+  const [notAvailableVehicles, setNotAvailableVehicles] = useState<Vehicle[]>(
+    []
+  );
+  const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
+  const [searchPerformed, setSearchPerformed] = useState(false);
+  const searchParams = useSearchParams();
 
   const handleDelete = async (vehicles_id: number) => {
     Modal.confirm({
@@ -132,7 +137,7 @@ export default function AdminVehicleDashboard() {
             uid: "-1",
             name: newFileList[0].name,
             status: "done",
-            url: fileInBase64, 
+            url: fileInBase64,
           },
         ]);
       });
@@ -161,10 +166,29 @@ export default function AdminVehicleDashboard() {
     setIsModalVisible(true);
   };
 
+  function calculateTotalFileSize(files: any[]) {
+    return files.reduce((total: number, file: any) => {
+      if (file.url && file.url.startsWith("data:image")) {
+        const base64String = file.url.replace(/^data:image\/\w+;base64,/, "");
+        const sizeInBytes =
+          (base64String.length * 3) / 4 -
+          (base64String.endsWith("==")
+            ? 2
+            : base64String.endsWith("=")
+            ? 1
+            : 0);
+        const sizeInMB = sizeInBytes / 1024 / 1024;
+        return total + sizeInMB;
+      }
+      return total;
+    }, 0);
+  }
+
   const handleOk = async () => {
     try {
       const values = await form.validateFields();
       const imageUrl = fileList.length > 0 ? fileList[0].url : "";
+      const storageSize = calculateTotalFileSize(fileList);
       const payload = {
         name: values.name,
         capacity: parseInt(values.capacity, 10),
@@ -172,6 +196,7 @@ export default function AdminVehicleDashboard() {
         year: parseInt(values.year, 10),
         no_plat: values.no_plat,
         imageUrl,
+        storageSize,
       };
       setLoading(true);
 
@@ -237,47 +262,6 @@ export default function AdminVehicleDashboard() {
     setIsModalVisible(false); // Close the modal
   };
 
-  const handleSubmit = async (values: any) => {
-    const [startDate, endDate] = values.dateRange;
-
-    const formattedStartDate = startDate.format("YYYY-MM-DD");
-    const formattedEndDate = endDate.format("YYYY-MM-DD");
-
-    setLoading(true);
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      setError("Authentication token not found.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/schedule/findVehicle", {
-        method: "POST",
-        cache: "no-cache",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          startDate: formattedStartDate,
-          endDate: formattedEndDate,
-        }),
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch vehicles.");
-
-      const data = await response.json();
-      setVehicles(data);
-    } catch (error) {
-      console.error("Error fetching vehicles:", error);
-      setError("Failed to fetch vehicles.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSchedule = (vehicles_id: number) => {
     router.push(`/dashboard/vehicle/calendar/${vehicles_id}`);
   };
@@ -296,7 +280,22 @@ export default function AdminVehicleDashboard() {
     );
   });
 
-  const fetchVehicles = async () => {
+  const handleFilterSubmit = (values: any) => {
+    const { dateRange } = values;
+    if (dateRange && dateRange.length === 2) {
+      const [startDate, endDate] = values.dateRange;
+      const formattedStartDate = startDate.format("YYYY-MM-DD");
+      const formattedEndDate = endDate.format("YYYY-MM-DD");
+      router.push(
+        `/dashboard/vehicle?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
+      );
+    } else {
+      router.push("/dashboard/vehicle");
+    }
+  };
+
+  const fetchVehicles = async (queryParams = "") => {
+    setSearchPerformed(false);
     setLoading(true);
     const token = localStorage.getItem("token");
     if (!token) {
@@ -305,19 +304,30 @@ export default function AdminVehicleDashboard() {
       return;
     }
     try {
-      const response = await fetch("/api/vehicle/show", {
+      const response = await fetch(`/api/vehicle/show${queryParams}`, {
         method: "GET",
-        cache: "no-cache",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) throw new Error("Failed to fetch vehicles.");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch vehicles.");
+      }
 
       const data = await response.json();
       setVehicles(data);
+      if (queryParams) {
+        setAvailableVehicles(
+          data.filter((v: Vehicle) => v.status === "Tersedia")
+        );
+        setNotAvailableVehicles(
+          data.filter((v: Vehicle) => v.status === "Tidak Tersedia")
+        );
+        setSearchPerformed(true);
+      }
       setLoading(false);
     } catch (error) {
       console.error("Error fetching vehicles:", error);
@@ -327,9 +337,16 @@ export default function AdminVehicleDashboard() {
   };
 
   useEffect(() => {
-    fetchVehicles();
-  }, []);
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
+    let queryParams = "";
+    if (startDate && endDate) {
+      queryParams = `?startDate=${startDate}&endDate=${endDate}`;
+    }
+    fetchVehicles(queryParams);
+  }, [searchParams]);
 
+  
   const convertFileToBase64 = (
     file: Blob,
     callback: (result: string | ArrayBuffer | null) => void
@@ -448,11 +465,9 @@ export default function AdminVehicleDashboard() {
     ? "Edit Data Kendaraan"
     : "Tambah Data Kendaraan";
 
-    if (loading) {
-      return (
-        <TableSkeleton/>
-      );
-    }
+  if (loading) {
+    return <TableSkeleton />;
+  }
 
   return (
     <div style={{ background: "#FFF", padding: "16px" }}>
@@ -469,7 +484,7 @@ export default function AdminVehicleDashboard() {
             Data Kendaraan
           </Title>
           <Form
-            onFinish={handleSubmit}
+            onFinish={handleFilterSubmit}
             style={{
               display: "flex",
               alignItems: "center",
@@ -507,23 +522,40 @@ export default function AdminVehicleDashboard() {
             style={{ width: "50%" }}
           />
         </Flex>
-        <Table
-          columns={columns}
-          dataSource={filteredVehicles.map((vehicle, index) => ({
-            ...vehicle,
-            index,
-            key: vehicle.vehicles_id,
-          }))}
-          pagination={pagination}
-          onChange={(pagination) => {
-            setPagination({
-              pageSize: pagination.pageSize || 10,
-              current: pagination.current || 1,
-            });
-          }}
-          loading={loading}
-          style={{ marginTop: "32px" }}
-        />
+        {searchPerformed ? (
+          <>
+            <Title style={{ marginTop: "32px" }} level={4}>
+              Kendaraan Yang Tersedia
+            </Title>
+            <Table
+              dataSource={availableVehicles}
+              columns={columns}
+              pagination={pagination}
+              style={{ marginTop: "32px" }}
+            />
+            <Title style={{ marginTop: "32px" }} level={4}>
+              Kendaraan Yang Tidak Tersedia
+            </Title>
+            <Table
+              dataSource={notAvailableVehicles}
+              columns={columns}
+              pagination={pagination}
+              style={{ marginTop: "32px" }}
+            />
+          </>
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={filteredVehicles.map((vehicle, index) => ({
+              ...vehicle,
+              index,
+              key: vehicle.vehicles_id,
+            }))}
+            pagination={pagination}
+            loading={loading}
+            style={{ marginTop: "32px" }}
+          />
+        )}
         <Modal
           title={<div style={{ marginBottom: "16px" }}>{modalTitle}</div>}
           visible={isModalVisible}
