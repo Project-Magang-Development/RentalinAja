@@ -35,9 +35,10 @@ export async function PUT(req: Request) {
     }
 
      const body = await req.json();
-     const { name, capacity, model, year, no_plat, imageUrl } = body;
+     const { name, capacity, model, year, no_plat, imageUrl, storageSize } =
+       body;
 
-     if (!name || !capacity ||  !model || !year || !no_plat || !imageUrl) {
+     if (!name || !capacity ||  !model || !year || !no_plat || !imageUrl|| !storageSize) {
        return new NextResponse(
          JSON.stringify({ error: "Please provide all required fields" }),
          {
@@ -71,9 +72,7 @@ export async function PUT(req: Request) {
       }
 
       const updatedVehicle = await prisma.vehicle.update({
-        where: 
-        { vehicles_id: Number(vehicles_id), 
-        },
+        where: { vehicles_id: Number(vehicles_id) },
         data: {
           name,
           capacity,
@@ -82,6 +81,7 @@ export async function PUT(req: Request) {
           no_plat,
           imageUrl,
           merchant_id: decoded.merchantId,
+          storageSize
         },
       });
 

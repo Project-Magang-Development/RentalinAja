@@ -170,15 +170,18 @@ export default function AdminVehicleDashboard() {
     return files.reduce((total: number, file: any) => {
       if (file.url && file.url.startsWith("data:image")) {
         const base64String = file.url.replace(/^data:image\/\w+;base64,/, "");
-        const sizeInBytes =
-          (base64String.length * 3) / 4 -
-          (base64String.endsWith("==")
-            ? 2
-            : base64String.endsWith("=")
-            ? 1
-            : 0);
-        const sizeInMB = sizeInBytes / 1024 / 1024;
-        return total + sizeInMB;
+        if (base64String) {
+          // Memastikan string base64 ada setelah penghapusan header
+          const sizeInBytes =
+            (base64String.length * 3) / 4 -
+            (base64String.endsWith("==")
+              ? 2
+              : base64String.endsWith("=")
+              ? 1
+              : 0);
+          const sizeInMB = sizeInBytes / 1024 / 1024;
+          return total + sizeInMB;
+        }
       }
       return total;
     }, 0);
@@ -336,9 +339,10 @@ export default function AdminVehicleDashboard() {
     }
   };
 
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+
   useEffect(() => {
-    const startDate = searchParams.get("startDate");
-    const endDate = searchParams.get("endDate");
     let queryParams = "";
     if (startDate && endDate) {
       queryParams = `?startDate=${startDate}&endDate=${endDate}`;
@@ -346,7 +350,6 @@ export default function AdminVehicleDashboard() {
     fetchVehicles(queryParams);
   }, [searchParams]);
 
-  
   const convertFileToBase64 = (
     file: Blob,
     callback: (result: string | ArrayBuffer | null) => void
@@ -362,6 +365,16 @@ export default function AdminVehicleDashboard() {
 
   const handleMouseLeave = () => {
     setHoverDelete(false);
+  };
+
+  const handleScheduleAvailable = () => {
+    router.push(
+      `/dashboard/vehicle/calendar/available?startDate=${startDate}&endDate=${endDate}`
+    );
+  };
+
+  const handleScheduleAll = () => {
+    router.push("/dashboard/vehicle/calendar/all");
   };
 
   const columns = [
@@ -506,27 +519,58 @@ export default function AdminVehicleDashboard() {
           </Form>
         </div>
         <Divider />
-        <Flex
-          justify="space-between"
-          gap="16px"
-          style={{ marginBottom: "16px", marginTop: "24px" }}
-        >
-          <Button type="primary" onClick={showModal}>
-            Tambah Data Kendaraan
-          </Button>
+        {!searchPerformed && (
+          <Flex
+            justify="space-between"
+            gap="16px"
+            style={{ marginBottom: "16px", marginTop: "24px" }}
+          >
+            <Button type="primary" onClick={showModal}>
+              Tambah Data Kendaraan
+            </Button>
 
-          <Input
-            placeholder="Cari Kendaraan..."
-            value={searchText}
-            onChange={handleSearch}
-            style={{ width: "50%" }}
-          />
-        </Flex>
+            <Space>
+              <Button
+                onClick={() => handleScheduleAll()}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <ScheduleOutlined />
+                Jadwal Seluruh Kendaraan
+              </Button>
+            </Space>
+
+            <Input
+              placeholder="Cari Kendaraan..."
+              value={searchText}
+              onChange={handleSearch}
+              style={{ width: "50%" }}
+            />
+          </Flex>
+        )}
         {searchPerformed ? (
           <>
-            <Title style={{ marginTop: "32px" }} level={4}>
-              Kendaraan Yang Tersedia
-            </Title>
+            <Flex justify="space-between">
+              <Title style={{ marginTop: "16px" }} level={4}>
+                Kendaraan Yang Tersedia
+              </Title>
+              <Space>
+                <Button
+                  onClick={() => handleScheduleAvailable()}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <ScheduleOutlined />
+                  Jadwal Kendaaran Tersedia
+                </Button>
+              </Space>
+            </Flex>
             <Table
               dataSource={availableVehicles}
               columns={columns}

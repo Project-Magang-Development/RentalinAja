@@ -90,6 +90,7 @@ export async function POST(req: Request) {
         no_plat,
         imageUrl,
         merchant_id: decoded.merchantId,
+        storageSize
       },
     });
 

@@ -391,7 +391,6 @@ function Calendar() {
           locales={allLocales}
           locale="id"
           events={calendarEvents()}
-          fixedWeekCount={false}
           eventClick={handleEventClick}
           dateClick={handleDateClick}
           eventContent={eventContent}

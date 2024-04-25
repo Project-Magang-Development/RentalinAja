@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Alert, Card, Col, Row, Select, Skeleton, Statistic } from "antd";
+import { Alert, Card, Col, Flex, Row, Select, Skeleton, Statistic } from "antd";
 import moment from "moment";
 import "moment/locale/id";
 import {
@@ -11,9 +11,17 @@ import {
   OrderedListOutlined,
 } from "@ant-design/icons";
 import Title from "antd/es/typography/Title";
-import { LineChart, ResponsiveContainer, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Line } from "recharts";
+import {
+  LineChart,
+  ResponsiveContainer,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  Line,
+} from "recharts";
 import DashboardSkeleton from "@/app/components/dashboardSkeleton";
-
 
 const { Option } = Select;
 
@@ -23,61 +31,23 @@ interface TotalAmount {
   };
 }
 
-// const LineChart = dynamic(
-//   () => import("recharts").then((mod) => ({ default: mod.LineChart })),
-//   { ssr: false, loading: () => <Spin size="small" /> }
-// );
-// const XAxis = dynamic(
-//   () => import("recharts").then((mod) => ({ default: mod.XAxis })),
-//   { ssr: false }
-// );
-// const YAxis = dynamic(
-//   () => import("recharts").then((mod) => ({ default: mod.YAxis })),
-//   { ssr: false }
-// );
-// const CartesianGrid = dynamic(
-//   () => import("recharts").then((mod) => ({ default: mod.CartesianGrid })),
-//   { ssr: false }
-// );
-// const Tooltip = dynamic<TooltipProps<any, any>>(
-//   () =>
-//     import("recharts").then(
-//       (mod) => mod.Tooltip as React.ComponentType<TooltipProps<any, any>>
-//     ),
-//   { ssr: false, loading: () => <Spin size="small" /> }
-// );
-// const Legend = dynamic<LegendProps>(
-//   () =>
-//     import("recharts").then(
-//       (mod) => mod.Legend as React.ComponentType<LegendProps>
-//     ),
-//   { loading: () => <Spin size="small" />, ssr: false }
-// );
-
-// const Line = dynamic<LineProps>(
-//   () =>
-//     import("recharts").then(
-//       (mod) => mod.Line as React.ComponentType<LineProps>
-//     ),
-//   { loading: () => <Spin size="small" />, ssr: false }
-// );
-// const ResponsiveContainer = dynamic(
-//   () =>
-//     import("recharts").then((mod) => ({ default: mod.ResponsiveContainer })),
-//   { ssr: false, loading: () => <Spin size="small" /> }
-// );
+interface Merchant {
+  used_storage: number;
+}
 
 export default function AdminDashboard() {
   const [totalVehicles, setTotalVehicles] = useState(0);
   const [totalOrders, setTotalOrders] = useState(0);
   const [monthlyOrders, setMonthlyOrders] = useState([]);
-  const [monthlyTotalAmount, setMonthlyTotalAmount] = useState<TotalAmount | null>(null);
+  const [monthlyTotalAmount, setMonthlyTotalAmount] =
+    useState<TotalAmount | null>(null);
   const [selectedYear, setSelectedYear] = useState(moment().year());
   const [totalPayments, setTotalPayments] = useState(0);
   const [error, setError] = useState("");
   const [monthlyPayments, setMonthlyPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   moment.locale("id");
+  const [storages, setStorages] = useState<Merchant | null>(null);
   const currentMonth = moment().format("MMMM");
   const currentYear = moment().year();
   const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
@@ -92,6 +62,7 @@ export default function AdminDashboard() {
         await fetchMonthlyBookings(selectedYear);
         await fetchTotalPayments();
         await fetchMonthlyPayments(selectedYear);
+        await fetchStorages();
       } catch (error) {
         console.error("Fetching data failed:", error);
         setError("Failed to fetch data.");
@@ -220,6 +191,32 @@ export default function AdminDashboard() {
     }
   };
 
+  const gbToMB = (gigabytes: any) => gigabytes;
+
+  const fetchStorages = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setError("Authentication token not found.");
+      return;
+    }
+    try {
+      const response = await fetch("/api/storage/show", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch storage.");
+      const data = await response.json();
+      const storageInMB = gbToMB(data.used_storage); // Convert GB to MB
+      setStorages({ ...data, used_storage: storageInMB });
+    } catch (error) {
+      console.error("Error fetching storage:", error);
+      setError("Failed to fetch storage.");
+    }
+  };
+
   const fetchMonthlyBookings = async (year: number) => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -281,7 +278,7 @@ export default function AdminDashboard() {
   };
 
   if (loading) {
-    return <DashboardSkeleton/>
+    return <DashboardSkeleton />;
   }
 
   if (error) {
@@ -291,9 +288,35 @@ export default function AdminDashboard() {
   return (
     <div>
       <>
-        <Title level={3} style={{ marginBottom: "25px", marginTop: "-25px" }}>
-          {currentMonthYearSentence}
-        </Title>
+        <div
+          className="storage-container"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "20px",
+          }}
+        >
+          <Title level={3} >
+            {currentMonthYearSentence}
+          </Title>
+          <Card
+            bordered={false}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              textAlign: "center",
+            }}
+          >
+            <Title level={5} style={{ margin: 0 }}>
+              Storage:{" "}
+              {storages
+                ? `${storages.used_storage.toFixed(5)} MB`
+                : "Loading..."}
+            </Title>
+          </Card>
+        </div>
         <Row gutter={16} style={{ margin: "20px 0" }}>
           {[
             {

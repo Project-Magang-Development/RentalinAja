@@ -176,10 +176,30 @@ export default function AdminBookingDashboard() {
     }
   };
 
+  function calculateTotalFileSize(files: any[]) {
+    return files.reduce((total: number, file: any) => {
+      if (file.url && file.url.startsWith("data:image")) {
+        const base64String = file.url.replace(/^data:image\/\w+;base64,/, "");
+        const sizeInBytes =
+          (base64String.length * 3) / 4 -
+          (base64String.endsWith("==")
+            ? 2
+            : base64String.endsWith("=")
+            ? 1
+            : 0);
+        const sizeInMB = sizeInBytes / 1024 / 1024;
+        return total + sizeInMB;
+      }
+      return total;
+    }, 0);
+  }
+
   const handleUploadModalOk = async () => {
     const imageUrl = fileList.length > 0 ? fileList[0].url : "";
+     const storageSize = calculateTotalFileSize(fileList);
     const payload = {
       imageUrl,
+      storageSize
     };
     try {
       const token = localStorage.getItem("token");

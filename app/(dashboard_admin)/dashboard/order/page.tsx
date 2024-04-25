@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Divider, message, Radio, Space, Table } from "antd";
+import {
+  Button,
+  Divider,
+  Flex,
+  message,
+  Modal,
+  Radio,
+  Space,
+  Table,
+} from "antd";
 import moment from "moment";
 import Title from "antd/es/typography/Title";
 import TableSkeleton from "@/app/components/tableSkeleton";
@@ -37,6 +46,7 @@ export default function AdminOrderDashboard() {
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
   const [filterStatus, setFilterStatus] = useState<string>("");
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const fetchOrders = async (status?: string) => {
     setLoading(true);
@@ -149,21 +159,63 @@ export default function AdminOrderDashboard() {
       title: "Status Pembayaran",
       dataIndex: "status",
       key: "status",
-      // render: (text: any, record: any) => record?.Payment?.status || "Pending",
+      render: (status: string) => {
+        let backgroundColor = "gray"; 
+        let textColor = "#FFFFFF"; 
+        if (status === "Pending") {
+          textColor = "#EFC326";
+        } else if (status === "Berhasil") {
+          textColor = "#00B69B";
+        }
+        if (status === "Pending") {
+          backgroundColor = "#FCF3D4"; 
+        } else if (status === "Berhasil") {
+          backgroundColor = "#CCF0EB"; 
+        }
+
+        return (
+          <div
+            style={{
+              backgroundColor: backgroundColor,
+              color: textColor, // Apply text color
+              padding: "5px",
+              borderRadius: "5px",
+              textAlign: "center",
+              fontWeight: "bold", // Optional: make text bold for better visibility
+            }}
+          >
+            {status || "Pending"}
+          </div>
+        );
+      },
     },
   ];
 
-  if(loading) {
-    return <TableSkeleton />
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false); // Close the modal
+  };
+
+  if (loading) {
+    return <TableSkeleton />;
   }
 
   return (
     <div>
       <Title level={3}>Data Penyewaan Kendaraan</Title>
       <Divider />
-      <Space direction="vertical" style={{ marginBottom: "24px" }}>
-        <StatusFilter />
-      </Space>
+      <Flex justify="space-between">
+        <Space direction="vertical" style={{ marginBottom: "24px" }}>
+          <StatusFilter />
+        </Space>
+        <Button type="primary" onClick={showModal}>
+          Tambah Order
+        </Button>
+      </Flex>
+
       <Table
         columns={columns}
         dataSource={orders}
@@ -176,6 +228,12 @@ export default function AdminOrderDashboard() {
           });
         }}
       />
+      <Modal
+        title={<div style={{ marginBottom: "16px" }}>Tambah Order</div>}
+        visible={isModalVisible}
+        footer={null}
+        onCancel={handleCancel}
+      ></Modal>
     </div>
   );
 }

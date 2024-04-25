@@ -30,7 +30,7 @@ model Merchant {
   email             String            @unique
   password          String
   api_key           String            @unique
-  used_storage      Decimal           @default(0)
+  used_storage      Float             @default(0)
   vehicles          Vehicle[]
   schedules         Schedule[]
   orders            Order[]
@@ -71,8 +71,9 @@ model Vehicle {
   no_plat          String      @unique
   imageUrl         String      @db.LongText
   capacity         Int
+  storageSize      Float       @default(0)
   Merchant         Merchant    @relation(fields: [merchant_id], references: [merchant_id])
-  Schedules        Schedule[] 
+  Schedules        Schedule[]  
 }
 
 model Schedule {
@@ -86,6 +87,7 @@ model Schedule {
   Vehicle          Vehicle     @relation(fields: [vehicles_id], references: [vehicles_id])
   orders           Order[]
 }
+
 
 
 
@@ -127,6 +129,7 @@ model Booking {
   merchant_id    Int       
   created_at     DateTime @default(now())
   imageUrl       String?  @db.LongText
+  storageSize    Float       @default(0)
 
   Order          Order    @relation(fields: [order_id], references: [order_id])
   Payment        Payment  @relation(fields: [payment_id], references: [payment_id])

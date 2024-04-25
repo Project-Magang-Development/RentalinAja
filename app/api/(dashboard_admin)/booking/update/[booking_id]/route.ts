@@ -34,11 +34,37 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { imageUrl } = body;
+    const { imageUrl, storageSize } = body;
 
-    if (!imageUrl) {
+    if (!imageUrl || !storageSize) {
       return new NextResponse(
         JSON.stringify({ error: "Please provide all required fields" }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    const merchant = await prisma.merchant.findUnique({
+      where: { merchant_id: decoded.merchantId },
+      include: { package: true },
+    });
+
+    if (!merchant) {
+      return new NextResponse(JSON.stringify({ error: "Merchant not found" }), {
+        status: 404,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
+    if (merchant.used_storage + storageSize > merchant.package.storage_limit) {
+      return new NextResponse(
+        JSON.stringify({ error: "Storage limit exceeded" }),
         {
           status: 400,
           headers: {
@@ -73,6 +99,7 @@ export async function PUT(req: Request) {
         where: { booking_id: Number(booking_id) },
         data: {
           imageUrl,
+          storageSize,
         },
       });
 

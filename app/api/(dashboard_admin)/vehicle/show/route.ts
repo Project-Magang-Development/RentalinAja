@@ -60,7 +60,6 @@ export async function GET(req: Request) {
         include: { Schedule: true },
       });
 
-      // Extract booked vehicle IDs
       const bookedVehicleIds = overlappingOrders.map(
         (order) => order.Schedule.vehicles_id
       );
@@ -78,7 +77,6 @@ export async function GET(req: Request) {
         orderBy: { vehicles_id: "desc" },
       });
 
-      // Mark all as available if no date filters are applied
       vehicles = vehicles.map((vehicle) => ({
         ...vehicle,
         status: "Tersedia",

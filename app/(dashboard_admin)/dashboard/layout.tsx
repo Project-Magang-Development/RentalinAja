@@ -9,7 +9,6 @@ import {
   Flex,
   Layout,
   Menu,
-  Skeleton,
   Spin,
   message,
   theme,
@@ -88,57 +87,44 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     pathname.includes(route)
   );
 
-  
-const fetchDataWithLastChecked = async (
-  endpoint: string,
-  lastCheckedKey: string,
-  setStateCallback: React.Dispatch<React.SetStateAction<number>>
-) => {
-  const token = localStorage.getItem("token");
-  const lastChecked = localStorage.getItem(lastCheckedKey) || "";
+  const fetchDataWithLastChecked = async (
+    endpoint: string,
+    lastCheckedKey: string,
+    setStateCallback: React.Dispatch<React.SetStateAction<number>>
+  ) => {
+    const token = localStorage.getItem("token");
+    const lastChecked = localStorage.getItem(lastCheckedKey) || "";
 
-  if (!token) {
-    console.error("Authentication token not found.");
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const query = lastChecked ? `?lastChecked=${lastChecked}` : "";
-    const response = await fetch(`${endpoint}${query}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch data. Status: ${response.status}`);
+    if (!token) {
+      console.error("Authentication token not found.");
+      setLoading(false);
+      return;
     }
 
-    const data = await response.json();
-    setStateCallback(data.count);
-  } catch (error) {
-    console.error("Error fetching data:", error);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const query = lastChecked ? `?lastChecked=${lastChecked}` : "";
+      const response = await fetch(`${endpoint}${query}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-useEffect(() => {
-  fetchDataWithLastChecked(
-    "/api/order/count",
-    "lastCheckedOrderTime",
-    setNewOrdersCount
-  );
-  fetchDataWithLastChecked(
-    "/api/booking/count",
-    "lastCheckedBookingTime",
-    setNewBookingsCount
-  );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data. Status: ${response.status}`);
+      }
 
-  const intervalId = setInterval(() => {
+      const data = await response.json();
+      setStateCallback(data.count);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchDataWithLastChecked(
       "/api/order/count",
       "lastCheckedOrderTime",
@@ -149,23 +135,34 @@ useEffect(() => {
       "lastCheckedBookingTime",
       setNewBookingsCount
     );
-  }, 30000);
 
-  return () => clearInterval(intervalId);
-}, []);
+    const intervalId = setInterval(() => {
+      fetchDataWithLastChecked(
+        "/api/order/count",
+        "lastCheckedOrderTime",
+        setNewOrdersCount
+      );
+      fetchDataWithLastChecked(
+        "/api/booking/count",
+        "lastCheckedBookingTime",
+        setNewBookingsCount
+      );
+    }, 30000);
 
-const handleOrderClick = () => {
-  localStorage.setItem("lastCheckedOrderTime", Date.now().toString());
-  setNewOrdersCount(0);
-  router.push("/dashboard/order");
-};
+    return () => clearInterval(intervalId);
+  }, []);
 
-const handleBookingClick = () => {
-  localStorage.setItem("lastCheckedBookingTime", Date.now().toString());
-  setNewBookingsCount(0);
-  router.push("/dashboard/booking");
-};
-  
+  const handleOrderClick = () => {
+    localStorage.setItem("lastCheckedOrderTime", Date.now().toString());
+    setNewOrdersCount(0);
+    router.push("/dashboard/order");
+  };
+
+  const handleBookingClick = () => {
+    localStorage.setItem("lastCheckedBookingTime", Date.now().toString());
+    setNewBookingsCount(0);
+    router.push("/dashboard/booking");
+  };
 
   if (shouldHideSidebar) {
     return <>{children}</>;
@@ -269,8 +266,8 @@ const handleBookingClick = () => {
     />
   );
 
-  if(loading) {
-    return <LayoutSkeleton/>
+  if (loading) {
+    return <LayoutSkeleton />;
   }
 
   return (
@@ -414,6 +411,7 @@ const handleBookingClick = () => {
             background: "#FFF",
             boxShadow: "0px -5px 10px rgba(0, 0, 0, 0.1)",
             height: "45px",
+            marginTop: "50px",
           }}
         >
           RentalinAja ©{new Date().getFullYear()} Powered by RentalinAja

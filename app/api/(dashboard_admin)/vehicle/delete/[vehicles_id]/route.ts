@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
 export async function DELETE(req: Request) {
- const url = new URL(req.url);
- const pathnameParts = url.pathname.split("/");
- const vehicles_id = pathnameParts[pathnameParts.length - 1];
+  const url = new URL(req.url);
+  const pathnameParts = url.pathname.split("/");
+  const vehicles_id = pathnameParts[pathnameParts.length - 1];
 
   try {
     const tokenHeader = req.headers.get("Authorization");
@@ -45,63 +45,57 @@ export async function DELETE(req: Request) {
       );
     }
 
-    try {
-      const vehicle = await prisma.vehicle
-        .findUnique({
-          where: { vehicles_id: Number(vehicles_id) },
-        })
-        .catch((error) => {
-          throw error;
-        });
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { vehicles_id: Number(vehicles_id) },
+    });
 
-      if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
-        return new NextResponse(
-          JSON.stringify({ error: "Vehicle not found or access denied" }),
-          {
-            status: 404,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      }
-
-      await prisma.vehicle
-        .delete({
-          where: { 
-            vehicles_id: Number(vehicles_id),
-           },
-        })
-        .catch((error) => {
-          throw error;
-        });
-
+    if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
       return new NextResponse(
-        JSON.stringify({
-          message: "Vehicle deleted successfully",
-        }),
+        JSON.stringify({ error: "Vehicle not found or access denied" }),
         {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    } catch (error) {
-      // Add a catch block for any errors
-      console.error("Error accessing database or verifying token:", error);
-      return new NextResponse(
-        JSON.stringify({ error: "Internal Server Error or Invalid Token" }),
-        {
-          status: 500,
+          status: 404,
           headers: {
             "Content-Type": "application/json",
           },
         }
       );
     }
+
+
+    await prisma.$transaction([
+      prisma.schedule.deleteMany({
+        where: { vehicles_id: Number(vehicles_id) },
+      }),
+      prisma.vehicle.delete({ where: { vehicles_id: Number(vehicles_id) } }),
+      prisma.merchant.update({
+        where: { merchant_id: vehicle.merchant_id },
+        data: { used_storage: { decrement: vehicle.storageSize || 0 } },
+      }),
+    ]);
+
+    return new NextResponse(
+      JSON.stringify({
+        message: "Vehicle deleted successfully",
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Error accessing database or verifying token:", error);
+    return new NextResponse(
+      JSON.stringify({ error: "Internal Server Error or Invalid Token" }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } finally {
-    // Add await to disconnect() call and catch any errors
     await prisma.$disconnect().catch((error) => {
       console.error("Error disconnecting from database:", error);
     });
