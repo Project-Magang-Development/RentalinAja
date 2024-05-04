@@ -27,6 +27,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCompanyName, useMerchantName } from "../../hooks/useLogin";
 import Image from "next/image";
+import Cookies from "js-cookie";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -179,7 +180,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           label: "Keluar",
           icon: <LogoutOutlined />,
           onClick: () => {
-            localStorage.removeItem("tokenAdmin");
+            Cookies.remove("tokenAdmin");
             message.success("Logout successful!");
             window.location.href = "/dashboard-admin/login";
           },

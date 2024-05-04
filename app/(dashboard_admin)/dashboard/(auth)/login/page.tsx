@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { Button, Form, Input, Layout, Typography, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -31,7 +32,7 @@ export default function LoginDashboard() {
       }
 
       const data = await response.json();
-      localStorage.setItem("token", data.token);
+      Cookies.set("token", data.token, { expires: 1 });
       message.success("Login successful!");
       setLoading(false);
       router.push("/dashboard");

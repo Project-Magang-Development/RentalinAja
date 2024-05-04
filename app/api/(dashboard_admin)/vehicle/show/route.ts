@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: number;
+        merchantId: string;
       };
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
@@ -74,7 +74,6 @@ export async function GET(req: Request) {
     } else {
       vehicles = await prisma.vehicle.findMany({
         where: { merchant_id: decoded.merchantId },
-        orderBy: { vehicles_id: "desc" },
       });
 
       vehicles = vehicles.map((vehicle) => ({

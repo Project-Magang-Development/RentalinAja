@@ -4,16 +4,17 @@ import React, { useEffect, useState } from "react";
 import { Divider, message, Table } from "antd";
 import moment from "moment";
 import Title from "antd/es/typography/Title";
+import Cookies from "js-cookie";
 
 interface Package {
-  package_id: number;
+  package_id: string;
   package_name: string;
   package_price: number;
   storage_limit: number;
 }
 
 interface Merchant {
-  merchant_id: number;
+  merchant_id: string;
   merchant_name: string;
   package: Package;
 }
@@ -25,7 +26,7 @@ export default function AdminMerchantDashboard() {
 
   const fetchMerchants = async () => {
     setLoading(true);
-    const token = localStorage.getItem("tokenAdmin");
+    const token = Cookies.get("tokenAdmin");
     if (!token) {
       message.error("Authentication token not found.");
       setLoading(false);

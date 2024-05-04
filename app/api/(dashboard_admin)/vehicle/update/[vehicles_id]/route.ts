@@ -23,7 +23,7 @@ export async function PUT(req: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: number;
+        merchantId: string;
       };
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
@@ -35,10 +35,10 @@ export async function PUT(req: Request) {
     }
 
      const body = await req.json();
-     const { name, capacity, model, year, no_plat, imageUrl, storageSize } =
+     const { name, capacity, model, year, no_plat, imageUrl } =
        body;
 
-     if (!name || !capacity ||  !model || !year || !no_plat || !imageUrl|| !storageSize) {
+     if (!name || !capacity ||  !model || !year || !no_plat || !imageUrl) {
        return new NextResponse(
          JSON.stringify({ error: "Please provide all required fields" }),
          {
@@ -53,7 +53,7 @@ export async function PUT(req: Request) {
     try {
       const vehicle = await prisma.vehicle
         .findUnique({
-          where: { vehicles_id: Number(vehicles_id) },
+          where: { vehicles_id: String(vehicles_id) },
         })
         .catch((error) => {
           throw error;
@@ -72,7 +72,7 @@ export async function PUT(req: Request) {
       }
 
       const updatedVehicle = await prisma.vehicle.update({
-        where: { vehicles_id: Number(vehicles_id) },
+        where: { vehicles_id: String(vehicles_id) },
         data: {
           name,
           capacity,
@@ -81,7 +81,6 @@ export async function PUT(req: Request) {
           no_plat,
           imageUrl,
           merchant_id: decoded.merchantId,
-          storageSize
         },
       });
 

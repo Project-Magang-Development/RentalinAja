@@ -10,14 +10,14 @@ const { Content } = Layout;
 const { Title } = Typography;
 
 interface Vehicle {
-  vehicles_id: number;
+  vehicles_id: string;
   name: string;
   capacity: number;
   imageUrl: string;
 }
 
 interface Schedule {
-  schedules_id: number;
+  schedules_id: string;
   start_date: string;
   end_date: string;
   Vehicle: Vehicle;
@@ -65,7 +65,7 @@ const VehiclePage = () => {
     fetchSchedules();
   }, [searchParams, startDate, endDate]);
 
-  const handleCardClick = (vehicles_id: number) => {
+  const handleCardClick = (vehicles_id: string) => {
     router.push(
       `/vehicles/${vehicles_id}?startDate=${startDate}&endDate=${endDate}`
     );

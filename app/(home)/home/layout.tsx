@@ -61,7 +61,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 <Link href="/home" passHref>
                   <p
                     style={{
-                      color: pathname === "/home" ? "orange" : "black", // Change this line.pathname === "/" ? "orange" : "black",
+                      color: pathname === "/home" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
                     }}
                   >
                     Beranda
@@ -72,7 +72,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 <Link href="/" passHref>
                   <p
                     style={{
-                      color: pathname === "/" ? "orange" : "black", // Change this line.pathname === "/" ? "orange" : "black",
+                      color: pathname === "/" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
                     }}
                   >
                     Tentang Kami
@@ -83,7 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 <Link href="/" passHref>
                   <p
                     style={{
-                      color: pathname === "/" ? "orange" : "black", // Change this line.pathname === "/" ? "orange" : "black",
+                      color: pathname === "/" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
                     }}
                   >
                     Fitur
@@ -94,7 +94,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 <Link href="/home/pricing" passHref>
                   <p
                     style={{
-                      color: pathname === "/home/pricing" ? "orange" : "black", // Change this line.pathname === "/" ? "orange" : "black",
+                      color: pathname === "/home/pricing" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
                     }}
                   >
                     Harga
@@ -105,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 <Link href="/" passHref>
                   <p
                     style={{
-                      color: pathname === "/" ? "orange" : "black", // Change this line.pathname === "/" ? "orange" : "black",
+                      color: pathname === "/" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
                     }}
                   >
                     Kontak
@@ -119,7 +119,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
           </Col>
         </Row>
       </div>
-      <div style={{ marginTop: 100, padding: 24, backgroundColor: "#FFFFFF" }}>
+      <div style={{ marginTop: 100, padding: 24 }}>
         {children}
       </div>
     </>

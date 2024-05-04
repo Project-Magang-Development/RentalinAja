@@ -1,53 +1,213 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { message, Table } from "antd";
+import {
+  Button,
+  Divider,
+  Flex,
+  Form,
+  Input,
+  message,
+  Modal,
+  notification,
+  Space,
+  Table,
+  Tooltip,
+} from "antd";
+import Title from "antd/es/typography/Title";
+import useSWR from "swr";
+import TableSkeleton from "@/app/components/tableSkeleton";
+import Cookies from "js-cookie";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 
 interface Package {
-  package_id: number;
+  package_id: string;
   package_name: string;
   package_price: number;
-  storage_limit: number;
+  count: number;
+  duration: number;
 }
 
+const fetcher = async (url: string) => {
+  const token = Cookies.get("tokenAdmin");
+  if (!token) {
+    throw new Error("Authentication token not found.");
+  }
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch schedules");
+  }
+  return response.json();
+};
+
 export default function AdminPackageDashboard() {
-  const [packages, setPackages] = useState<Package[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const {
+    data: packages,
+    mutate,
+    isLoading,
+  } = useSWR("/api/package/show", fetcher);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingPackage, setEditingPackage] = useState<Package | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
+  const [hoverDelete, setHoverDelete] = useState(false);
 
-  const getPackages = async () => {
-    setLoading(true);
-    const token = localStorage.getItem("tokenAdmin");
-    if (!token) {
-      message.error("Authentication token not found.");
-      setLoading(false);
-      return;
-    }
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
 
+  const handleCancel = () => {
+    setEditingPackage(null);
+    form.resetFields();
+    setIsModalVisible(false);
+  };
+
+  const modalTitle = editingPackage ? "Edit Data Paket" : "Tambah Data Paket";
+
+  const handleOk = async () => {
+    let response;
     try {
-      const response = await fetch("/api/package/show", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const values = await form.validateFields();
 
-      if (!response.ok) throw new Error("Failed to fetch packages.");
+      const payload = {
+        package_name: values.name,
+        package_price: parseInt(values.price, 10),
+        count: parseInt(values.count, 10),
+        duration: parseInt(values.duration, 10),
+      };
 
-      const data = await response.json();
-      setPackages(data);
+      setLoading(true);
+
+      const token = Cookies.get("token");
+
+      if (editingPackage) {
+        response = await fetch(
+          `/api/package/update/${editingPackage.package_id}`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+      } else {
+        response = await fetch("/api/package/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 400) {
+          notification.error({
+            message: "Gagal",
+            description: "Limit Tambah Kendaraan Sudah Habis",
+          });
+        } else {
+          throw new Error(errorData.message || "Failed to process vehicle");
+        }
+      } else {
+        notification.success({
+          message: "Sukses",
+          description: editingPackage
+            ? "Data Paket Berhasil Di Update."
+            : "Data Paket Berhasil Di Tambah.",
+        });
+        mutate();
+        form.resetFields();
+        setIsModalVisible(false);
+        setEditingPackage(null);
+      }
     } catch (error) {
-      console.error("Error fetching packages:", error);
-      message.error("Failed to fetch packages.");
+      notification.error({
+        message: "Gagal",
+        description: editingPackage
+          ? "Data Paket Gagal Di Update."
+          : "Data Paket Gagal Di Tambah.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    getPackages();
-  }, []);
+  const handleMouseEnter = () => {
+    setHoverDelete(true);
+  };
+
+  const handleMouseLeave = () => {
+    setHoverDelete(false);
+  };
+
+  const handleEdit = (package_id: string) => {
+    const packageToEdit = packages.find(
+      (packageData: any) => packageData.package_id === package_id
+    );
+    if (packageToEdit) {
+      setEditingPackage(packageToEdit);
+      form.setFieldsValue({
+        name: packageToEdit.package_name,
+        price: packageToEdit.package_price.toString(),
+        count: packageToEdit.count.toString(),
+        duration: packageToEdit.duration.toString(),
+      });
+      setIsModalVisible(true);
+    }
+  };
+
+  const handleDelete = async (package_id: string) => {
+    Modal.confirm({
+      title: "Konfirmasi Penghapusan",
+      content: "Kamu yakin menghapus data ini?",
+      onOk: async () => {
+        setLoading(true);
+        try {
+          const response = await fetch(`/api/package/delete/${package_id}`, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${Cookies.get("token")}`,
+            },
+          });
+          if (!response.ok) throw new Error("Deletion failed");
+
+          mutate(
+            packages.filter(
+              (v: { package_id: string }) => v.package_id !== package_id
+            ),
+            false
+          );
+          notification.success({ message: "Data Paket Berhasil Di Hapus" });
+        } catch (error) {
+          notification.error({
+            message: "Deletion failed",
+            description: (error as Error).message,
+          });
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  if (loading) {
+    return <TableSkeleton />;
+  }
+
+  if (!packages) {
+    return <TableSkeleton />;
+  }
 
   const columns = [
     {
@@ -63,10 +223,15 @@ export default function AdminPackageDashboard() {
       key: "package_name",
     },
     {
-      title: "Penyimpanan (GB)",
-      dataIndex: "storage_limit",
-      key: "storage_limit",
-      render: (text: number) => `${text} GB`,
+      title: "Penyimpanan Data",
+      dataIndex: "count",
+      key: "count",
+    },
+    {
+      title: "Durasi",
+      dataIndex: "duration",
+      key: "duration",
+      render: (duration: number) => `${duration} Bulan`,
     },
     {
       title: "Harga Paket",
@@ -78,16 +243,55 @@ export default function AdminPackageDashboard() {
           currency: "IDR",
         }),
     },
+    {
+      title: "Aksi",
+      key: "action",
+      render: (text: any, record: any) => (
+        <Space size="middle">
+          <Tooltip title="Edit">
+            <Button
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record.package_id)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            />
+          </Tooltip>
+          <Tooltip title="Hapus">
+            <Button
+              icon={<DeleteOutlined />}
+              onClick={() => handleDelete(record.package_id)}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              danger={hoverDelete}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            />
+          </Tooltip>
+        </Space>
+      ),
+    },
   ];
 
   return (
     <div>
-      <h3>Data Paket</h3>
+      <Title level={3}> Data Paket</Title>
+      <Divider />
+      <Flex>
+        <Button type="primary" onClick={showModal}>
+          Tambah Paket
+        </Button>
+      </Flex>
       <Table
         columns={columns}
         dataSource={packages}
-        loading={loading}
         rowKey="package_id"
+        style={{ marginTop: "20px" }}
         pagination={{
           current: pagination.current,
           pageSize: pagination.pageSize,
@@ -95,6 +299,65 @@ export default function AdminPackageDashboard() {
             setPagination((prev) => ({ ...prev, current: page })),
         }}
       />
+      <Modal
+        title={<div style={{ marginBottom: "16px" }}>{modalTitle}</div>}
+        visible={isModalVisible}
+        footer={null}
+        onCancel={handleCancel}
+      >
+        <Form
+          form={form}
+          name="addPacketForm"
+          initialValues={{ remember: true }}
+          onFinish={handleOk}
+          autoComplete="off"
+        >
+          <Form.Item
+            name="name"
+            rules={[{ required: true, message: "Tolong Masukan Nama Paket!" }]}
+          >
+            <Input placeholder="Nama Paket" />
+          </Form.Item>
+          <Form.Item
+            name="price"
+            rules={[{ required: true, message: "Tolong Masukan Harga Paket!" }]}
+          >
+            <Input placeholder="Harga Paket" />
+          </Form.Item>
+          <Form.Item
+            name="count"
+            rules={[
+              {
+                required: true,
+                message: "Tolong Masukan Penyimpanan Data Yang Masuk!",
+              },
+            ]}
+          >
+            <Input placeholder="Penyimpanan Data Yang Masuk (Boleh Kosong)" />
+          </Form.Item>
+          <Form.Item
+            name="duration"
+            rules={[
+              {
+                required: true,
+                message: "Tolong Masukan Durasi Paket!",
+              },
+            ]}
+          >
+            <Input placeholder="Durasi Paket Dalam Bulan" />
+          </Form.Item>
+          <Form.Item>
+            <Space>
+              <Button key="back" onClick={handleCancel}>
+                Batal
+              </Button>
+              <Button key="submit" type="primary" htmlType="submit">
+                {editingPackage ? "Update" : "Tambah"}
+              </Button>
+            </Space>
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 }

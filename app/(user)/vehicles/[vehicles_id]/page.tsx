@@ -22,7 +22,7 @@ const { Content } = Layout;
 
 
 interface Vehicle {
-  vehicles_id: number;
+  vehicles_id: string;
   name: string;
   capacity: number;
   price: number;
@@ -34,7 +34,7 @@ interface Vehicle {
 }
 
 interface Schedule {
-  merchant_id: number;
+  merchant_id: string;
   schedules_id: number;
   start_date: string;
   end_date: string;

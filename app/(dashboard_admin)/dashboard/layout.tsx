@@ -19,6 +19,7 @@ import { useCompanyName, useMerchantName } from "../../hooks/useLogin";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import LayoutSkeleton from "@/app/components/layoutSkeleton";
+import Cookies from "js-cookie";
 
 const BookOutlined = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.BookOutlined)
@@ -92,7 +93,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     lastCheckedKey: string,
     setStateCallback: React.Dispatch<React.SetStateAction<number>>
   ) => {
-    const token = localStorage.getItem("token");
+    const token = Cookies.get("token");
     const lastChecked = localStorage.getItem(lastCheckedKey) || "";
 
     if (!token) {
@@ -257,7 +258,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           label: "Keluar",
           icon: <LogoutOutlined />,
           onClick: () => {
-            localStorage.removeItem("token");
+            Cookies.remove("token");
             message.success("Logout successful!");
             window.location.href = "/dashboard/login";
           },

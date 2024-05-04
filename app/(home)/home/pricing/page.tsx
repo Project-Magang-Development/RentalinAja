@@ -1,35 +1,63 @@
 "use client";
 
 import React from "react";
-import { Card, Col, Row } from "antd";
-import { useRouter } from "next/navigation"; // Update this line if necessary
+import { Card, Col, Row, Spin, Alert } from "antd";
+import { useRouter } from "next/navigation"; 
+import useSWR from "swr";
+
+interface Package {
+  package_id: number;
+  package_name: string;
+  package_price: number;
+  duration: number;
+}
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch packages.");
+  }
+  return response.json();
+};
 
 const Home: React.FC = () => {
-  const router = useRouter(); // Ensure correct import based on your Next.js version
+  const { data: packages, error } = useSWR<Package[]>(
+    "/api/showPackage",
+    fetcher
+  ); 
+  const router = useRouter();
 
-  const plans = [
-    { duration: "3 Months", price: 250000 },
-    { duration: "6 Months", price: 400000 },
-    { duration: "12 Months", price: 800000 },
-  ];
+  if (error) {
+    return <Alert message="Error loading packages!" type="error" showIcon />;
+  }
 
-  const handleCardClick = (selectedPlanDuration: any) => {
-    // Store only the duration of the selected plan
-    localStorage.setItem("planDuration", JSON.stringify(selectedPlanDuration));
-    router.push("/home/register"); // Ensure the route is correct
+  if (!packages) {
+    return (
+      <Spin size="large" tip="Loading Packages...">
+        <Row gutter={16} style={{ minHeight: "200px" }} />
+      </Spin>
+    );
+  }
+
+  const handleCardClick = (packageId: string) => {
+    router.push(`/home/register?package=${packageId}`);
   };
 
   return (
     <div>
       <Row gutter={16}>
-        {plans.map((plan, index) => (
+        {packages.map((pkg: Package, index: number) => (
           <Col key={index} span={8}>
             <Card
-              title={`Plan for ${plan.duration}`}
+              title={`${pkg.package_name} - ${pkg.duration} Months`}
               bordered={false}
-              onClick={() => handleCardClick(plan.duration)} // Pass only the duration of the clicked plan
+              onClick={() => handleCardClick(pkg.package_id.toString())}
             >
-              <p>Price: Rp {plan.price.toLocaleString()}</p>
+              <p>Price: Rp {pkg.package_price.toLocaleString()}</p>
             </Card>
           </Col>
         ))}

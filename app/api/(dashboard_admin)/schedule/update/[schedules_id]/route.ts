@@ -23,7 +23,7 @@ export async function PUT(req: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: number;
+        merchantId: string;
       };
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
@@ -56,7 +56,7 @@ export async function PUT(req: Request) {
     const overlappingSchedule = await prisma.schedule.findMany({
       where: {
         vehicles_id,
-        schedules_id: { not: Number(schedules_id) }, // Pastikan jadwal yang dicek bukan jadwal yang sedang diupdate
+        schedules_id: { not: String(schedules_id) }, // Pastikan jadwal yang dicek bukan jadwal yang sedang diupdate
         OR: [
           {
             start_date: {
@@ -86,7 +86,7 @@ export async function PUT(req: Request) {
 
     // Lanjutkan pembaruan jadwal jika tidak ada yang beririsan
     const updatedSchedule = await prisma.schedule.update({
-      where: { schedules_id: Number(schedules_id) },
+      where: { schedules_id: String(schedules_id) },
       data: {
         vehicles_id,
         start_date: parsedStartDate,

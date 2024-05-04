@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: number;
+        merchantId: string;
       };
     } catch (error) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
@@ -36,9 +36,6 @@ export async function GET(req: Request) {
         Order: {
           status: statusQuery ? statusQuery : undefined,
         },
-      },
-      orderBy: {
-        created_at: "desc",
       },
       include: {
         Order: {

@@ -18,8 +18,8 @@ export async function POST(req: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: number;
-      };
+        merchantId: string;
+      }; 
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, capacity, model, year, no_plat, imageUrl, storageSize } =
+    const { name, capacity, model, year, no_plat, imageUrl} =
       body;
 
     if (
@@ -39,8 +39,7 @@ export async function POST(req: Request) {
       !model ||
       !year ||
       !no_plat ||
-      !imageUrl ||
-      !storageSize
+      !imageUrl
     ) {
       return new NextResponse(
         JSON.stringify({
@@ -57,7 +56,7 @@ export async function POST(req: Request) {
 
     const merchant = await prisma.merchant.findUnique({
       where: { merchant_id: decoded.merchantId },
-      include: { package: true }, 
+      include: { package: true, vehicles: true }, 
     });
 
     if (!merchant) {
@@ -69,17 +68,20 @@ export async function POST(req: Request) {
       });
     }
 
-    if (merchant.used_storage + storageSize > merchant.package.storage_limit) {
+    if (
+      merchant.package.count !== null &&
+      merchant.used_storage >= merchant.package.count
+    ) {
       return new NextResponse(
-        JSON.stringify({ error: "Storage limit exceeded" }),
+        JSON.stringify({ error: "Vehicle limit exceeded" }),
         {
           status: 400,
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
         }
       );
     }
+
+     
 
     const newVehicle = await prisma.vehicle.create({
       data: {
@@ -90,19 +92,21 @@ export async function POST(req: Request) {
         no_plat,
         imageUrl,
         merchant_id: decoded.merchantId,
-        storageSize
       },
     });
 
-    await prisma.merchant.update({
+
+    const updatedMerchant = await prisma.merchant.update({
       where: { merchant_id: decoded.merchantId },
-      data: { used_storage: { increment: storageSize } },
+      data: { used_storage: { increment: 1 } },
     });
+
 
     return new NextResponse(
       JSON.stringify({
         message: "Vehicle created successfully",
         vehicle: newVehicle,
+        updatedStorage: updatedMerchant.used_storage,
       }),
       {
         status: 200,

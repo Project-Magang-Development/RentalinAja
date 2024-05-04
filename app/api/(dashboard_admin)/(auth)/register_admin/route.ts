@@ -23,21 +23,15 @@ export async function POST(req: Request) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const startDate = new Date();
-    let endDate = moment(startDate);
 
-    switch (plan) {
-      case "3 Months":
-        endDate = endDate.add(3, "months");
-        break;
-      case "6 Months":
-        endDate = endDate.add(6, "months");
-        break;
-      case "12 Months":
-        endDate = endDate.add(12, "months");
-        break;
-      default:
-        return NextResponse.json({ error: "Invalid plan duration" });
+    const packages = await prisma.package.findUnique({
+      where: { package_id: plan },
+    });
+    if (!packages) {
+      return NextResponse.json({ error: "Invalid plan ID" });
     }
+
+     let endDate = moment(startDate).add(packages.duration, "months");
 
     const generateApiKey = () => crypto.randomBytes(32).toString("hex");
 
@@ -51,7 +45,7 @@ export async function POST(req: Request) {
         start_date: startDate,
         api_key: generateApiKey(),
         end_date: endDate.toDate(),
-        package_id: 1,
+        package_id: plan,
       },
     });
 

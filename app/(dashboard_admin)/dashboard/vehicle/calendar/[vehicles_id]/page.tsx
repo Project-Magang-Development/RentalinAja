@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, {useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -23,17 +23,18 @@ import moment from "moment";
 import Title from "antd/es/typography/Title";
 import { DeleteOutlined } from "@ant-design/icons";
 import CalendarSkeleton from "@/app/components/calendarSkeleton";
+import useSWR from "swr";
+import Cookies from "js-cookie";
 
 interface Vehicle {
-  vehicles_id: number;
+  vehicles_id: string;
   name: string;
   model: string;
   no_plat: string;
 }
 
 interface Schedule {
-  schedules_id?: number;
-  vehicles_id?: number;
+  schedules_id?: string;
   start_date?: any;
   end_date?: any;
   price?: number;
@@ -48,81 +49,44 @@ interface Holiday {
 type PayloadType = {
   start_date: Date | undefined;
   end_date: Date | undefined;
-  vehicles_id: number | undefined;
+  vehicles_id: string;
   price: any;
-  schedules_id?: number;
+  schedules_id?: string;
+};
+
+const fetcher = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${Cookies.get("token")}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch data");
+  }
+  return response.json();
 };
 
 function Calendar() {
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const query = useParams();
   const vehicles_id = query.vehicles_id;
+  const {
+    data: schedules,
+    mutate,
+  } = useSWR(`/api/schedule/show/${vehicles_id}`, fetcher);
+
+  const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Schedule | null>(null);
   const [vehicleDetails, setVehicleDetails] = useState<Vehicle | null>(null);
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
 
-  const fetchSchedule = useCallback(async () => {
-    if (!vehicles_id) return;
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      setLoading(false);
-      return;
-    }
-    try {
-      const response = await fetch(`/api/schedule/show/${vehicles_id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch schedules.");
-
-      const data = await response.json();
-      if (data.length > 0) {
-        setVehicleDetails(data[0].Vehicle);
-      }
-      setSchedules(data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching schedules:", error);
-      setError("Failed to fetch schedules.");
-      setLoading(false);
-    }
-  }, [vehicles_id, setLoading, setError, setVehicleDetails, setSchedules]);
-
-  useEffect(() => {
-    const fetchHolidays = async () => {
-      try {
-        const response = await fetch("https://api-harilibur.vercel.app/api");
-        const data = await response.json();
-        const holidayEvents = data.map((holiday: any) => ({
-          title: holiday.holiday_name,
-          start: holiday.holiday_date,
-          allDay: true,
-          backgroundColor: "red",
-          borderColor: "darkred",
-        }));
-        setHolidays(holidayEvents); // Assuming you have a useState to hold holidays
-      } catch (error) {
-        console.error("Error fetching holiday data:", error);
-      }
-    };
-
-    fetchHolidays();
-  }, []);
-
-  useEffect(() => {
-    // Panggil fungsi fetchSchedule dan fetchHolidays di sini
-    fetchSchedule(); // Misalkan Anda memiliki fungsi ini untuk memuat jadwalkan di atas
-  }, [vehicles_id, fetchSchedule]);
+   useEffect(() => {
+     if (schedules && schedules.length > 0) {
+       setVehicleDetails(schedules[0].Vehicle);
+     }
+   }, [schedules]);
 
   const showSuccessNotification = (isUpdate: any) => {
     notification.success({
@@ -140,7 +104,7 @@ function Calendar() {
   };
 
   const handleOk = async () => {
-    const token = localStorage.getItem("token");
+    const token = Cookies.get("token");
     if (!token) {
       message.error("Authentication token not found.");
       return;
@@ -157,7 +121,9 @@ function Calendar() {
         end_date: formData.end_date
           ? formData.end_date.format("YYYY-MM-DD")
           : undefined,
-        vehicles_id: Number(vehicles_id),
+        vehicles_id: Array.isArray(vehicles_id)
+          ? vehicles_id.join(",")
+          : vehicles_id,
         price: formData.price,
         schedules_id: selectedEvent?.schedules_id,
       };
@@ -183,7 +149,7 @@ function Calendar() {
 
       showSuccessNotification(!!payload.schedules_id);
       setIsModalVisible(false);
-      fetchSchedule();
+      mutate();
     } catch (error) {
       showFailureNotification();
       setIsModalVisible(false);
@@ -231,7 +197,7 @@ function Calendar() {
   const handleDeleteEvent = async (schedules_id: number) => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get('token');
       const response = await fetch(`/api/schedule/delete/${schedules_id}`, {
         method: "DELETE",
         headers: {
@@ -245,10 +211,10 @@ function Calendar() {
         throw new Error(errorData.message || "Failed to delete schedule");
       }
 
-      const newSchedules = schedules.filter(
-        (schedule) => schedule.schedules_id !== schedules_id
+      mutate(
+        schedules.filter((schedule: any) => schedule.schedules_id !== schedules_id),
+        false
       );
-      setSchedules(newSchedules);
       notification.success({
         message: "Berhasil",
         description: "Berhasil Menghapus Jadwal.",
@@ -337,7 +303,7 @@ function Calendar() {
   };
 
   const calendarEvents = () => {
-    const events = schedules.map((schedule, index) => ({
+    const events = schedules?.map((schedule: any, index: any) => ({
       title: `Price: ${
         schedule.price
           ? new Intl.NumberFormat("id-ID", {
@@ -358,7 +324,7 @@ function Calendar() {
       (holiday) => !checkOverlap(holiday.holiday_date, schedules)
     );
     nonOverlappingHolidays.forEach((holiday) => {
-      events.push({
+      events?.push({
         title: `Holiday: ${holiday.holiday_name}`,
         start: holiday.holiday_date,
         end: holiday.holiday_date,
@@ -371,6 +337,8 @@ function Calendar() {
 
     return events;
   };
+
+  if (!schedules) return <CalendarSkeleton />;
 
   if (loading) {
     return <CalendarSkeleton />;

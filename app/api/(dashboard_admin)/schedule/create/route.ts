@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: number;
+        merchantId: string;
       };
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
@@ -99,6 +99,7 @@ export async function POST(req: Request) {
         merchant_id: decoded.merchantId,
       },
     });
+    
 
     return new NextResponse(
       JSON.stringify({

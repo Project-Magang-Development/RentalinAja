@@ -22,7 +22,7 @@ export async function DELETE(req: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: number;
+        merchantId: string;
       };
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
@@ -46,7 +46,7 @@ export async function DELETE(req: Request) {
     }
 
     const vehicle = await prisma.vehicle.findUnique({
-      where: { vehicles_id: Number(vehicles_id) },
+      where: { vehicles_id: String(vehicles_id) },
     });
 
     if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
@@ -64,12 +64,12 @@ export async function DELETE(req: Request) {
 
     await prisma.$transaction([
       prisma.schedule.deleteMany({
-        where: { vehicles_id: Number(vehicles_id) },
+        where: { vehicles_id: String(vehicles_id) },
       }),
-      prisma.vehicle.delete({ where: { vehicles_id: Number(vehicles_id) } }),
+      prisma.vehicle.delete({ where: { vehicles_id: String(vehicles_id) } }),
       prisma.merchant.update({
         where: { merchant_id: vehicle.merchant_id },
-        data: { used_storage: { decrement: vehicle.storageSize || 0 } },
+        data: { used_storage: { decrement: 1 } },
       }),
     ]);
 

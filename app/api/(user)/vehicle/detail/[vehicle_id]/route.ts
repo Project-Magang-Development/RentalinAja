@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   try {
     const vehicle = await prisma.vehicle.findUnique({
       where: {
-        vehicles_id: Number(vehicles_id),
+        vehicles_id: String(vehicles_id),
       },
       include:  {
         Schedules: true,

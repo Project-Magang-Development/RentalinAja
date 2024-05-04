@@ -22,7 +22,7 @@ export async function PUT(req: Request) {
     let decoded;
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: number;
+        merchantId: string;
       };
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
@@ -62,7 +62,7 @@ export async function PUT(req: Request) {
       });
     }
 
-    if (merchant.used_storage + storageSize > merchant.package.storage_limit) {
+    if ( merchant.package.count) {
       return new NextResponse(
         JSON.stringify({ error: "Storage limit exceeded" }),
         {
@@ -77,7 +77,7 @@ export async function PUT(req: Request) {
     try {
       const booking = await prisma.booking
         .findUnique({
-          where: { booking_id: Number(booking_id) },
+          where: { booking_id: String(booking_id) },
         })
         .catch((error) => {
           throw error;
@@ -96,10 +96,9 @@ export async function PUT(req: Request) {
       }
 
       const updatedBooking = await prisma.booking.update({
-        where: { booking_id: Number(booking_id) },
+        where: { booking_id: String(booking_id) },
         data: {
           imageUrl,
-          storageSize,
         },
       });
 

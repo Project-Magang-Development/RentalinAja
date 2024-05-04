@@ -53,7 +53,7 @@ export async function POST(req: Request) {
 
     const existingBooking = await prisma.order.findFirst({
       where: {
-        schedules_id: Number(schedules_id),
+        schedules_id: String(schedules_id),
         AND: [
           {
             OR: [
@@ -75,12 +75,12 @@ export async function POST(req: Request) {
 
     const order = await prisma.order.create({
       data: {
-        schedules_id: Number(schedules_id),
+        schedules_id: String(schedules_id),
         start_date: startDate,
         end_date: endDate,
         customer_name,
         total_amount: totalPrice,
-        merchant_id: Number(merchant_id),
+        merchant_id: String(merchant_id),
       },
     });
 

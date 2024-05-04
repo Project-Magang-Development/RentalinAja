@@ -14,11 +14,13 @@ import {
 import moment from "moment";
 import Title from "antd/es/typography/Title";
 import TableSkeleton from "@/app/components/tableSkeleton";
+import useSWR from "swr";
+import Cookies from "js-cookie";
 
 interface Order {
-  order_id: number;
-  merchant_id: number;
-  vehicles_id: number;
+  order_id: string;
+  merchant_id: string;
+  vehicles_id: string;
   start_date: string;
   end_date: string;
   customer_name: string;
@@ -26,61 +28,44 @@ interface Order {
   status: string;
   Schedule: {
     Vehicle: {
-      vehicle_id: number;
+      vehicle_id: string;
       name: string;
       imageUrl: string;
       model: string;
       no_plat: string;
     };
-    schedules_id: number;
-    merchant_id: number;
-    vehicles_id: number;
+    schedules_id: string;
+    merchant_id: string;
+    vehicles_id: string;
     start_date: string;
     end_date: string;
     price: number;
   };
 }
 
+const fetcher = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${Cookies.get("token")}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch data");
+  }
+  return response.json();
+};
+
 export default function AdminOrderDashboard() {
-  const [orders, setOrders] = useState<Order[]>([]);
+   const [filterStatus, setFilterStatus] = useState<string>("");
+   const { data: orders, error } = useSWR(
+     `/api/order/show?status=${filterStatus}`,
+     fetcher
+   );
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
-  const [filterStatus, setFilterStatus] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const fetchOrders = async (status?: string) => {
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
-      message.error("Authentication token not found.");
-      setLoading(false);
-      return;
-    }
-    try {
-      const query = status ? `?status=${status}` : "";
-      const response = await fetch(`/api/order/show${query}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch orders.");
-
-      const data = await response.json();
-      setOrders(data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      message.error("Failed to fetch orders.");
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders(filterStatus);
-  }, [filterStatus]);
 
   const StatusFilter = () => (
     <Radio.Group onChange={handleFilterChange} value={filterStatus}>
@@ -201,6 +186,10 @@ export default function AdminOrderDashboard() {
 
   if (loading) {
     return <TableSkeleton />;
+  }
+
+  if(!orders) {
+    return <TableSkeleton/>
   }
 
   return (

@@ -19,32 +19,35 @@ import moment from "moment";
 import Title from "antd/es/typography/Title";
 import TableSkeleton from "@/app/components/tableSkeleton";
 import {
+  IdcardTwoTone,
   InboxOutlined,
   InfoCircleOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
 import Image from "next/image";
 import { UploadChangeParam } from "antd/es/upload";
+import useSWR from "swr";
+import Cookies from 'js-cookie';
 
 interface Booking {
-  booking_id: number;
-  merchant_id: number;
+  booking_id: string;
+  merchant_id: string;
   imageUrl: string;
   Order: Order;
   Payment: Payment;
 }
 
 interface Payment {
-  payment_id: number;
+  payment_id: string;
   amount: number;
   payment_method: string;
   status: string;
 }
 
 interface Order {
-  order_id: number;
-  merchant_id: number;
-  vehicles_id: number;
+  order_id: string;
+  merchant_id: string;
+  vehicles_id: string;
   start_date: string;
   end_date: string;
   customer_name: string;
@@ -52,66 +55,49 @@ interface Order {
   status: string;
   Schedule: {
     Vehicle: {
-      vehicle_id: number;
+      vehicle_id: string;
       name: string;
       imageUrl: string;
       model: string;
       no_plat: string;
     };
-    schedules_id: number;
-    merchant_id: number;
-    vehicles_id: number;
+    schedules_id: string;
+    merchant_id: string;
+    vehicles_id: string;
     start_date: string;
     end_date: string;
     price: number;
   };
 }
 
+const fetcher = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${Cookies.get("token")}`,
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch data");
+  }
+  return response.json();
+};
+
 export default function AdminBookingDashboard() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [filterStatus, setFilterStatus] = useState<string>("");
+   const { data: bookings, error, mutate } = useSWR<Booking[]>(
+     `/api/booking/show?status=${filterStatus}`,
+     fetcher
+   );
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
-  const [filterStatus, setFilterStatus] = useState<string>("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<Booking | null>(null);
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
 
-  const fetchBooking = async (status?: string) => {
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
-      message.error("Authentication token not found.");
-      setLoading(false);
-      return;
-    }
-    try {
-      const query = status ? `?status=${status}` : "";
-      const response = await fetch(`/api/booking/show${query}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
 
-      if (!response.ok) throw new Error("Failed to fetch orders.");
-
-      const data = await response.json();
-      console.log("Fetched bookings:", data);
-      setBookings(data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-      message.error("Failed to fetch orders.");
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchBooking(filterStatus);
-  }, [filterStatus]);
 
   const StatusFilter = () => (
     <Radio.Group onChange={handleFilterChange} value={filterStatus}>
@@ -157,7 +143,7 @@ export default function AdminBookingDashboard() {
   };
 
   const showModal = (booking_id: number) => {
-    const booking = bookings.find((b) => b.booking_id === booking_id);
+    const booking = bookings?.find((b: any) => b.booking_id === booking_id);
     if (booking) {
       setSelectedRecord(booking);
       setIsModalVisible(true);
@@ -167,7 +153,7 @@ export default function AdminBookingDashboard() {
   };
 
   const showUploadModal = (booking_id: number) => {
-    const booking = bookings.find((b) => b.booking_id === booking_id);
+    const booking = bookings?.find((b: any) => b.booking_id === booking_id);
     if (booking) {
       setSelectedRecord(booking);
       setIsUploadModalVisible(true);
@@ -202,7 +188,7 @@ export default function AdminBookingDashboard() {
       storageSize
     };
     try {
-      const token = localStorage.getItem("token");
+      const token = Cookies.get("token");
       const response = await fetch(
         `/api/booking/update/${selectedRecord?.booking_id}`,
         {
@@ -221,7 +207,7 @@ export default function AdminBookingDashboard() {
           description: "Data Kredensial Berhasil Di Tambah.",
         });
 
-        fetchBooking(filterStatus);
+        mutate();
       } else {
         throw new Error("Failed to update");
       }
@@ -244,6 +230,12 @@ export default function AdminBookingDashboard() {
   const handleCancel = () => {
     setIsModalVisible(false);
     setIsUploadModalVisible(false);
+  };
+
+  const hasImage = () => {
+    return bookings?.some(
+      (booking) => booking.imageUrl && booking.imageUrl.trim() !== ""
+    );
   };
 
   const column = [
@@ -273,12 +265,6 @@ export default function AdminBookingDashboard() {
       render: (record: any) =>
         record?.Order?.Schedule?.Vehicle?.name || "Tidak tersedia",
     },
-    // {
-    //   title: "Model Kendaraan",
-    //   key: "vehicleModel",
-    //   render: (record: any) =>
-    //     record?.Order?.Schedule?.Vehicle?.model || "Tidak tersedia",
-    // },
     {
       title: "Tanggal Mulai",
       dataIndex: "start_date",
@@ -299,35 +285,42 @@ export default function AdminBookingDashboard() {
         const formattedPrice = new Intl.NumberFormat("id-ID", {
           style: "currency",
           currency: "IDR",
-        }).format(record.Payment.amount); // Use Payment from Booking
+        }).format(record.Payment.amount);
         return formattedPrice;
       },
     },
-    // {
-    //   title: "Metode Pembayaran",
-    //   dataIndex: "payment_method",
-    //   key: "payment_method",
-    //   render: (_: any, record: any) => record.Payment.payment_method, // Use Payment from Booking
-    // },
     {
       title: "Status Pembayaran",
       dataIndex: "payment_status",
       key: "payment_status",
-      render: (_: any, record: any) => record.Payment.status, // Use Payment from Booking
+      render: (_: any, record: any) => record.Payment.status,
     },
     {
       title: "Aksi",
       key: "action",
       render: (text: any, record: any) => (
         <Space size="middle">
-          <Tooltip title="Tambah Kredensial">
+          <Tooltip
+            title={
+              hasImage()
+                ? "Foto Kredensial Sudah Di Upload"
+                : "Foto Kredensial Belum Di Upload"
+            }
+          >
             <Button
-              icon={<PlusOutlined />}
+              icon={
+                hasImage() ? (
+                  <IdcardTwoTone />
+                ) : (
+                  <IdcardTwoTone twoToneColor="#D9D9D9" />
+                )
+              }
               onClick={() => showUploadModal(record.booking_id)}
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                color: hasImage() ? undefined : "#D9D9D9",
               }}
             />
           </Tooltip>
@@ -408,15 +401,13 @@ export default function AdminBookingDashboard() {
       value: selectedRecord?.imageUrl || "N/A",
       render: (imageUrl: any) => {
         return imageUrl !== "N/A" ? (
-          <a href={imageUrl} target="_blank" rel="noopener noreferrer">
             <Image
               src={imageUrl}
               alt="Kredensial"
               style={{ width: "100px", height: "auto" }}
             />
-          </a>
         ) : (
-          "N/A"
+          "Belum Di Upload"
         );
       },
     },

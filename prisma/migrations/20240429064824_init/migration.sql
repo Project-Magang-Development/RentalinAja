@@ -1,6 +1,6 @@
 -- CreateTable
 CREATE TABLE `SuperAdmin` (
-    `admin_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `admin_id` VARCHAR(191) NOT NULL,
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
 
@@ -10,7 +10,7 @@ CREATE TABLE `SuperAdmin` (
 
 -- CreateTable
 CREATE TABLE `Merchant` (
-    `merchant_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `merchant_id` VARCHAR(191) NOT NULL,
     `merchant_name` VARCHAR(191) NOT NULL,
     `merchant_company` VARCHAR(191) NOT NULL,
     `domain` VARCHAR(191) NOT NULL,
@@ -20,8 +20,8 @@ CREATE TABLE `Merchant` (
     `email` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `api_key` VARCHAR(191) NOT NULL,
-    `used_storage` INTEGER NOT NULL DEFAULT 0,
-    `package_id` INTEGER NOT NULL,
+    `used_storage` INTEGER NOT NULL,
+    `package_id` VARCHAR(191) NOT NULL,
 
     UNIQUE INDEX `Merchant_email_key`(`email`),
     UNIQUE INDEX `Merchant_api_key_key`(`api_key`),
@@ -30,10 +30,10 @@ CREATE TABLE `Merchant` (
 
 -- CreateTable
 CREATE TABLE `Package` (
-    `package_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `package_id` VARCHAR(191) NOT NULL,
     `package_name` VARCHAR(191) NOT NULL,
     `package_price` INTEGER NOT NULL,
-    `storage_limit` INTEGER NOT NULL,
+    `count` INTEGER NOT NULL,
     `duration` INTEGER NOT NULL,
 
     PRIMARY KEY (`package_id`)
@@ -41,8 +41,8 @@ CREATE TABLE `Package` (
 
 -- CreateTable
 CREATE TABLE `MerchantPayment` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `merchant_id` INTEGER NOT NULL,
+    `id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
     `amount` INTEGER NOT NULL,
     `payment_method` VARCHAR(191) NOT NULL,
     `status` VARCHAR(191) NOT NULL DEFAULT 'Pending',
@@ -54,14 +54,15 @@ CREATE TABLE `MerchantPayment` (
 
 -- CreateTable
 CREATE TABLE `Vehicle` (
-    `vehicles_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `merchant_id` INTEGER NOT NULL,
+    `vehicles_id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
     `name` VARCHAR(191) NOT NULL,
     `model` VARCHAR(191) NOT NULL,
     `year` INTEGER NOT NULL,
     `no_plat` VARCHAR(191) NOT NULL,
-    `imageUrl` TEXT NOT NULL,
+    `imageUrl` LONGTEXT NOT NULL,
     `capacity` INTEGER NOT NULL,
+    `storageSize` DOUBLE NOT NULL DEFAULT 0,
 
     UNIQUE INDEX `Vehicle_no_plat_key`(`no_plat`),
     PRIMARY KEY (`vehicles_id`)
@@ -69,9 +70,9 @@ CREATE TABLE `Vehicle` (
 
 -- CreateTable
 CREATE TABLE `Schedule` (
-    `schedules_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `merchant_id` INTEGER NOT NULL,
-    `vehicles_id` INTEGER NOT NULL,
+    `schedules_id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
+    `vehicles_id` VARCHAR(191) NOT NULL,
     `start_date` DATETIME(3) NOT NULL,
     `end_date` DATETIME(3) NOT NULL,
     `price` INTEGER NOT NULL,
@@ -81,9 +82,9 @@ CREATE TABLE `Schedule` (
 
 -- CreateTable
 CREATE TABLE `Payment` (
-    `payment_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `order_id` INTEGER NOT NULL,
-    `merchant_id` INTEGER NOT NULL,
+    `payment_id` VARCHAR(191) NOT NULL,
+    `order_id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
     `amount` INTEGER NOT NULL,
     `payment_method` VARCHAR(191) NOT NULL,
     `status` VARCHAR(191) NOT NULL DEFAULT 'Pending',
@@ -94,9 +95,9 @@ CREATE TABLE `Payment` (
 
 -- CreateTable
 CREATE TABLE `Order` (
-    `order_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `schedules_id` INTEGER NOT NULL,
-    `merchant_id` INTEGER NOT NULL,
+    `order_id` VARCHAR(191) NOT NULL,
+    `schedules_id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
     `start_date` DATETIME(3) NOT NULL,
     `end_date` DATETIME(3) NOT NULL,
     `customer_name` VARCHAR(191) NOT NULL,
@@ -109,11 +110,13 @@ CREATE TABLE `Order` (
 
 -- CreateTable
 CREATE TABLE `Booking` (
-    `booking_id` INTEGER NOT NULL AUTO_INCREMENT,
-    `order_id` INTEGER NOT NULL,
-    `payment_id` INTEGER NOT NULL,
-    `merchant_id` INTEGER NOT NULL,
+    `booking_id` VARCHAR(191) NOT NULL,
+    `order_id` VARCHAR(191) NOT NULL,
+    `payment_id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `imageUrl` LONGTEXT NULL,
+    `storageSize` DOUBLE NOT NULL DEFAULT 0,
 
     UNIQUE INDEX `Booking_order_id_key`(`order_id`),
     UNIQUE INDEX `Booking_payment_id_key`(`payment_id`),

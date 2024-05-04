@@ -12,7 +12,6 @@ import {
   DatePicker,
   Divider,
   Tooltip,
-  Skeleton,
   Table,
 } from "antd";
 import Title from "antd/es/typography/Title";
@@ -26,13 +25,15 @@ import { notification } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { UploadChangeParam, UploadFile } from "antd/lib/upload/interface";
-import dynamic from "next/dynamic";
 import TableSkeleton from "@/app/components/tableSkeleton";
+import useSWR, { mutate } from "swr";
+import { useMemo } from "react";
+import Cookies from "js-cookie";
 
 const { RangePicker } = DatePicker;
 
 interface Vehicle {
-  vehicles_id: number;
+  vehicles_id: string;
   name: string;
   capacity: number;
   model: string;
@@ -42,9 +43,12 @@ interface Vehicle {
   status: string;
 }
 
+const fetcher = (url: any) =>
+  fetch(url, {
+    headers: { Authorization: `Bearer ${Cookies.get("token")}` },
+  }).then((res) => res.json());
+
 export default function AdminVehicleDashboard() {
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -54,57 +58,58 @@ export default function AdminVehicleDashboard() {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const router = useRouter();
   const [hoverDelete, setHoverDelete] = useState(false);
-  const [notAvailableVehicles, setNotAvailableVehicles] = useState<Vehicle[]>(
-    []
-  );
-  const [availableVehicles, setAvailableVehicles] = useState<Vehicle[]>([]);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const searchParams = useSearchParams();
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
+  const fetchUrl = useMemo(() => {
+    let url = "/api/vehicle/show";
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    return `${url}?${params.toString()}`;
+  }, [startDate, endDate]);
+  const { data: vehicles, error, mutate } = useSWR(fetchUrl, fetcher);
+  const { available, notAvailable } = useMemo(() => {
+    const available: Vehicle[] = [];
+    const notAvailable: Vehicle[] = [];
+    vehicles?.forEach((vehicle: any) => {
+      if (vehicle.status === "Tersedia") available.push(vehicle);
+      else notAvailable.push(vehicle);
+    });
+    return { available, notAvailable };
+  }, [vehicles]);
 
-  const handleDelete = async (vehicles_id: number) => {
+  const handleDelete = async (vehicleId: string) => {
     Modal.confirm({
-      title: "Yakin Hapus Data Kendaraan?",
-      content: "Aksi ini tidak dapat dikembalikan.",
-      okText: "Ya",
-      okType: "danger",
-      cancelText: "Tidak",
+      title: "Konfirmasi Penghapusan",
+      content: "Kamu yakin menghapus data ini?",
       onOk: async () => {
         setLoading(true);
         try {
-          const token = localStorage.getItem("token");
-          const response = await fetch(`/api/vehicle/delete/${vehicles_id}`, {
+          const response = await fetch(`/api/vehicle/delete/${vehicleId}`, {
             method: "DELETE",
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${Cookies.get("token")}`,
             },
           });
+          if (!response.ok) throw new Error("Deletion failed");
 
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Failed to delete vehicle");
-          }
-
-          setVehicles((prevVehicles) =>
-            prevVehicles.filter(
-              (vehicle) => vehicle.vehicles_id !== vehicles_id
-            )
+          mutate(
+            vehicles.filter(
+              (v: { vehicles_id: string }) => v.vehicles_id !== vehicleId
+            ),
+            false
           );
-          notification.success({
-            message: "Sukses",
-            description: "Data Kendaraan Berhasil Di Hapus.",
-          });
+          notification.success({ message: "Data Kendaraan Berhasil Dihapus" });
         } catch (error) {
-          console.error("Failed to delete vehicle:", error);
           notification.error({
-            message: "Gagal",
-            description: "Data Kendaraan Gagal Di Hapus.",
+            message: "Deletion failed",
+            description: (error as Error).message,
           });
         } finally {
           setLoading(false);
         }
-      },
-      onCancel() {
-        console.log("Cancel");
       },
     });
   };
@@ -146,9 +151,9 @@ export default function AdminVehicleDashboard() {
     }
   };
 
-  const handleEdit = (vehicles_id: number) => {
+  const handleEdit = (vehicles_id: string) => {
     const vehicleToEdit = vehicles.find(
-      (vehicle) => vehicle.vehicles_id === vehicles_id
+      (vehicle: any) => vehicle.vehicles_id === vehicles_id
     );
     if (vehicleToEdit) {
       setEditingVehicle(vehicleToEdit);
@@ -166,32 +171,11 @@ export default function AdminVehicleDashboard() {
     setIsModalVisible(true);
   };
 
-  function calculateTotalFileSize(files: any[]) {
-    return files.reduce((total: number, file: any) => {
-      if (file.url && file.url.startsWith("data:image")) {
-        const base64String = file.url.replace(/^data:image\/\w+;base64,/, "");
-        if (base64String) {
-          // Memastikan string base64 ada setelah penghapusan header
-          const sizeInBytes =
-            (base64String.length * 3) / 4 -
-            (base64String.endsWith("==")
-              ? 2
-              : base64String.endsWith("=")
-              ? 1
-              : 0);
-          const sizeInMB = sizeInBytes / 1024 / 1024;
-          return total + sizeInMB;
-        }
-      }
-      return total;
-    }, 0);
-  }
-
   const handleOk = async () => {
+    let response;
     try {
       const values = await form.validateFields();
       const imageUrl = fileList.length > 0 ? fileList[0].url : "";
-      const storageSize = calculateTotalFileSize(fileList);
       const payload = {
         name: values.name,
         capacity: parseInt(values.capacity, 10),
@@ -199,12 +183,10 @@ export default function AdminVehicleDashboard() {
         year: parseInt(values.year, 10),
         no_plat: values.no_plat,
         imageUrl,
-        storageSize,
       };
       setLoading(true);
 
-      const token = localStorage.getItem("token");
-      let response;
+      const token = Cookies.get("token");
 
       if (editingVehicle) {
         response = await fetch(
@@ -221,7 +203,6 @@ export default function AdminVehicleDashboard() {
       } else {
         response = await fetch("/api/vehicle/create", {
           method: "POST",
-          cache: "no-cache",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -232,22 +213,27 @@ export default function AdminVehicleDashboard() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to process vehicle");
+        if (response.status === 400) {
+          notification.error({
+            message: "Gagal",
+            description: "Limit Tambah Kendaraan Sudah Habis",
+          });
+        } else {
+          throw new Error(errorData.message || "Failed to process vehicle");
+        }
+      } else {
+        notification.success({
+          message: "Sukses",
+          description: editingVehicle
+            ? "Data Kendaraan Berhasil Di Update."
+            : "Data Kendaraan Berhasil Di Tambah.",
+        });
+        mutate();
+        form.resetFields();
+        setIsModalVisible(false);
+        setEditingVehicle(null);
+        setFileList([]);
       }
-
-      notification.success({
-        message: "Sukses",
-        description: editingVehicle
-          ? "Data Kendaraan Berhasil Di Update."
-          : "Data Kendaraan Berhasil Di Tambah.",
-      });
-
-      form.resetFields();
-      setIsModalVisible(false);
-      setEditingVehicle(null);
-      setFileList([]);
-      setLoading(false);
-      fetchVehicles();
     } catch (error) {
       notification.error({
         message: "Gagal",
@@ -255,14 +241,15 @@ export default function AdminVehicleDashboard() {
           ? "Data Kendaraan Gagal Di Update."
           : "Data Kendaraan Gagal Di Tambah.",
       });
+    } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    setEditingVehicle(null); // Reset editing state
-    form.resetFields(); // Clear form fields
-    setIsModalVisible(false); // Close the modal
+    setEditingVehicle(null);
+    form.resetFields();
+    setIsModalVisible(false);
   };
 
   const handleSchedule = (vehicles_id: number) => {
@@ -273,82 +260,25 @@ export default function AdminVehicleDashboard() {
     setSearchText(e.target.value);
   };
 
-  const filteredVehicles = vehicles.filter((vehicle) => {
-    const name = vehicle.name || "";
-    const model = vehicle.model || "";
-
-    return (
-      name.toLowerCase().includes(searchText.toLowerCase()) ||
-      model.toLowerCase().includes(searchText.toLowerCase())
-    );
-  });
+  useEffect(() => {
+    setSearchPerformed(startDate || endDate ? true : false);
+  }, [startDate, endDate]);
 
   const handleFilterSubmit = (values: any) => {
     const { dateRange } = values;
     if (dateRange && dateRange.length === 2) {
-      const [startDate, endDate] = values.dateRange;
+      const [startDate, endDate] = dateRange;
       const formattedStartDate = startDate.format("YYYY-MM-DD");
       const formattedEndDate = endDate.format("YYYY-MM-DD");
       router.push(
         `/dashboard/vehicle?startDate=${formattedStartDate}&endDate=${formattedEndDate}`
       );
+      setSearchPerformed(true);
     } else {
       router.push("/dashboard/vehicle");
+      setSearchPerformed(false);
     }
   };
-
-  const fetchVehicles = async (queryParams = "") => {
-    setSearchPerformed(false);
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      setLoading(false);
-      return;
-    }
-    try {
-      const response = await fetch(`/api/vehicle/show${queryParams}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to fetch vehicles.");
-      }
-
-      const data = await response.json();
-      setVehicles(data);
-      if (queryParams) {
-        setAvailableVehicles(
-          data.filter((v: Vehicle) => v.status === "Tersedia")
-        );
-        setNotAvailableVehicles(
-          data.filter((v: Vehicle) => v.status === "Tidak Tersedia")
-        );
-        setSearchPerformed(true);
-      }
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching vehicles:", error);
-      setError("Failed to fetch vehicles.");
-      setLoading(false);
-    }
-  };
-
-  const startDate = searchParams.get("startDate");
-  const endDate = searchParams.get("endDate");
-
-  useEffect(() => {
-    let queryParams = "";
-    if (startDate && endDate) {
-      queryParams = `?startDate=${startDate}&endDate=${endDate}`;
-    }
-    fetchVehicles(queryParams);
-  }, [searchParams]);
 
   const convertFileToBase64 = (
     file: Blob,
@@ -366,6 +296,16 @@ export default function AdminVehicleDashboard() {
   const handleMouseLeave = () => {
     setHoverDelete(false);
   };
+
+  const filteredVehicles = useMemo(() => {
+    if (!vehicles) return [];
+
+    return vehicles.filter(
+      (vehicle: any) =>
+        vehicle.name.toLowerCase().includes(searchText.toLowerCase()) ||
+        vehicle.model.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [vehicles, searchText]);
 
   const handleScheduleAvailable = () => {
     router.push(
@@ -478,9 +418,9 @@ export default function AdminVehicleDashboard() {
     ? "Edit Data Kendaraan"
     : "Tambah Data Kendaraan";
 
-  if (loading) {
-    return <TableSkeleton />;
-  }
+  if (!vehicles) return <TableSkeleton />;
+
+  if (loading) return <TableSkeleton />;
 
   return (
     <div style={{ background: "#FFF", padding: "16px" }}>
@@ -554,9 +494,7 @@ export default function AdminVehicleDashboard() {
         {searchPerformed ? (
           <>
             <Flex justify="space-between">
-              <Title style={{ marginTop: "16px" }} level={4}>
-                Kendaraan Yang Tersedia
-              </Title>
+              <Title level={4}>Kendaraan Yang Tersedia</Title>
               <Space>
                 <Button
                   onClick={() => handleScheduleAvailable()}
@@ -567,21 +505,21 @@ export default function AdminVehicleDashboard() {
                   }}
                 >
                   <ScheduleOutlined />
-                  Jadwal Kendaaran Tersedia
+                  Jadwal Kendaraan Tersedia
                 </Button>
               </Space>
             </Flex>
             <Table
-              dataSource={availableVehicles}
+              dataSource={available}
               columns={columns}
               pagination={pagination}
               style={{ marginTop: "32px" }}
             />
-            <Title style={{ marginTop: "32px" }} level={4}>
+            <Title level={4} style={{ marginTop: "32px" }}>
               Kendaraan Yang Tidak Tersedia
             </Title>
             <Table
-              dataSource={notAvailableVehicles}
+              dataSource={notAvailable}
               columns={columns}
               pagination={pagination}
               style={{ marginTop: "32px" }}
@@ -590,7 +528,7 @@ export default function AdminVehicleDashboard() {
         ) : (
           <Table
             columns={columns}
-            dataSource={filteredVehicles.map((vehicle, index) => ({
+            dataSource={filteredVehicles.map((vehicle: any, index: any) => ({
               ...vehicle,
               index,
               key: vehicle.vehicles_id,

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Alert, Card, Col, Flex, Row, Select, Skeleton, Statistic } from "antd";
+import React, { useState } from "react";
+import { Alert, Button, Card, Col, Flex, Row, Select, Statistic } from "antd";
 import moment from "moment";
 import "moment/locale/id";
 import {
@@ -10,7 +10,6 @@ import {
   DollarCircleOutlined,
   OrderedListOutlined,
 } from "@ant-design/icons";
-import Title from "antd/es/typography/Title";
 import {
   LineChart,
   ResponsiveContainer,
@@ -21,302 +20,98 @@ import {
   Legend,
   Line,
 } from "recharts";
+import Title from "antd/es/typography/Title";
+import useSWR from "swr";
 import DashboardSkeleton from "@/app/components/dashboardSkeleton";
+import Cookies from "js-cookie";
 
 const { Option } = Select;
 
-interface TotalAmount {
-  _sum: {
-    amount: number;
-  };
-}
-
-interface Merchant {
-  used_storage: number;
-}
+const fetcher = (url: any) =>
+  fetch(url, {
+    headers: new Headers({
+      Authorization: `Bearer ${Cookies.get('token')}`,
+      "Content-Type": "application/json",
+    }),
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Failed to fetch");
+      }
+      return res.json();
+    })
+    .catch((error) => {
+      console.error("Fetching error:", error);
+      throw error;
+    });
 
 export default function AdminDashboard() {
-  const [totalVehicles, setTotalVehicles] = useState(0);
-  const [totalOrders, setTotalOrders] = useState(0);
-  const [monthlyOrders, setMonthlyOrders] = useState([]);
-  const [monthlyTotalAmount, setMonthlyTotalAmount] =
-    useState<TotalAmount | null>(null);
   const [selectedYear, setSelectedYear] = useState(moment().year());
-  const [totalPayments, setTotalPayments] = useState(0);
-  const [error, setError] = useState("");
-  const [monthlyPayments, setMonthlyPayments] = useState([]);
-  const [loading, setLoading] = useState(true);
-  moment.locale("id");
-  const [storages, setStorages] = useState<Merchant | null>(null);
   const currentMonth = moment().format("MMMM");
   const currentYear = moment().year();
   const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        await fetchTotalVehicles();
-        await fetchTotalOrders();
-        await fetchMonthlyTotalAmount();
-        await fetchMonthlyBookings(selectedYear);
-        await fetchTotalPayments();
-        await fetchMonthlyPayments(selectedYear);
-        await fetchStorages();
-      } catch (error) {
-        console.error("Fetching data failed:", error);
-        setError("Failed to fetch data.");
-      }
-      setLoading(false);
-    };
+  const { data: totalVehicles, error: errorTotalVehicles } = useSWR(
+    "/api/vehicle/total",
+    fetcher
+  );
+  const { data: totalOrders, error: errorTotalOrders } = useSWR(
+    "/api/order/totalOrder",
+    fetcher
+  );
+  const { data: totalPayments, error: errorTotalPayments } = useSWR(
+    "/api/payment/totalPayment",
+    fetcher
+  );
+  const { data: monthlyPayments, error: errorMonthlyPayments } = useSWR(
+    `/api/payment/${selectedYear}`,
+    fetcher
+  );
+  const { data: monthlyTotalAmount, error: errorMonthlyTotalAmount } = useSWR(
+    "/api/payment/totalAmount",
+    fetcher
+  );
+  const { data: monthlyOrders, error: errorMonthlyOrders } = useSWR(
+    `/api/order/${selectedYear}`,
+    fetcher
+  );
 
-    fetchData();
-  }, [selectedYear]);
+  
+  const errors = [
+    errorTotalVehicles,
+    errorTotalOrders,
+    errorTotalPayments,
+    errorMonthlyPayments,
+    errorMonthlyTotalAmount,
+    errorMonthlyOrders,
+  ].find((e) => e);
 
-  const fetchTotalVehicles = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      return;
-    }
-    try {
-      const response = await fetch("/api/vehicle/total", {
-        method: "GET",
-        cache: "no-cache",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok)
-        throw new Error("Failed to fetch the total number of vehicles.");
-
-      const data = await response.json();
-      setTotalVehicles(data);
-    } catch (error) {
-      console.error("Error fetching the total number of vehicles:", error);
-      setError("Failed to fetch the total number of vehicles.");
-    }
-  };
-
-  const fetchTotalOrders = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      return;
-    }
-    try {
-      const response = await fetch("/api/order/totalOrder", {
-        method: "GET",
-        cache: "no-cache",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok)
-        throw new Error("Failed to fetch the total number of Orders.");
-
-      const data = await response.json();
-      setTotalOrders(data);
-    } catch (error) {
-      console.error("Error fetching the total number of vehicles:", error);
-      setError("Failed to fetch the total number of vehicles.");
-    }
-  };
-
-  const fetchTotalPayments = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      return;
-    }
-    try {
-      const response = await fetch("/api/payment/totalPayment", {
-        method: "GET",
-        cache: "no-cache",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok)
-        throw new Error("Failed to fetch the total number of Orders.");
-
-      const data = await response.json();
-      setTotalPayments(data);
-    } catch (error) {
-      console.error("Error fetching the total number of vehicles:", error);
-      setError("Failed to fetch the total number of vehicles.");
-    }
-  };
-
-  const fetchMonthlyPayments = async (year: number) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      return;
-    }
-    try {
-      const response = await fetch(`/api/payment/${year}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch monthly payments.");
-
-      const data = await response.json();
-      const transformData = (data: any) => {
-        return data.map((item: any) => ({
-          ...item,
-          month: moment.months(item.month - 1),
-          TotalPendapatan: item.amount,
-          TotalPendapatanFormatted: new Intl.NumberFormat("id-ID", {
-            style: "currency",
-            currency: "IDR",
-          }).format(item.amount),
-        }));
-      };
-      const transformedData = transformData(data);
-      setMonthlyPayments(transformedData);
-    } catch (error) {
-      console.error("Error fetching monthly payments:", error);
-      setError("Failed to fetch monthly payments.");
-    }
-  };
-
-  const gbToMB = (gigabytes: any) => gigabytes;
-
-  const fetchStorages = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      return;
-    }
-    try {
-      const response = await fetch("/api/storage/show", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) throw new Error("Failed to fetch storage.");
-      const data = await response.json();
-      const storageInMB = gbToMB(data.used_storage); // Convert GB to MB
-      setStorages({ ...data, used_storage: storageInMB });
-    } catch (error) {
-      console.error("Error fetching storage:", error);
-      setError("Failed to fetch storage.");
-    }
-  };
-
-  const fetchMonthlyBookings = async (year: number) => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      return;
-    }
-    try {
-      const response = await fetch(`/api/order/${year}`, {
-        method: "GET",
-        cache: "no-cache",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch monthly orders.");
-
-      const data = await response.json();
-      const transformData = (data: any) => {
-        return data.map((item: any) => ({
-          ...item,
-          month: moment.months(item.month - 1),
-          "Jumlah Penyewaan": item.count,
-        }));
-      };
-      const transformedData = transformData(data);
-      setMonthlyOrders(transformedData);
-    } catch (error) {
-      console.error("Error fetching monthly orders:", error);
-      setError("Failed to fetch monthly orders.");
-    }
-  };
-
-  const fetchMonthlyTotalAmount = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setError("Authentication token not found.");
-      return;
-    }
-    try {
-      const response = await fetch("/api/payment/totalAmount", {
-        method: "GET",
-        cache: "no-cache",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch the total amount.");
-
-      const data = await response.json();
-      setMonthlyTotalAmount(data);
-    } catch (error) {
-      console.error("Error fetching the total amount:", error);
-      setError("Failed to fetch the total amount.");
-    }
-  };
-
-  if (loading) {
-    return <DashboardSkeleton />;
+  if (errors) {
+    return (
+      <Alert
+        message="Error"
+        description="An error occurred while fetching data."
+        type="error"
+        showIcon
+      />
+    );
   }
 
-  if (error) {
-    return <Alert message="Error" description={error} type="error" showIcon />;
+  if (
+    typeof totalVehicles === "undefined" ||
+    typeof totalOrders === "undefined" ||
+    typeof totalPayments === "undefined" ||
+    typeof monthlyPayments === "undefined" ||
+    typeof monthlyTotalAmount === "undefined" ||
+    typeof monthlyOrders === "undefined"
+  ) {
+    return <DashboardSkeleton />;
   }
 
   return (
     <div>
       <>
-        <div
-          className="storage-container"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            padding: "20px",
-          }}
-        >
-          <Title level={3} >
-            {currentMonthYearSentence}
-          </Title>
-          <Card
-            bordered={false}
-            style={{
-              padding: "10px 20px",
-              borderRadius: "8px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              textAlign: "center",
-            }}
-          >
-            <Title level={5} style={{ margin: 0 }}>
-              Storage:{" "}
-              {storages
-                ? `${storages.used_storage.toFixed(5)} MB`
-                : "Loading..."}
-            </Title>
-          </Card>
-        </div>
+          <Title level={3}>{currentMonthYearSentence}</Title>
         <Row gutter={16} style={{ margin: "20px 0" }}>
           {[
             {
@@ -336,9 +131,9 @@ export default function AdminDashboard() {
             },
             {
               title: "TOTAL PENDAPATAN",
-              value: `Rp ${
-                monthlyTotalAmount?._sum?.amount?.toLocaleString() ?? "0"
-              }`,
+              value: monthlyPayments
+                ?.reduce((acc: any, item: any) => acc + item.amount, 0)
+                .toLocaleString(),
               icon: <DollarCircleOutlined />,
             },
           ].map((item, index) => (
@@ -418,7 +213,7 @@ export default function AdminDashboard() {
             >
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart
-                  data={monthlyOrders}
+                  data={totalOrders}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />

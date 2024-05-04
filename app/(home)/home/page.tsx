@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Layout, Row, Col, Typography, Button, Input } from "antd";
+import { Layout, Row, Col, Typography, Button, Input, Card, Flex } from "antd";
 import Image from "next/image";
 
 const { Content } = Layout;
@@ -9,7 +9,7 @@ const { Title, Paragraph } = Typography;
 
 const Home = () => {
   return (
-    <Layout>
+    <Layout style={{ background: "#FFFFFF" }}>
       <Content style={{ padding: "50px" }}>
         <div
           style={{
@@ -26,20 +26,36 @@ const Home = () => {
               height: "392px",
               right: "592px",
               top: "11px",
-              background:
-                "radial-gradient(483.9% 2719.65% at -49.5% -250%, #D798E1 17.55%, #9BFFA5 27.56%, #AED3FF 49.89%, #C9D4EF 56.53%, #CACFFA 65.69%)",
-              filter: "blur(200px)",
+              // background:
+              //   "radial-gradient(483.9% 2719.65% at -49.5% -250%, #D798E1 17.55%, #9BFFA5 27.56%, #AED3FF 49.89%, #C9D4EF 56.53%, #CACFFA 65.69%)",
+              // filter: "blur(200px)",
             }}
           ></div>
-          <Row justify="center" style={{ paddingTop: "120px" }}>
+          <Row justify="center" gutter={32}>
             <Col span={12}>
-              <Title style={{ textAlign: "center" }}>
+              <Title style={{ textAlign: "justify" }}>
                 Solusi Kelola Rental Kendaraan yang Tepat untuk Bisnis Anda.
               </Title>
-              <Paragraph style={{ textAlign: "center" }}>
-                Bersiaplah mengelola sistem booking rental dengan mudah dan
-                menarik lebih banyak pelanggan!
+              <Paragraph style={{ textAlign: "justify", fontWeight: "bold" }}>
+                Optimalkan pelayanan pelanggan dengan Sistem Booking
+                RentalinAja. Berikan kemudahan pada pelanggan untuk memesan
+                secara online.
               </Paragraph>
+              <Flex gap={50} style={{ padding: "10px" }}>
+                <Button type="primary">Gabung Sekarang</Button>
+                <Button>Uji Coba Gratis</Button>
+              </Flex>
+            </Col>
+
+            <Col span={12}>
+              <Card
+                style={{
+                  height: "300px",
+                  boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                {/* Konten card bisa ditempatkan di sini */}
+              </Card>
             </Col>
           </Row>
         </div>

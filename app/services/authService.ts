@@ -1,5 +1,6 @@
 import { JwtPayload } from "jsonwebtoken";
 import { jwtDecode } from "jwt-decode";
+import Cookies from 'js-cookie';
 
 
 interface MyTokenPayload extends JwtPayload {
@@ -8,7 +9,7 @@ interface MyTokenPayload extends JwtPayload {
   tenant_company: string;
 }
 export const login = () => {
-    const token = sessionStorage.getItem("token");
+    const token = Cookies.get("token");
     if (token) {
         return true;
     } else {

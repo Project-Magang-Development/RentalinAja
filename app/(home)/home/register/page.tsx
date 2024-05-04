@@ -9,17 +9,18 @@ import {
   LockOutlined,
   BankOutlined,
 } from "@ant-design/icons";
+import { useSearchParams } from "next/navigation";
 
 const { Content } = Layout;
 const { Title } = Typography;
 
 const RegisterDashboard: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values: any) => {
-    const planDetailsString = localStorage.getItem("planDuration");
-    const duration = JSON.parse(planDetailsString || "{}");
+    const package_id = searchParams.get("package");
     setLoading(true);
     try {
       const payload = {
@@ -28,9 +29,10 @@ const RegisterDashboard: React.FC = () => {
         domain: values.domain,
         email: values.email,
         password: values.password,
-        plan: duration,
+        plan: package_id,
       };
-      
+
+
       const response = await fetch("/api/register_admin", {
         method: "POST",
         headers: {
@@ -42,7 +44,7 @@ const RegisterDashboard: React.FC = () => {
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
-      localStorage.removeItem("planDuration")
+      localStorage.removeItem("planDuration");
       message.success("Registration successful!");
       setLoading(false);
     } catch {
