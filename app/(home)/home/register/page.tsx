@@ -44,7 +44,6 @@ const RegisterDashboard: React.FC = () => {
       if (!response.ok) {
         throw new Error(`Error: ${response.status}`);
       }
-      localStorage.removeItem("planDuration");
       message.success("Registration successful!");
       setLoading(false);
     } catch {

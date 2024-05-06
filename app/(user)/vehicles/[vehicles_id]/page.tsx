@@ -16,6 +16,7 @@ import {
 import moment from "moment";
 import { useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import Cookies from "js-cookie";
 
 const { Title, Paragraph } = Typography;
 const { Content } = Layout;
@@ -121,7 +122,7 @@ export default function DetailVehiclePage() {
     try {
       setLoading(true);
 
-      const tokenMerchant = localStorage.getItem("token");
+      const tokenMerchant = Cookies.get("token");
 
       const response = await fetch("/api/order/create", {
         method: "POST",
@@ -156,8 +157,6 @@ export default function DetailVehiclePage() {
       });
 
       setIsModalVisible(true);
-      sessionStorage.removeItem("startDate");
-      sessionStorage.removeItem("endDate");
       setInvoiceData(newData);
     } catch (error) {
       console.error(error);

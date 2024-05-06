@@ -29,8 +29,9 @@ model Merchant {
   end_date          DateTime?
   email             String   @unique
   password          String
-  api_key           String   @unique
-  used_storage      Int     @default(0)
+  api_key                   String   @unique
+  used_storage_vehicle      Int     @default(0)
+  used_storage_order        Int     @default(0)
   vehicles          Vehicle[]
   schedules         Schedule[]
   orders            Order[]
@@ -45,7 +46,8 @@ model Package {
   package_id    String @id @default(uuid())
   package_name  String
   package_price Int
-  count         Int?
+  count_vehicle         Int?
+  count_order   Int?
   duration      Int    
   merchants     Merchant[]
 }

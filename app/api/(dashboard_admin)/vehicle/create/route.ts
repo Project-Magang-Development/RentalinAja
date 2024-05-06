@@ -69,8 +69,8 @@ export async function POST(req: Request) {
     }
 
     if (
-      merchant.package.count !== null &&
-      merchant.used_storage >= merchant.package.count
+      merchant.package.count_vehicle !== null &&
+      merchant.used_storage_vehicle >= merchant.package.count_vehicle
     ) {
       return new NextResponse(
         JSON.stringify({ error: "Vehicle limit exceeded" }),
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
 
     const updatedMerchant = await prisma.merchant.update({
       where: { merchant_id: decoded.merchantId },
-      data: { used_storage: { increment: 1 } },
+      data: { used_storage_vehicle: { increment: 1 } },
     });
 
 
@@ -106,7 +106,7 @@ export async function POST(req: Request) {
       JSON.stringify({
         message: "Vehicle created successfully",
         vehicle: newVehicle,
-        updatedStorage: updatedMerchant.used_storage,
+        updatedStorage: updatedMerchant.used_storage_vehicle,
       }),
       {
         status: 200,

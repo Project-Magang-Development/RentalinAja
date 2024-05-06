@@ -69,7 +69,7 @@ export async function DELETE(req: Request) {
       prisma.vehicle.delete({ where: { vehicles_id: String(vehicles_id) } }),
       prisma.merchant.update({
         where: { merchant_id: vehicle.merchant_id },
-        data: { used_storage: { decrement: 1 } },
+        data: { used_storage_vehicle: { decrement: 1 } },
       }),
     ]);
 

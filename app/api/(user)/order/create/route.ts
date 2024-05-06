@@ -34,6 +34,7 @@ export async function POST(req: Request) {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
         email: string;
         merchant_company: string;
+        merchantId: string;
       };
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
@@ -49,6 +50,33 @@ export async function POST(req: Request) {
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
       throw new Error("Invalid date format");
+    }
+
+    const merchant = await prisma.merchant.findUnique({
+      where: { merchant_id: decoded.merchantId },
+      include: { package: true, vehicles: true },
+    });
+
+    if (!merchant) {
+      return new NextResponse(JSON.stringify({ error: "Merchant not found" }), {
+        status: 404,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
+    if (
+      merchant.package.count_order !== null &&
+      merchant.used_storage_order >= merchant.package.count_order
+    ) {
+      return new NextResponse(
+        JSON.stringify({ error: "Order limit exceeded" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
 
     const existingBooking = await prisma.order.findFirst({
@@ -69,6 +97,8 @@ export async function POST(req: Request) {
       throw new Error("The requested booking period is not available");
     }
 
+
+
     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const totalPrice = price * diffDays;
@@ -82,6 +112,11 @@ export async function POST(req: Request) {
         total_amount: totalPrice,
         merchant_id: String(merchant_id),
       },
+    });
+
+    const updatedMerchant = await prisma.merchant.update({
+      where: { merchant_id: decoded.merchantId },
+      data: { used_storage_order: { increment: 1 } },
     });
 
     let transporter = nodemailer.createTransport({

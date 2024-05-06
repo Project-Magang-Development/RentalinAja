@@ -61,7 +61,8 @@ export async function PUT(req: Request) {
         data: {
           package_name,
           package_price,
-          count,
+          count_order: count,
+          count_vehicle: count,
           duration,
         },
       });

@@ -62,18 +62,6 @@ export async function PUT(req: Request) {
       });
     }
 
-    if ( merchant.package.count) {
-      return new NextResponse(
-        JSON.stringify({ error: "Storage limit exceeded" }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    }
-
     try {
       const booking = await prisma.booking
         .findUnique({
