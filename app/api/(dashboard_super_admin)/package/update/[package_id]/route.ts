@@ -19,12 +19,32 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { package_name, package_price, count, duration } = body;
+    const {
+      package_name,
+      package_description,
+      package_feature,
+      package_price,
+      count,
+      duration,
+    } = body;
+    let featureList = [];
+    if (package_feature) {
+      featureList = package_feature.split(", ");
+    }
 
-    if (!package_name || !package_price || !count || !duration) {
+    console.log("Received body:", body);
+
+    if (
+      package_name == null ||
+      package_price == null ||
+      package_description == null ||
+      package_feature == null ||
+      count == null ||
+      duration == null
+    ) {
       return new NextResponse(
         JSON.stringify({
-          error: "Please provide all required fields and the image size",
+          error: "Please provide all required fields",
         }),
         {
           status: 400,
@@ -36,17 +56,13 @@ export async function PUT(req: Request) {
     }
 
     try {
-      const packages = await prisma.package
-        .findUnique({
-          where: { package_id: String(package_id) },
-        })
-        .catch((error) => {
-          throw error;
-        });
+      const packages = await prisma.package.findUnique({
+        where: { package_id: String(package_id) },
+      });
 
-        if (!packages) {
+      if (!packages) {
         return new NextResponse(
-          JSON.stringify({ error: "Vehicle not found or access denied" }),
+          JSON.stringify({ error: "Package not found or access denied" }),
           {
             status: 404,
             headers: {
@@ -61,6 +77,8 @@ export async function PUT(req: Request) {
         data: {
           package_name,
           package_price,
+          package_description,
+          package_feature,
           count_order: count,
           count_vehicle: count,
           duration,
@@ -69,8 +87,9 @@ export async function PUT(req: Request) {
 
       return new NextResponse(
         JSON.stringify({
-          message: "Vehicle update successfully",
-          vehicle: updatedPackage,
+          message: "Package updated successfully",
+          package: updatedPackage,
+          features: featureList,
         }),
         {
           status: 200,
@@ -80,9 +99,9 @@ export async function PUT(req: Request) {
         }
       );
     } catch (error) {
-      console.error("Error accessing database or verifying token:", error);
+      console.error("Error updating package:", error);
       return new NextResponse(
-        JSON.stringify({ error: "Internal Server Error or Invalid Token" }),
+        JSON.stringify({ error: "Internal Server Error" }),
         {
           status: 500,
           headers: {
@@ -91,6 +110,14 @@ export async function PUT(req: Request) {
         }
       );
     }
+  } catch (error) {
+    console.error("Error handling request:", error);
+    return new NextResponse(JSON.stringify({ error: "Invalid Request" }), {
+      status: 400,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
   } finally {
     await prisma.$disconnect().catch((error) => {
       console.error("Error disconnecting from database:", error);

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
-
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const pathnameParts = url.pathname.split("/");
@@ -47,14 +46,14 @@ export async function GET(req: Request) {
     }
 
     const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year + 1, 0, 1); 
+    const endDate = new Date(year + 1, 0, 1);
 
     const bookings = await prisma.payment.findMany({
       where: {
-        status: "Berhasil",
+        status: "PAID",
         AND: [
           { merchant_id: decoded.merchantId },
-          { payment_date: { gte: startDate, lt: endDate } }, 
+          { payment_date: { gte: startDate, lt: endDate } },
         ],
       },
     });

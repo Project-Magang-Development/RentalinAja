@@ -1,37 +1,83 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-
 export async function GET(req: Request) {
   try {
+    const url = new URL(req.url);
+    const email = url.searchParams.get("email");
     const tokenHeader = req.headers.get("Authorization");
     const token = tokenHeader?.split(" ")[1];
 
-    if (!token) {
-      return new NextResponse(JSON.stringify({ error: "Token not provided" }), {
-        status: 401,
+    if (email) {
+      // Handle GET request with email parameter
+      if (!email) {
+        return new NextResponse(
+          JSON.stringify({ error: "Email not provided" }),
+          {
+            status: 400,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
+      const merchant = await prisma.merchant.findUnique({
+        where: {
+          email: email,
+        },
+        include: {
+          package: true,
+        },
+      });
+
+      if (!merchant) {
+        return new NextResponse(
+          JSON.stringify({ error: "Merchant not found" }),
+          {
+            status: 404,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      }
+
+      return new NextResponse(JSON.stringify(merchant), {
+        status: 200,
         headers: {
           "Content-Type": "application/json",
         },
       });
+    } else if (token) {
+      // Handle GET request with token for fetching all merchants
+      const merchant = await prisma.merchant.findMany({
+        orderBy: {
+          merchant_id: "desc",
+        },
+        include: {
+          package: true,
+        },
+      });
+
+      return new NextResponse(JSON.stringify(merchant), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    } else {
+      // If neither email nor token is provided, return error
+      return new NextResponse(
+        JSON.stringify({ error: "Token or Email not provided" }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
-
-
-    const merchant = await prisma.merchant.findMany({
-      orderBy: {
-        merchant_id: "desc",
-      },
-      include: {
-        package: true,
-      }
-    });
-
-    return new NextResponse(JSON.stringify(merchant), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
   } catch (error) {
     console.error("Error accessing database or verifying token:", error);
     return new NextResponse(

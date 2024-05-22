@@ -83,7 +83,9 @@ export default function AdminMerchantDashboard() {
       dataIndex: "package",
       key: "storage_limit",
       render: (packageData: Package) =>
-        `${packageData?.storage_limit} GB` || packageData?.storage_limit || "Tidak tersedia",
+        `${packageData?.storage_limit} GB` ||
+        packageData?.storage_limit ||
+        "Tidak tersedia",
     },
     {
       title: "Harga Paket",

@@ -2,13 +2,10 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
-
-
 export async function GET(req: Request) {
   try {
     const tokenHeader = req.headers.get("Authorization");
     const token = tokenHeader?.split(" ")[1];
-
 
     if (!token) {
       return new NextResponse(JSON.stringify({ error: "Token not provided" }), {
@@ -34,11 +31,11 @@ export async function GET(req: Request) {
     }
 
     const now = new Date();
-    const month = now.getMonth() + 1; 
+    const month = now.getMonth() + 1;
     const year = now.getFullYear();
 
-    const startDate = new Date(year, month - 1, 1); 
-    const endDate = new Date(year, month, 0); 
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
 
     const totalAmount = await prisma.payment.aggregate({
       _sum: {
@@ -58,7 +55,7 @@ export async function GET(req: Request) {
             },
           },
           {
-            status: "Berhasil",
+            status: "PAID",
           },
         ],
       },

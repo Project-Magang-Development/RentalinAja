@@ -57,20 +57,19 @@ const fetcher = async (url: string) => {
 };
 
 export default function AdminOrderDashboard() {
-   const [filterStatus, setFilterStatus] = useState<string>("");
-   const { data: orders, error } = useSWR(
-     `/api/order/show?status=${filterStatus}`,
-     fetcher
-   );
+  const [filterStatus, setFilterStatus] = useState<string>("");
+  const { data: orders, error } = useSWR(
+    `/api/order/show?status=${filterStatus}`,
+    fetcher
+  );
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-
   const StatusFilter = () => (
     <Radio.Group onChange={handleFilterChange} value={filterStatus}>
       <Radio.Button value="">Semua</Radio.Button>
-      <Radio.Button value="Berhasil">Berhasil</Radio.Button>
+      <Radio.Button value="Paid">Berhasil</Radio.Button>
       <Radio.Button value="Pending">Pending</Radio.Button>
     </Radio.Group>
   );
@@ -145,17 +144,17 @@ export default function AdminOrderDashboard() {
       dataIndex: "status",
       key: "status",
       render: (status: string) => {
-        let backgroundColor = "gray"; 
-        let textColor = "#FFFFFF"; 
+        let backgroundColor = "gray";
+        let textColor = "#FFFFFF";
         if (status === "Pending") {
           textColor = "#EFC326";
-        } else if (status === "Berhasil") {
+        } else if (status === "PAID") {
           textColor = "#00B69B";
         }
         if (status === "Pending") {
-          backgroundColor = "#FCF3D4"; 
-        } else if (status === "Berhasil") {
-          backgroundColor = "#CCF0EB"; 
+          backgroundColor = "#FCF3D4";
+        } else if (status === "PAID") {
+          backgroundColor = "#CCF0EB";
         }
 
         return (
@@ -176,6 +175,14 @@ export default function AdminOrderDashboard() {
     },
   ];
 
+  const rowClickHandler = (record: any) => {
+    return {
+      onClick: () => {
+        window.location.href = `/dashboard/order/${record.external_id}`;
+      },
+    };
+  };
+
   const showModal = () => {
     setIsModalVisible(true);
   };
@@ -188,8 +195,8 @@ export default function AdminOrderDashboard() {
     return <TableSkeleton />;
   }
 
-  if(!orders) {
-    return <TableSkeleton/>
+  if (!orders) {
+    return <TableSkeleton />;
   }
 
   return (
@@ -206,6 +213,7 @@ export default function AdminOrderDashboard() {
       </Flex>
 
       <Table
+        onRow={rowClickHandler}
         columns={columns}
         dataSource={orders}
         loading={loading}

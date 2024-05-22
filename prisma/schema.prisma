@@ -14,144 +14,131 @@ datasource db {
 }
 
 model SuperAdmin {
-  admin_id        String    @id @default(uuid())
-  email           String    @unique
-  password        String
+  admin_id String @id @default(uuid())
+  email    String @unique
+  password String
 }
 
 model Merchant {
-  merchant_id       String   @id @default(uuid())
-  merchant_name     String
-  merchant_company  String
-  domain            String
-  status_subscriber String   @default("Aktif")
-  start_date        DateTime?  
-  end_date          DateTime?
-  email             String   @unique
-  password          String
-  api_key                   String   @unique
-  used_storage_vehicle      Int     @default(0)
-  used_storage_order        Int     @default(0)
-  vehicles          Vehicle[]
-  schedules         Schedule[]
-  orders            Order[]
-  merchantPayments  MerchantPayment[]
-  payment           Payment[]
-  booking           Booking[]
-  package_id        String           
-  package           Package  @relation(fields: [package_id], references: [package_id])
+  merchant_id          String            @id @default(uuid())
+  merchant_name        String
+  merchant_company     String
+  status_subscriber    String            @default("Aktif")
+  start_date           DateTime?
+  end_date             DateTime?
+  email                String            @unique
+  password             String
+  api_key              String            @unique
+  used_storage_vehicle Int               @default(0)
+  used_storage_order   Int               @default(0)
+  vehicles             Vehicle[]
+  schedules            Schedule[]
+  orders               Order[]
+  merchantPayments     MerchantPayment[]
+  payment              Payment[]
+  booking              Booking[]
+  package_id           String
+  package              Package           @relation(fields: [package_id], references: [package_id])
 }
 
 model Package {
-  package_id    String @id @default(uuid())
-  package_name  String
-  package_price Int
-  count_vehicle         Int?
-  count_order   Int?
-  duration      Int    
-  merchants     Merchant[]
+  package_id          String     @id @default(uuid())
+  package_name        String
+  package_description String
+  package_price       Int
+  package_feature     String
+  count_vehicle       Int?
+  count_order         Int?
+  duration            Int
+  merchants           Merchant[]
 }
 
 model MerchantPayment {
-  id             String    @id @default(uuid())
-  merchant_id    String
-  amount         Int
-  payment_method String
-  status         String    @default("Pending")
-  payment_date   DateTime? 
-  description    String?  
+  id                String    @id @default(uuid())
+  merchant_id       String
+  invoice_id        String    @unique
+  package_name      String
+  amount            Int
+  merchant_name     String
+  merchant_email    String
+  merchant_whatsapp String
+  rental_name       String
+  rental_type       String
+  merchant_city     String
+  merchant_address  String
+  status            String    @default("Pending")
+  payment_date      DateTime?
 
-  Merchant       Merchant @relation(fields: [merchant_id], references: [merchant_id])
+  Merchant Merchant @relation(fields: [merchant_id], references: [merchant_id])
 }
 
 model Vehicle {
-  vehicles_id    String    @id @default(uuid())
-  merchant_id    String
-  name           String
-  model          String
-  year           Int
-  no_plat        String    @unique
-  imageUrl       String    @db.LongText
-  capacity       Int
-  Merchant       Merchant  @relation(fields: [merchant_id], references: [merchant_id])
-  Schedules      Schedule[]  
+  vehicles_id String     @id @default(uuid())
+  merchant_id String
+  name        String
+  model       String
+  year        Int
+  no_plat     String     @unique
+  imageUrl    String     @db.LongText
+  capacity    Int
+  Merchant    Merchant   @relation(fields: [merchant_id], references: [merchant_id])
+  Schedules   Schedule[]
 }
 
 model Schedule {
-  schedules_id   String    @id @default(uuid())
-  merchant_id    String
-  vehicles_id    String       
-  start_date     DateTime
-  end_date       DateTime
-  price          Int
-  Merchant       Merchant  @relation(fields: [merchant_id], references: [merchant_id])
-  Vehicle        Vehicle   @relation(fields: [vehicles_id], references: [vehicles_id])
-  orders         Order[]
+  schedules_id String   @id @default(uuid())
+  merchant_id  String
+  vehicles_id  String
+  start_date   DateTime
+  end_date     DateTime
+  price        Int
+  Merchant     Merchant @relation(fields: [merchant_id], references: [merchant_id])
+  Vehicle      Vehicle  @relation(fields: [vehicles_id], references: [vehicles_id])
+  orders       Order[]
 }
 
 model Payment {
   payment_id     String    @id @default(uuid())
   order_id       String
-  merchant_id    String    
+  merchant_id    String
+  external_id    String    @unique
   amount         Int
   payment_method String
   status         String    @default("Pending")
   payment_date   DateTime?
 
-  Order          Order     @relation(fields: [order_id], references: [order_id])
-  Merchant       Merchant  @relation(fields: [merchant_id], references: [merchant_id])
-  Booking        Booking?
+  Order    Order    @relation(fields: [order_id], references: [order_id])
+  Merchant Merchant @relation(fields: [merchant_id], references: [merchant_id])
+  Booking  Booking?
 }
 
 model Order {
-  order_id       String    @id @default(uuid())
-  schedules_id   String
-  merchant_id    String
-  start_date     DateTime
-  end_date       DateTime
-  customer_name  String
-  total_amount   Int
-  status         String    @default("Pending")
-  created_at     DateTime  @default(now())
-  
-  Merchant       Merchant  @relation(fields: [merchant_id], references: [merchant_id])
-  Schedule       Schedule  @relation(fields: [schedules_id], references: [schedules_id])
-  payments       Payment[]
-  booking        Booking?    
+  order_id      String   @id @default(uuid())
+  schedules_id  String
+  merchant_id   String
+  external_id   String   @unique
+  start_date    DateTime
+  end_date      DateTime
+  customer_name String
+  total_amount  Int
+  status        String   @default("Pending")
+  created_at    DateTime @default(now())
+
+  Merchant Merchant  @relation(fields: [merchant_id], references: [merchant_id])
+  Schedule Schedule  @relation(fields: [schedules_id], references: [schedules_id])
+  payments Payment[]
+  booking  Booking?
 }
 
 model Booking {
-  booking_id     String    @id @default(uuid())
-  order_id       String    @unique
-  payment_id     String    @unique
-  merchant_id    String       
-  created_at     DateTime  @default(now())
-  imageUrl       String?   @db.LongText
+  booking_id  String   @id @default(uuid())
+  order_id    String   @unique
+  payment_id  String   @unique
+  merchant_id String
+  created_at  DateTime @default(now())
+  imageUrl    String?  @db.LongText
 
-  Order          Order     @relation(fields: [order_id], references: [order_id])
-  Payment        Payment   @relation(fields: [payment_id], references: [payment_id])
-  Merchant       Merchant  @relation(fields: [merchant_id], references: [merchant_id])
+  Order    Order    @relation(fields: [order_id], references: [order_id])
+  Payment  Payment  @relation(fields: [payment_id], references: [payment_id])
+  Merchant Merchant @relation(fields: [merchant_id], references: [merchant_id])
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

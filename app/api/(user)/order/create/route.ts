@@ -3,7 +3,6 @@ import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 
-
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -14,6 +13,7 @@ export async function POST(req: Request) {
       customer_name,
       merchant_id,
       price,
+      external_id,
       token,
     } = body;
 
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       !customer_name ||
       !merchant_id ||
       !price ||
+      !external_id ||
       !token
     ) {
       throw new Error("Missing required fields");
@@ -97,8 +98,6 @@ export async function POST(req: Request) {
       throw new Error("The requested booking period is not available");
     }
 
-
-
     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const totalPrice = price * diffDays;
@@ -109,6 +108,7 @@ export async function POST(req: Request) {
         start_date: startDate,
         end_date: endDate,
         customer_name,
+        external_id,
         total_amount: totalPrice,
         merchant_id: String(merchant_id),
       },

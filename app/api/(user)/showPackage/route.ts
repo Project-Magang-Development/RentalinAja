@@ -3,11 +3,7 @@ import prisma from "@/lib/prisma";
 
 export async function GET(req: Request) {
   try {
-
-    const totalPackage = await prisma.package.findMany({
-      
-    });
-
+    const totalPackage = await prisma.package.findMany({});
     return new NextResponse(JSON.stringify(totalPackage), {
       status: 200,
       headers: {

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
-
 export async function GET(req: Request) {
   try {
     const tokenHeader = req.headers.get("Authorization");
@@ -38,7 +37,7 @@ export async function GET(req: Request) {
     const totalVehicles = await prisma.payment.count({
       where: {
         merchant_id: decoded.merchantId,
-        status: "Berhasil",
+        status: "PAID",
         payment_date: {
           gte: firstDayOfMonth,
           lte: lastDayOfMonth,

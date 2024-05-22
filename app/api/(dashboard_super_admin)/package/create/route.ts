@@ -16,9 +16,25 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { package_name, package_price, count, duration} = body;
-
-    if (!package_name || package_price == null || duration == null) {
+    const {
+      package_name,
+      package_description,
+      package_price,
+      package_feature,
+      count,
+      duration,
+    } = body;
+    let featureList = [];
+    if (package_feature) {
+      featureList = package_feature.split(", ");
+    }
+    if (
+      !package_name ||
+      package_description == null ||
+      package_feature == null ||
+      package_price == null ||
+      duration == null
+    ) {
       return new NextResponse(
         JSON.stringify({
           error: "Please provide all required fields",
@@ -35,7 +51,9 @@ export async function POST(req: Request) {
     const newPackage = await prisma.package.create({
       data: {
         package_name,
+        package_description,
         package_price,
+        package_feature,
         count_order: count,
         count_vehicle: count,
         duration,
@@ -46,6 +64,7 @@ export async function POST(req: Request) {
       JSON.stringify({
         message: "Package created successfully",
         vehicle: newPackage,
+        features: featureList,
       }),
       {
         status: 200,

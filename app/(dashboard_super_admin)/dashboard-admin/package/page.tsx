@@ -23,6 +23,8 @@ import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 interface Package {
   package_id: string;
   package_name: string;
+  package_description: string;
+  package_feature: string;
   package_price: number;
   count: number;
   duration: number;
@@ -77,11 +79,13 @@ export default function AdminPackageDashboard() {
 
       const payload = {
         package_name: values.name,
+        package_description: values.description,
+        package_feature: values.feature,
         package_price: parseInt(values.price, 10),
         count: parseInt(values.count, 10),
         duration: parseInt(values.duration, 10),
       };
-
+      console.log(payload);
       setLoading(true);
 
       const token = Cookies.get("token");
@@ -111,14 +115,6 @@ export default function AdminPackageDashboard() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        if (response.status === 400) {
-          notification.error({
-            message: "Gagal",
-            description: "Limit Tambah Kendaraan Sudah Habis",
-          });
-        } else {
-          throw new Error(errorData.message || "Failed to process vehicle");
-        }
       } else {
         notification.success({
           message: "Sukses",
@@ -152,19 +148,35 @@ export default function AdminPackageDashboard() {
   };
 
   const handleEdit = (package_id: string) => {
+    if (!packages || packages.length === 0) {
+      console.error("Packages data is empty or undefined");
+      return;
+    }
+
     const packageToEdit = packages.find(
       (packageData: any) => packageData.package_id === package_id
     );
-    if (packageToEdit) {
-      setEditingPackage(packageToEdit);
-      form.setFieldsValue({
-        name: packageToEdit.package_name,
-        price: packageToEdit.package_price.toString(),
-        count: packageToEdit.count.toString(),
-        duration: packageToEdit.duration.toString(),
-      });
-      setIsModalVisible(true);
+
+    if (!packageToEdit) {
+      console.error("Package not found");
+      return;
     }
+
+    console.log("Count:", packageToEdit.count);
+    console.log("Description:", packageToEdit.package_description);
+
+    console.log(packageToEdit);
+
+    setEditingPackage(packageToEdit);
+    form.setFieldsValue({
+      name: packageToEdit.package_name,
+      description: packageToEdit.package_description,
+      feature: packageToEdit.package_feature,
+      price: packageToEdit.package_price,
+      count: packageToEdit.count_order,
+      duration: packageToEdit.duration,
+    });
+    setIsModalVisible(true);
   };
 
   const handleDelete = async (package_id: string) => {
@@ -223,9 +235,24 @@ export default function AdminPackageDashboard() {
       key: "package_name",
     },
     {
+      title: "Deskripsi",
+      dataIndex: "package_description",
+      key: "package_description",
+    },
+    {
+      title: "Fitur",
+      dataIndex: "package_feature",
+      key: "package_feature",
+    },
+    {
       title: "Penyimpanan Data",
-      dataIndex: "count",
-      key: "count",
+      dataIndex: "count_order",
+      key: "count_order",
+    },
+    {
+      title: "Penyimpanan Kendaraan",
+      dataIndex: "count_vehicle",
+      key: "count_vechicle",
     },
     {
       title: "Durasi",
@@ -317,6 +344,18 @@ export default function AdminPackageDashboard() {
             rules={[{ required: true, message: "Tolong Masukan Nama Paket!" }]}
           >
             <Input placeholder="Nama Paket" />
+          </Form.Item>
+          <Form.Item
+            name="description"
+            rules={[{ required: true, message: "Tolong Masukan Deskripsi!" }]}
+          >
+            <Input placeholder="Deskripsi" />
+          </Form.Item>
+          <Form.Item
+            name="feature"
+            rules={[{ required: true, message: "Tolong Masukan fitur!" }]}
+          >
+            <Input placeholder="Fitur" />
           </Form.Item>
           <Form.Item
             name="price"

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
-
 export async function POST(req: Request) {
   try {
     const tokenHeader = req.headers.get("Authorization");
@@ -82,7 +81,7 @@ export async function POST(req: Request) {
           error: "An existing schedule overlaps with the provided dates",
         }),
         {
-          status: 409, 
+          status: 409,
           headers: {
             "Content-Type": "application/json",
           },
@@ -99,7 +98,6 @@ export async function POST(req: Request) {
         merchant_id: decoded.merchantId,
       },
     });
-    
 
     return new NextResponse(
       JSON.stringify({

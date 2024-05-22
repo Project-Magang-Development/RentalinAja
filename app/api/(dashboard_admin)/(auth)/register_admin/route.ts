@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
-import moment from "moment"; 
-import nodemailer from "nodemailer"; 
-import crypto from "crypto"; 
-
-
+import moment from "moment";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { name, company, email, password, domain, plan } = body;
+    const { name, company, email, password, plan } = body;
 
-    if (!name || !company || !email || !password || !domain || !plan) {
+    if (!name || !company || !email || !password || !plan) {
       return NextResponse.json({ error: "Please provide all required fields" });
     }
 
@@ -31,7 +29,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid plan ID" });
     }
 
-     let endDate = moment(startDate).add(packages.duration, "months");
+    let endDate = moment(startDate).add(packages.duration, "months");
 
     const generateApiKey = () => crypto.randomBytes(32).toString("hex");
 
@@ -39,7 +37,6 @@ export async function POST(req: Request) {
       data: {
         merchant_name: name,
         merchant_company: company,
-        domain: domain,
         email,
         password: hashedPassword,
         start_date: startDate,
@@ -86,8 +83,6 @@ export async function POST(req: Request) {
     </div>
   `,
     });
-
-
 
     return NextResponse.json({
       message: "User created successfully. Activation email has been sent.",

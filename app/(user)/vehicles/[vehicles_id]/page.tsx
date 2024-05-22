@@ -11,16 +11,16 @@ import {
   Button,
   Input,
   notification,
-  Modal
+  Modal,
 } from "antd";
 import moment from "moment";
 import { useParams, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Cookies from "js-cookie";
+import axios from "axios";
 
 const { Title, Paragraph } = Typography;
 const { Content } = Layout;
-
 
 interface Vehicle {
   vehicles_id: string;
@@ -48,6 +48,7 @@ interface InvoiceData {
   start_date: Date;
   end_date: Date;
   total_amount: number;
+  external_id?: string;
 }
 
 export default function DetailVehiclePage() {
@@ -110,13 +111,63 @@ export default function DetailVehiclePage() {
     }
   }, [startDate, endDate]);
 
+  // TODO: Buat function createInvcoie customer
+
+  const createInvoice = async (
+    invoiceData: any,
+    externalId: string
+  ): Promise<any> => {
+    try {
+      const secretKey = process.env.NEXT_PUBLIC_SECRET_KEY;
+
+      if (!secretKey) {
+        throw Error("tidak ada API Key xendit");
+      }
+
+      const endpoint = "https://api.xendit.co/v2/invoices";
+      const basicAuthHeader = `Basic ${btoa(secretKey + ":")}`;
+
+      const payload = {
+        external_id: externalId,
+        amount: invoiceData.total_amount,
+        currency: "IDR",
+        customer: {
+          given_names: invoiceData.customer_name,
+        },
+      };
+
+      const response = await axios.post(endpoint, payload, {
+        headers: {
+          Authorization: basicAuthHeader,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        const { invoice_url, id } = response.data;
+        console.log(response.data);
+
+        return { id_invoice: id, invoice_url, external_id: externalId };
+      } else {
+        console.error("Gagal membuat invoice");
+        console.log(response.data);
+        return { id_invoice: null, external_id: null };
+      }
+    } catch (error) {
+      console.error("Terjadi kesalahan:", error);
+      return { id_invoice: null, external_id: null };
+    }
+  };
+
+  // Fungsi untuk menangani penyelesaian form
+  // Fungsi untuk menangani penyelesaian form
   const onFinish = async (values: any) => {
     if (!selectedSchedule) {
       notification.error({
         message: "Submission Error",
         description: "No schedule has been selected.",
       });
-      return; 
+      return;
     }
 
     try {
@@ -124,6 +175,10 @@ export default function DetailVehiclePage() {
 
       const tokenMerchant = Cookies.get("token");
 
+      // Buat externalId di sini sekali dan gunakan di seluruh fungsi
+      const externalId = "INV-" + Math.random().toString(36).substring(2, 9);
+
+      // postOrder, engirim data order ke table order
       const response = await fetch("/api/order/create", {
         method: "POST",
         headers: {
@@ -136,6 +191,7 @@ export default function DetailVehiclePage() {
           schedules_id: selectedSchedule.schedules_id,
           merchant_id: selectedSchedule.merchant_id,
           price: selectedSchedule.price,
+          external_id: externalId, // Tambahkan externalId ke payload
           token: tokenMerchant,
         }),
       });
@@ -145,10 +201,22 @@ export default function DetailVehiclePage() {
       }
 
       const data = await response.json();
+
       const newData = {
         ...data,
-        order_id: data.order_id || Math.floor(Math.random() * 1000000), // Use server-generated ID if available
+        order_id: data.order_id || Math.floor(Math.random() * 1000000),
+        total_amount: selectedSchedule.price,
+        external_id: externalId,
       };
+
+      // Panggil fungsi createInvoice dengan newData dan externalId
+      const result = await createInvoice(newData, externalId);
+      console.log(result);
+
+      // Cek apakah faktur berhasil dibuat dan status pesanan adalah "paid"
+      if (result.id_invoice && data.status === "paid") {
+        // Panggil fungsi postPayment jika status pesanan adalah "paid"
+      }
 
       notification.success({
         message: "Order Successful",
@@ -170,15 +238,39 @@ export default function DetailVehiclePage() {
     }
   };
 
+  const dateFormat = "DD MMMM YYYY";
 
+  // Fungsi untuk memposting order ke database
 
-  const dateFormat = "DD MMMM YYYY"; 
   const handleCancel = () => {
     setIsModalVisible(false);
   };
 
-  const handleOk = () => {
-    setIsModalVisible(false);
+  const handleOk = async () => {
+    try {
+      if (!invoiceData) {
+        console.error("Invoice data is not available");
+        return;
+      }
+
+      // Generate externalId jika belum ada di invoiceData
+      const externalId =
+        invoiceData.external_id ||
+        "INV-" + Math.random().toString(36).substring(2, 9);
+      invoiceData.external_id = externalId;
+
+      const result = await createInvoice(invoiceData, externalId);
+      console.log(result);
+
+      // Buka invoice_url saat invoice telah berhasil dibuat
+      if (result && result.invoice_url) {
+        window.open(result.invoice_url, "_blank");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsModalVisible(false);
+    }
   };
 
   return (
@@ -205,8 +297,7 @@ export default function DetailVehiclePage() {
                     ? new Intl.NumberFormat("id-ID").format(
                         selectedSchedule.price
                       )
-                    : ")" 
-                  }
+                    : ")"}
                   / Hari
                 </Paragraph>
                 <Form
