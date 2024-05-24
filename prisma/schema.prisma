@@ -20,25 +20,28 @@ model SuperAdmin {
 }
 
 model Merchant {
-  merchant_id          String            @id @default(uuid())
+  merchant_id          String          @id @default(uuid())
   merchant_name        String
   merchant_company     String
-  status_subscriber    String            @default("Aktif")
+  status_subscriber    String          @default("Aktif")
   start_date           DateTime?
   end_date             DateTime?
-  email                String            @unique
+  email                String          @unique
   password             String
-  api_key              String            @unique
-  used_storage_vehicle Int               @default(0)
-  used_storage_order   Int               @default(0)
+  api_key              String          @unique
+  used_storage_vehicle Int             @default(0)
+  used_storage_order   Int             @default(0)
   vehicles             Vehicle[]
   schedules            Schedule[]
   orders               Order[]
-  merchantPayments     MerchantPayment[]
-  payment              Payment[]
   booking              Booking[]
   package_id           String
-  package              Package           @relation(fields: [package_id], references: [package_id])
+  id                   String          @unique
+  package              Package         @relation(fields: [package_id], references: [package_id])
+  merchantPayment      MerchantPayment @relation(fields: [id], references: [id])
+
+  MerchantPendingPayment MerchantPendingPayment[]
+  Payment                Payment[]
 }
 
 model Package {
@@ -53,23 +56,37 @@ model Package {
   merchants           Merchant[]
 }
 
-model MerchantPayment {
-  id                String    @id @default(uuid())
-  merchant_id       String
-  invoice_id        String    @unique
-  package_name      String
-  amount            Int
-  merchant_name     String
-  merchant_email    String
-  merchant_whatsapp String
-  rental_name       String
-  rental_type       String
-  merchant_city     String
-  merchant_address  String
-  status            String    @default("Pending")
-  payment_date      DateTime?
+model MerchantPendingPayment {
+  pending_id          String            @id @default(uuid())
+  merchant_id         String
+  invoice_id          String            @unique
+  package_name        String
+  amount              Int
+  merchant_name       String
+  merchant_email      String
+  password            String
+  merchant_whatsapp   String
+  rental_name         String
+  rental_type         String
+  merchant_city       String
+  merchant_address    String
+  status              String            @default("Pending")
+  payment_date        DateTime?
+  external_id         String            @unique
+  MerchantPayment     MerchantPayment[]
+  Merchant            Merchant?         @relation(fields: [merchantMerchant_id], references: [merchant_id])
+  merchantMerchant_id String?
+}
 
-  Merchant Merchant @relation(fields: [merchant_id], references: [merchant_id])
+model MerchantPayment {
+  id          String @id @default(uuid())
+  pending_id  String @unique
+  external_id String @unique
+  status      String
+
+  Merchant Merchant?
+
+  MerchantPendingPayment MerchantPendingPayment @relation(fields: [pending_id], references: [pending_id])
 }
 
 model Vehicle {

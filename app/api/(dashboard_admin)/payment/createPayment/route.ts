@@ -18,32 +18,31 @@ export async function POST(req: Request) {
       merchant_id,
     } = body;
 
-    // Cek apakah merchant dengan merchant_id tersebut ada
-    const existingMerchant = await prisma.merchant.findUnique({
-      where: {
-        merchant_id: merchant_id,
-      },
-    });
+    // TODO: taruh  code ini di bagian updatePaymentMerchant untuk webhook
+    // // Cek apakah merchant dengan merchant_id tersebut ada
+    // const existingMerchant = await prisma.merchant.findUnique({
+    //   where: {
+    //     merchant_id: merchant_id,
+    //   },
+    // });
 
-    // Jika merchant tidak ditemukan, kirim respon error
-    if (!existingMerchant) {
-      return new NextResponse(JSON.stringify({ error: "Merchant not found" }), {
-        status: 404,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-    }
-
+    // // Jika merchant tidak ditemukan, kirim respon error
+    // if (!existingMerchant) {
+    //   return new NextResponse(JSON.stringify({ error: "Merchant not found" }), {
+    //     status: 404,
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   });
+    // }
     // Dapatkan tanggal saat ini
     const paymentDate = new Date();
-
     // Tentukan status pembayaran
     let status = "Pending";
     if (amount === 0) {
       status = "PAID";
     }
-
+    // TODO: sesuaikan dengan model/ table
     // Create the payment with the obtained merchant_id and payment date
     const newPayment = await prisma.merchantPayment.create({
       data: {
@@ -62,7 +61,6 @@ export async function POST(req: Request) {
         payment_date: paymentDate, // Set the payment date to the current date
       },
     });
-
     return NextResponse.json(
       { message: "Data berhasil disimpan", newPayment },
       { status: 200 }
