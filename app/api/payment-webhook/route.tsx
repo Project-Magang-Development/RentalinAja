@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateExpiredStatus, updatePaymentStatus } from "@/lib/updatePayment";
-
 import { updateOrderFinish } from "@/lib/updateOrderPayment";
 import { updatePaymentMethodByExternalId } from "@/lib/updateCustomerPayments";
 
@@ -8,64 +7,78 @@ export async function POST(req: NextRequest, res: NextResponse) {
   try {
     const body = await req.json();
 
-    if (body && body.status === "PAID" && body.external_id) {
+    if (!body || !body.status || !body.external_id) {
+      console.log("Invalid payload");
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
+
+    const externalId = body.external_id;
+    const status = body.status;
+    const paymentMethod = body.payment_method || "Default Payment Method";
+
+    if (status === "PAID") {
       console.log(
-        `Invoice has been paid with status ${body.status} and external_id ${body.external_id}`
+        `Invoice has been paid with status ${status} and external_id ${externalId}`
       );
 
-      // Update order finish status first
-      await updateOrderFinish(body.external_id, "PAID");
+      // Update payment status
+      const paymentStatusResult = await updatePaymentStatus(externalId, "PAID");
+      if (paymentStatusResult) {
+        console.log(
+          `Payment status for external_id ${externalId} updated to PAID`
+        );
+      } else {
+        console.log(
+          `Payment with external_id ${externalId} not found for updatePaymentStatus.`
+        );
+      }
 
-      // Get the payment method from the request body
-      const paymentMethod = body.payment_method || "Default Payment Method";
+      // Update order finish status
+      const orderFinishResult = await updateOrderFinish(externalId, "PAID");
+      if (orderFinishResult) {
+        console.log(
+          `Order with external_id ${externalId} has been marked as PAID`
+        );
+      } else {
+        console.log(
+          `Order with external_id ${externalId} not found for updateOrderFinish.`
+        );
+      }
 
-      // Update payment status and payment method after order finish status is updated
-      const updatePaymentResults = await Promise.allSettled([
-        updatePaymentStatus(body.external_id, "PAID"),
-        updatePaymentMethodByExternalId(body.external_id, paymentMethod),
-      ]);
-
-      updatePaymentResults.forEach((result, index) => {
-        if (result.status === "rejected") {
-          console.error(
-            `Error updating payment record ${index + 1}:`,
-            result.reason
-          );
-        }
-      });
+      // Update payment method
+      const paymentMethodResult = await updatePaymentMethodByExternalId(
+        externalId,
+        paymentMethod
+      );
+      if (paymentMethodResult) {
+        console.log(
+          `Payment method for external_id ${externalId} updated to ${paymentMethod}`
+        );
+      } else {
+        console.log(
+          `Payment with external_id ${externalId} not found for updatePaymentMethodByExternalId.`
+        );
+      }
 
       return NextResponse.json({ success: true, body }, { status: 200 });
-    } else if (body && body.status === "EXPIRED" && body.external_id) {
-      console.log(`Invoice has expired with external_id ${body.external_id}`);
+    } else if (status === "EXPIRED") {
+      console.log(`Invoice has expired with external_id ${externalId}`);
 
-      const updates = [updateExpiredStatus(body.external_id, "EXPIRED")];
-
-      const results = await Promise.allSettled(updates);
-
-      results.forEach((result, index) => {
-        if (result.status === "rejected") {
-          console.error(`Error updating record ${index + 1}:`, result.reason);
-        }
-      });
+      const expiredResult = await updateExpiredStatus(externalId, "EXPIRED");
+      if (expiredResult) {
+        console.log(
+          `Payment status for external_id ${externalId} updated to EXPIRED`
+        );
+      } else {
+        console.log(
+          `Payment with external_id ${externalId} not found for updateExpiredStatus.`
+        );
+      }
 
       return NextResponse.json("Expired!", { status: 200 });
-    } else if (body && body.status === "FINISH" && body.external_id) {
-      console.log(`Order has finished with external_id ${body.external_id}`);
-
-      const updates = [updateOrderFinish(body.external_id, "FINISH")];
-
-      const results = await Promise.allSettled(updates);
-
-      results.forEach((result, index) => {
-        if (result.status === "rejected") {
-          console.error(`Error updating record ${index + 1}:`, result.reason);
-        }
-      });
-
-      return NextResponse.json("Order finished!", { status: 200 });
     } else {
-      console.log(`Invoice failed to be paid with status ${body.status}`);
-      return NextResponse.json("Failed!", { status: 200 });
+      console.log(`Unhandled status: ${status}`);
+      return NextResponse.json("Unhandled status", { status: 400 });
     }
   } catch (error) {
     console.error("Error handling webhook:", error);
