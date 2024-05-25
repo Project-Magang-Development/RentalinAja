@@ -45,7 +45,7 @@ const RegisterDashboard: React.FC = () => {
   const packageDataId = searchParams.get("package");
   const [packageData, setPackageData] = useState<any>("");
   const [packageName, setPackageName] = useState<string>("");
-
+  const [pendingId, setPendingId] = useState("");
   const [form] = useForm<FormData>();
   const [packageId, setPackageId] = useState<any>("");
   const [loading, setLoading] = useState(false);
@@ -126,6 +126,7 @@ const RegisterDashboard: React.FC = () => {
           },
         ],
       };
+
       const response = await axios.post(endpoint, payload, {
         headers: {
           Authorization: basicAuthHeader,
@@ -148,17 +149,86 @@ const RegisterDashboard: React.FC = () => {
     }
   };
 
+  const getMerchantByEmail = async (email: string): Promise<any> => {
+    try {
+      const response = await axios.get(`/api/merchant/show?email=${email}`);
+      if (response.status === 200 && response.data) {
+        return response.data;
+      } else {
+        throw new Error("Failed to get merchant by email");
+      }
+    } catch (error: any) {
+      console.error(
+        "Error fetching merchant by email:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    if (pendingId) {
+      createMerchant(pendingId);
+    }
+  }, [pendingId]);
+
+  const createPaymentInvoice = async (
+    formData: any,
+    external_id: string,
+    package_name: string
+  ): Promise<any> => {
+    try {
+      const payloadPayment = {
+        amount: packageData.package_price,
+        invoice_id: external_id,
+        package_name,
+        merchant_name: formData.given_name + " " + formData.surname,
+        merchant_email: formData.email,
+        merchant_whatsapp: formData.whatsapp,
+        rental_name: formData.company,
+        rental_type: formData.jenis_rental,
+        merchant_city: formData.city,
+        merchant_address: formData.street_line1,
+        password: formData.password,
+      };
+
+      const createPayment = await axios.post(
+        "/api/payment/createPendingPayment",
+        payloadPayment,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (createPayment.status === 200) {
+        console.log("Payment created successfully:", createPayment.data);
+        // Mengambil pending_id dari respons createPayment
+
+        // Mengatur pending_id ke dalam state
+        setPendingId(createPayment.data.newPayment.pending_id);
+        console.log(pendingId);
+
+        return createPayment.data; // Pastikan respons mengandung pending_id
+      } else {
+        console.error("Failed to create payment:", createPayment.data);
+        throw new Error("Failed to create payment");
+      }
+    } catch (error) {
+      console.error("Error during payment creation:", error);
+      message.error("Terdapat Kesalahan dalam pembuatan pembayaran");
+      throw error;
+    }
+  };
+
+  // !Pindah create merchant pada logika update callback
   // function create merchant yang diisi dari input form
-  const createMerchant = async (formData: FormData): Promise<any> => {
+  const createMerchant = async (pending_id: string): Promise<any> => {
     try {
       const package_id = packageId;
-
-      const merchantName = formData.given_name + " " + formData.surname;
       const payloadMerchant = {
-        name: merchantName,
-        company: formData.company,
-        email: formData.email,
-        password: formData.password,
+        pending_id: pending_id,
         plan: package_id,
       };
 
@@ -191,68 +261,6 @@ const RegisterDashboard: React.FC = () => {
     }
   };
 
-  const getMerchantByEmail = async (email: string): Promise<any> => {
-    try {
-      const response = await axios.get(`/api/merchant/show?email=${email}`);
-      if (response.status === 200 && response.data) {
-        return response.data;
-      } else {
-        throw new Error("Failed to get merchant by email");
-      }
-    } catch (error: any) {
-      console.error(
-        "Error fetching merchant by email:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  };
-
-  const createPaymentInvoice = async (
-    formData: any,
-    external_id: string,
-    merchant_id: number,
-    package_name: string
-  ) => {
-    try {
-      const payloadPayment = {
-        amount: packageData.package_price,
-        invoice_id: external_id,
-        package_name,
-        merchant_name: formData.given_name + " " + formData.surname,
-        merchant_email: formData.email,
-        merchant_whatsapp: formData.whatsapp,
-        rental_name: formData.company,
-        rental_type: formData.jenis_rental,
-        merchant_city: formData.city,
-        merchant_address: formData.street_line1,
-        merchant_id, // Add merchant_id to the payload
-      };
-
-      const createPayment = await axios.post(
-        "/api/payment/createPayment",
-        payloadPayment,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (createPayment.status === 200) {
-        console.log("Payment created successfully:", createPayment.data);
-        return createPayment.data;
-      } else {
-        console.error("Failed to create payment:", createPayment.data);
-        throw new Error("Failed to create payment");
-      }
-    } catch (error) {
-      console.error("Error during payment creation:", error);
-      message.error("Terdapat Kesalahan dalam pembuatan pembayaran");
-      throw error;
-    }
-  };
-
   //TODO: buatkan function submit yang mengirim payload invoice serta payload merchant ke form yang diteruskan ke db merchanPayment
   const onFinish = async () => {
     const external_id = "INV-" + Math.random().toString(36).substring(2, 9);
@@ -274,51 +282,31 @@ const RegisterDashboard: React.FC = () => {
           throw new Error("Failed to create invoice");
         }
       }
-      let merchant_id = null;
-      let merchantResult = await createMerchant(formData);
-      console.log("Merchant Result:", merchantResult);
 
-      if (!merchantResult || !merchantResult.id) {
-        // Try to get merchant by email if creation response is not as expected
-        const fetchedMerchant = await getMerchantByEmail(formData.email);
-        console.log("Merchant fetched by email:", fetchedMerchant);
+      // Payment Function - only execute if invoice creation is successful
+      const paymentResult = await createPaymentInvoice(
+        formData,
+        external_id,
+        packageName
+      );
+      console.log("Payment Result:", paymentResult);
 
-        if (fetchedMerchant && fetchedMerchant.merchant_id) {
-          merchant_id = fetchedMerchant.merchant_id;
-        } else {
-          throw new Error("Failed to create or fetch merchant");
-        }
-      } else {
-        merchant_id = merchantResult.id;
-      }
-
-      // Payment Function - only execute if merchant creation is successful
-      if (merchant_id) {
-        const paymentResult = await createPaymentInvoice(
-          formData,
-          external_id,
-          merchant_id,
-          packageName // Gunakan packageName yang telah disimpan dalam state
-        );
-        console.log("Payment Result:", paymentResult);
-
-        if (!paymentResult) {
-          throw new Error("Failed to create payment invoice");
-        }
-      } else {
-        throw new Error("Failed to get merchant_id");
+      if (!paymentResult) {
+        throw new Error("Failed to create payment invoice");
       }
 
       message.success("Registration successful!");
-
       // Redirect if invoice was created
       if (invoiceResult.invoice_url) {
         window.location.href = invoiceResult.invoice_url; // Redirect after successful merchant creation
       } else {
-        console.log("Terjadi Kesalahan");
-        message.error("Terjadi Kesalahan");
+        if (packageData.package_price > 0) {
+          console.log("Terjadi Kesalahan");
+          message.error("Terjadi Kesalahan");
+        } else {
+          console.log("Tidak ada invoice yang perlu dibuat");
+        }
       }
-
       setLoading(false);
     } catch (error) {
       console.error("Registration failed:", error);

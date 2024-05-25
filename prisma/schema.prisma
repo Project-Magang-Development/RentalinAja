@@ -67,7 +67,6 @@ model MerchantPendingPayment {
   merchant_address  String
   status            String            @default("Pending")
   payment_date      DateTime?
-  external_id       String            @unique
   MerchantPayment   MerchantPayment[]
   Merchant          Merchant?
 }
@@ -75,8 +74,7 @@ model MerchantPendingPayment {
 model MerchantPayment {
   merchant_payment_id String @id @default(uuid())
   pending_id          String @unique
-  external_id         String @unique
-  merchant_id         String @unique
+  invoice_id          String @unique
   status              String
 
   MerchantPendingPayment MerchantPendingPayment @relation(fields: [pending_id], references: [pending_id])
