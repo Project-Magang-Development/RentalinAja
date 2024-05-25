@@ -178,6 +178,11 @@ const RegisterDashboard: React.FC = () => {
     package_name: string
   ): Promise<any> => {
     try {
+      let status = "Pending"; // Default status
+      if (packageData.package_price === 0) {
+        status = "PAID"; // Update status to PAID if package price is 0
+      }
+
       const payloadPayment = {
         amount: packageData.package_price,
         invoice_id: external_id,
@@ -190,6 +195,7 @@ const RegisterDashboard: React.FC = () => {
         merchant_city: formData.city,
         merchant_address: formData.street_line1,
         password: formData.password,
+        status, // Set status here
       };
 
       const createPayment = await axios.post(
@@ -221,7 +227,6 @@ const RegisterDashboard: React.FC = () => {
       throw error;
     }
   };
-
   // !Pindah create merchant pada logika update callback
   // function create merchant yang diisi dari input form
   const createMerchant = async (pending_id: string): Promise<any> => {
@@ -281,6 +286,10 @@ const RegisterDashboard: React.FC = () => {
         if (!invoiceResult.id_invoice) {
           throw new Error("Failed to create invoice");
         }
+      } else {
+        // Create Merchant if package price is 0
+        const merchantResult = await createMerchant(external_id);
+        console.log("Merchant Result:", merchantResult);
       }
 
       // Payment Function - only execute if invoice creation is successful
