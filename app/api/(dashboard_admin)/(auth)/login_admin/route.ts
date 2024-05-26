@@ -15,26 +15,53 @@ export async function POST(req: Request) {
       );
     }
 
-    const merchant = await prisma.merchant.findUnique({
-      where: 
-      { 
-        email,
-        status_subscriber: "Aktif"
+    // Cari merchantPendingPayment berdasarkan email
+    const merchantPendingPayment =
+      await prisma.merchantPendingPayment.findFirst({
+        where: {
+          merchant_email: email,
+        },
+      });
+
+    if (!merchantPendingPayment) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Ambil pending_id dari merchantPendingPayment
+    const pendingId = merchantPendingPayment.pending_id;
+
+    // Cari merchant berdasarkan pending_id dari merchantPendingPayment
+    const merchant = await prisma.merchant.findFirst({
+      where: {
+        MerchantPendingPayment: {
+          pending_id: pendingId,
+        },
+        status_subscriber: "Aktif",
       },
     });
 
     if (!merchant) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "User not found or not active" },
+        { status: 404 }
+      );
     }
 
-    const isPasswordValid = await bcrypt.compare(password, merchant.password);
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      merchantPendingPayment.password
+    );
     if (!isPasswordValid) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });
     }
 
     const token = jwt.sign(
-      { merchantId: merchant.merchant_id, email: merchant.email, merchant_company: merchant.merchant_company, merchant_name: merchant.merchant_name },
-      process.env.JWT_SECRET as string,
+      {
+        merchantId: merchant.merchant_id,
+        email: merchantPendingPayment.merchant_email,
+        merchant_name: merchantPendingPayment.merchant_name,
+      },
+      process.env.JWT_SECRET as string
     );
 
     return NextResponse.json({ token, apiKey: merchant.api_key });

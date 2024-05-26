@@ -129,7 +129,7 @@ export default function DetailVehiclePage() {
 
       const payload = {
         external_id: externalId,
-        amount: invoiceData.total_amount,
+        amount: selectedSchedule?.price,
         currency: "IDR",
         customer: {
           given_names: invoiceData.customer_name,
