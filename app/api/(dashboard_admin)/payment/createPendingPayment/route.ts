@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
-
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -20,6 +19,17 @@ export async function POST(req: Request) {
       status,
       password,
     } = body;
+
+    // Cek apakah ada merchant dengan merchant_email yang sama
+    const existingMerchant = await prisma.merchantPendingPayment.findFirst({
+      where: { merchant_email },
+    });
+
+    if (existingMerchant) {
+      return NextResponse.json({
+        error: "Merchant with the same email already exists",
+      });
+    }
 
     // Dapatkan tanggal saat ini
     const paymentDate = new Date();

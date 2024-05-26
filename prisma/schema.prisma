@@ -41,22 +41,23 @@ model Merchant {
 }
 
 model Package {
-  package_id          String     @id @default(uuid())
-  package_name        String
-  package_description String
-  package_price       Int
-  package_feature     String
-  count_vehicle       Int?
-  count_order         Int?
-  duration            Int
-  merchants           Merchant[]
+  package_id             String                   @id @default(uuid())
+  package_name           String
+  package_description    String
+  package_price          Int
+  package_feature        String
+  count_vehicle          Int?
+  count_order            Int?
+  duration               Int
+  merchants              Merchant[]
+  MerchantPendingPayment MerchantPendingPayment[]
 }
 
 model MerchantPendingPayment {
   pending_id        String            @id @default(uuid())
   invoice_id        String            @unique
   package_name      String
-  package_id        String            @unique
+  package_id        String
   amount            Int
   merchant_name     String
   merchant_email    String
@@ -68,6 +69,7 @@ model MerchantPendingPayment {
   merchant_address  String
   status            String            @default("Pending")
   payment_date      DateTime?
+  package           Package           @relation(fields: [package_id], references: [package_id])
   MerchantPayment   MerchantPayment[]
   Merchant          Merchant?
 }
