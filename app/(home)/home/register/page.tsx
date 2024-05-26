@@ -149,28 +149,28 @@ const RegisterDashboard: React.FC = () => {
     }
   };
 
-  const getMerchantByEmail = async (email: string): Promise<any> => {
-    try {
-      const response = await axios.get(`/api/merchant/show?email=${email}`);
-      if (response.status === 200 && response.data) {
-        return response.data;
-      } else {
-        throw new Error("Failed to get merchant by email");
-      }
-    } catch (error: any) {
-      console.error(
-        "Error fetching merchant by email:",
-        error.response?.data || error.message
-      );
-      throw error;
-    }
-  };
+  // const getMerchantByEmail = async (email: string): Promise<any> => {
+  //   try {
+  //     const response = await axios.get(`/api/merchant/show?email=${email}`);
+  //     if (response.status === 200 && response.data) {
+  //       return response.data;
+  //     } else {
+  //       throw new Error("Failed to get merchant by email");
+  //     }
+  //   } catch (error: any) {
+  //     console.error(
+  //       "Error fetching merchant by email:",
+  //       error.response?.data || error.message
+  //     );
+  //     throw error;
+  //   }
+  // };
 
   useEffect(() => {
-    if (pendingId) {
+    if (pendingId && packageData.package_price === 0) {
       createMerchant(pendingId);
     }
-  }, [pendingId]);
+  }, [pendingId, packageData.package_price]);
 
   const createPaymentInvoice = async (
     formData: any,
@@ -187,6 +187,7 @@ const RegisterDashboard: React.FC = () => {
         amount: packageData.package_price,
         invoice_id: external_id,
         package_name,
+        package_id: packageId,
         merchant_name: formData.given_name + " " + formData.surname,
         merchant_email: formData.email,
         merchant_whatsapp: formData.whatsapp,
@@ -271,28 +272,20 @@ const RegisterDashboard: React.FC = () => {
     const external_id = "INV-" + Math.random().toString(36).substring(2, 9);
     setLoading(true);
     try {
-      // get value from form
       const formData = form.getFieldsValue();
       console.log("FormData:", formData);
 
       let invoiceResult = { id_invoice: null, invoice_url: null };
 
-      // Check if the amount is greater than 0
       if (packageData.package_price > 0) {
-        // Invoice Function
         invoiceResult = await createInvoice(formData, external_id);
         console.log("Invoice Result:", invoiceResult);
 
         if (!invoiceResult.id_invoice) {
           throw new Error("Failed to create invoice");
         }
-      } else {
-        // Create Merchant if package price is 0
-        const merchantResult = await createMerchant(external_id);
-        console.log("Merchant Result:", merchantResult);
       }
 
-      // Payment Function - only execute if invoice creation is successful
       const paymentResult = await createPaymentInvoice(
         formData,
         external_id,
@@ -304,10 +297,16 @@ const RegisterDashboard: React.FC = () => {
         throw new Error("Failed to create payment invoice");
       }
 
+      if (packageData.package_price === 0) {
+        // const merchantResult = await createMerchant(
+        //   paymentResult.newPayment.pending_id
+        // );
+        console.log("Merchant Dibuat");
+      }
+
       message.success("Registration successful!");
-      // Redirect if invoice was created
       if (invoiceResult.invoice_url) {
-        window.location.href = invoiceResult.invoice_url; // Redirect after successful merchant creation
+        window.location.href = invoiceResult.invoice_url;
       } else {
         if (packageData.package_price > 0) {
           console.log("Terjadi Kesalahan");

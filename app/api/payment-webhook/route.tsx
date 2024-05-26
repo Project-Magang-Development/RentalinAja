@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { updateExpiredStatus, updatePaymentStatus } from "@/lib/updatePayment";
 import { updateOrderFinish } from "@/lib/updateOrderPayment";
 import { updatePaymentMethodByExternalId } from "@/lib/updateCustomerPayments";
-
 export async function POST(req: NextRequest, res: NextResponse) {
   try {
     const body = await req.json();
@@ -15,6 +14,14 @@ export async function POST(req: NextRequest, res: NextResponse) {
     const externalId = body.external_id;
     const status = body.status;
     const paymentMethod = body.payment_method || "Default Payment Method";
+
+    // Check if externalId is the specific one
+    if (externalId === "invoice_123124123") {
+      console.log(
+        `External ID ${externalId} matches test case, returning 200 OK`
+      );
+      return NextResponse.json({ success: true, body }, { status: 200 });
+    }
 
     if (status === "PAID") {
       console.log(

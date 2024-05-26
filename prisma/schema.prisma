@@ -56,6 +56,7 @@ model MerchantPendingPayment {
   pending_id        String            @id @default(uuid())
   invoice_id        String            @unique
   package_name      String
+  package_id        String            @unique
   amount            Int
   merchant_name     String
   merchant_email    String
