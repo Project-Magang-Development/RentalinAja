@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-
-
 export async function POST(req: Request) {
   try {
-
     const apiKeyHeader = req.headers.get("Authorization");
     const apiKey = apiKeyHeader?.split(" ")[1];
-    
+
     if (!apiKey) {
       return new Response(JSON.stringify({ error: "API key not provided" }), {
         status: 401,
@@ -89,7 +86,11 @@ export async function POST(req: Request) {
         ],
       },
       include: {
-        Vehicle: true,
+        Vehicle: {
+          include: {
+            VehicleImages: true,
+          },
+        },
       },
     });
 

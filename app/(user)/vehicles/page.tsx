@@ -1,19 +1,28 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Layout, Row, Col, Card, Typography } from "antd";
-import Meta from "antd/lib/card/Meta";
-import { useRouter, useSearchParams } from "next/navigation"; // Perbaikan import ini
+import { Layout, Row, Col, Card, Typography, Button, Steps } from "antd";
+import { CarTwoTone, StopOutlined, UsergroupAddOutlined } from "@ant-design/icons";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { Footer } from "antd/es/layout/layout";
 
 const { Content } = Layout;
 const { Title } = Typography;
+const { Step } = Steps;
+
+interface VehicleImage {
+  imageUrl: string;
+}
 
 interface Vehicle {
   vehicles_id: string;
   name: string;
   capacity: number;
-  imageUrl: string;
+  no_plat: string;
+  model: string;
+  year: string;
+  VehicleImages: VehicleImage[];
 }
 
 interface Schedule {
@@ -30,14 +39,13 @@ const VehiclePage = () => {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
+  const apiKey = searchParams.get("apiKey");
 
   useEffect(() => {
     const fetchSchedules = async () => {
-      
       try {
         const capacity = searchParams.get("capacity");
         const capacityNumber = parseInt(capacity || "0");
-        const apiKey = searchParams.get("apiKey");
 
         const response = await fetch("/api/schedule/find", {
           method: "POST",
@@ -47,7 +55,7 @@ const VehiclePage = () => {
           },
           body: JSON.stringify({
             dateRange: [startDate, endDate],
-            capacityNumber,
+            capacity: capacityNumber,
           }),
         });
 
@@ -63,63 +71,258 @@ const VehiclePage = () => {
     };
 
     fetchSchedules();
-  }, [searchParams, startDate, endDate]);
+  }, [searchParams, startDate, endDate, apiKey]);
 
   const handleCardClick = (vehicles_id: string) => {
     router.push(
-      `/vehicles/${vehicles_id}?startDate=${startDate}&endDate=${endDate}`
+      `/vehicles/${vehicles_id}?startDate=${startDate}&endDate=${endDate}&apiKey=${apiKey}`
     );
   };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Content style={{ padding: "50px" }}>
+      <Content style={{ padding: "20px 50px" }}>
+        <Row
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <Steps
+            current={1}
+            style={{
+              marginTop: "20px",
+              marginBottom: "20px",
+            }}
+          >
+            <Step title="Select Date" />
+            <Step title="Select Vehicle" />
+            <Step title="Fill Personal Data & Payment" />
+            <Step title="Done" />
+          </Steps>
+        </Row>
         {schedules.length > 0 ? (
-          <Row gutter={16} justify="center">
+          <Row gutter={[16, 24]} justify="center">
             {schedules.map((schedule, index) => (
-              <Col key={index} span={8} style={{ marginBottom: 20 }}>
+              <Col
+                key={index}
+                xs={24}
+                sm={12}
+                md={8}
+                lg={8}
+                xl={6}
+                style={{ marginBottom: 20 }}
+              >
                 <Card
                   hoverable
-                  onClick={() => handleCardClick(schedule.Vehicle.vehicles_id)}
-                  cover={
-                    <div
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        height: "200px",
-                      }}
+                  style={{
+                    borderRadius: "10px",
+                    overflow: "hidden",
+                    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <div style={{ padding: "16px 16px" }}>
+                    <Title level={2} style={{ fontWeight: "bold", margin: 0 }}>
+                      {schedule.Vehicle.name}
+                    </Title>
+                    <Title
+                      level={4}
+                      style={{ color: "rgba(0, 0, 0, 0.45)", margin: 0 }}
                     >
+                      {schedule.Vehicle.model} {schedule.Vehicle.year}
+                    </Title>
+                  </div>
+                  <div
+                    style={{
+                      position: "relative",
+                      width: "100%",
+                      height: "210px",
+                    }}
+                  >
+                    {Array.isArray(schedule.Vehicle.VehicleImages) &&
+                    schedule.Vehicle.VehicleImages.length > 0 &&
+                    schedule.Vehicle.VehicleImages[0].imageUrl ? (
                       <Image
-                        src={schedule.Vehicle.imageUrl}
-                        alt="vehicle"
-                        layout="fill"
+                        src={schedule.Vehicle.VehicleImages[0].imageUrl}
+                        alt="Vehicle Image"
+                        width={500}
+                        height={300}
                         objectFit="cover"
                         unoptimized={true}
+                        style={{ borderRadius: "20px" }}
                       />
+                    ) : (
+                      <div
+                        style={{
+                          width: "100%",
+                          height: "300px",
+                          backgroundColor: "#f0f0f0",
+                        }}
+                      />
+                    )}
+                  </div>
+                  <div style={{ padding: "0 16px 16px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "34px",
+                        marginTop: "34px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <CarTwoTone
+                          style={{
+                            fontSize: "30px",
+                            marginRight: "10px",
+                            color: "#6B7CFF",
+                          }}
+                        />
+                        <Title
+                          level={4}
+                          style={{
+                            marginLeft: "8px",
+                            color: "rgba(0, 0, 0, 0.65)",
+                            margin: 0,
+                          }}
+                        >
+                          {schedule.Vehicle.no_plat}
+                        </Title>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        <UsergroupAddOutlined
+                          style={{
+                            fontSize: "30px",
+                            marginRight: "10px",
+                            color: "#6B7CFF",
+                          }}
+                        />
+                        <Title
+                          level={4}
+                          style={{
+                            marginLeft: "8px",
+                            color: "rgba(0, 0, 0, 0.65)",
+                            margin: 0,
+                          }}
+                        >
+                          {schedule.Vehicle.capacity} People
+                        </Title>
+                      </div>
                     </div>
-                  }
-                >
-                  <Meta
-                    title={schedule.Vehicle.name}
-                    description={`${new Intl.NumberFormat("id-ID", {
-                      style: "currency",
-                      currency: "IDR",
-                    }).format(schedule.price)} / Hari`}
-                    style={{ marginBottom: 5 }}
-                  />
-                  <p>Capacity: {schedule.Vehicle.capacity}</p>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Title
+                        level={3}
+                        style={{ margin: 0, fontWeight: "bold" }}
+                      >
+                        {new Intl.NumberFormat("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                          minimumFractionDigits: 0,
+                        }).format(schedule.price)}
+                      </Title>
+                      <Title
+                        level={5}
+                        style={{ color: "grey", marginBlock: 2 }}
+                      >
+                        /day
+                      </Title>
+                      <Button
+                        onClick={() =>
+                          handleCardClick(schedule.Vehicle.vehicles_id)
+                        }
+                        type="primary"
+                        style={{
+                          backgroundColor: "#6B7CFF",
+                          borderColor: "#6B7CFF",
+                          borderRadius: "5px",
+                          width: "100px",
+                          height: "40px",
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Select
+                      </Button>
+                    </div>
+                  </div>
                 </Card>
               </Col>
             ))}
           </Row>
         ) : (
-          <Row justify="center">
-            <Col>
-              <Title level={4}>No schedule found</Title>
-            </Col>
-          </Row>
+          <div
+            style={{
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              textAlign: "center",
+              width: "100%",
+            }}
+          >
+            <Row align="middle" justify="center">
+              <Col>
+                <div style={{ textAlign: "center" }}>
+                  <StopOutlined
+                    style={{ fontSize: "80px", color: "#6B7CFF" }}
+                  />
+                </div>
+                <Title
+                  level={3}
+                  style={{
+                    color: "#6B7CFF",
+                    margin: 0,
+                    marginTop: 30,
+                    textAlign: "center",
+                  }}
+                >
+                  No Vehicle Found
+                </Title>
+                <Title
+                  level={4}
+                  style={{
+                    color: "#6B7CFF",
+                    marginTop: 10,
+                    textAlign: "center",
+                  }}
+                >
+                  Please select another date to find a suitable vehicle
+                </Title>
+              </Col>
+            </Row>
+          </div>
         )}
       </Content>
+      <Footer>
+        <h1
+          style={{
+            textAlign: "center",
+            color: "rgba(0, 0, 0, 0.5)",
+            fontWeight: "normal",
+            fontSize: "1rem",
+            marginTop: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Powered By
+          <Image
+            src="/logo.png"
+            alt="Vercel Logo"
+            width={120}
+            height={30}
+            style={{ marginLeft: "8px" }}
+          />
+        </h1>
+      </Footer>
     </Layout>
   );
 };

@@ -35,7 +35,7 @@ export default function LoginDashboard() {
       Cookies.set("token", data.token, { expires: 1 });
       message.success("Login successful!");
       setLoading(false);
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (error) {
       message.error("Login failed.");
     }

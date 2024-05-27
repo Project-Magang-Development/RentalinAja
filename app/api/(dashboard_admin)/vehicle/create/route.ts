@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     try {
       decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
         merchantId: string;
-      }; 
+      };
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -30,20 +30,23 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, capacity, model, year, no_plat, imageUrl} =
-      body;
+    const { name, capacity, model, year, no_plat, imageUrl } = body;
 
+    // Pastikan variabel dan nama field konsisten
     if (
       !name ||
       !capacity ||
       !model ||
       !year ||
       !no_plat ||
-      !imageUrl
+      !imageUrl ||
+      !Array.isArray(imageUrl) ||
+      imageUrl.length === 0
     ) {
       return new NextResponse(
         JSON.stringify({
-          error: "Please provide all required fields and the image size",
+          error:
+            "Please provide all required fields and at least one image URL",
         }),
         {
           status: 400,
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
 
     const merchant = await prisma.merchant.findUnique({
       where: { merchant_id: decoded.merchantId },
-      include: { package: true, vehicles: true }, 
+      include: { package: true, vehicles: true },
     });
 
     if (!merchant) {
@@ -75,13 +78,11 @@ export async function POST(req: Request) {
       return new NextResponse(
         JSON.stringify({ error: "Vehicle limit exceeded" }),
         {
-          status: 400,
+          status: 401,
           headers: { "Content-Type": "application/json" },
         }
       );
     }
-
-     
 
     const newVehicle = await prisma.vehicle.create({
       data: {
@@ -90,22 +91,31 @@ export async function POST(req: Request) {
         model,
         year,
         no_plat,
-        imageUrl,
         merchant_id: decoded.merchantId,
       },
     });
 
+    const vehicleImages = await Promise.all(
+      imageUrl.map((url) =>
+        prisma.vehicleImage.create({
+          data: {
+            imageUrl: url,
+            Vehicle: { connect: { vehicles_id: newVehicle.vehicles_id } }, // Menggunakan kendaraan yang sama
+          },
+        })
+      )
+    );
 
     const updatedMerchant = await prisma.merchant.update({
       where: { merchant_id: decoded.merchantId },
       data: { used_storage_vehicle: { increment: 1 } },
     });
 
-
     return new NextResponse(
       JSON.stringify({
         message: "Vehicle created successfully",
         vehicle: newVehicle,
+        vehicleImages,
         updatedStorage: updatedMerchant.used_storage_vehicle,
       }),
       {

@@ -47,6 +47,7 @@ export async function DELETE(req: Request) {
 
     const vehicle = await prisma.vehicle.findUnique({
       where: { vehicles_id: String(vehicles_id) },
+      include: { VehicleImages: true },
     });
 
     if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
@@ -61,7 +62,12 @@ export async function DELETE(req: Request) {
       );
     }
 
+    // Delete all VehicleImages associated with the vehicle
+    await prisma.vehicleImage.deleteMany({
+      where: { vehicles_id: String(vehicles_id) },
+    });
 
+    // Delete the vehicle
     await prisma.$transaction([
       prisma.schedule.deleteMany({
         where: { vehicles_id: String(vehicles_id) },
@@ -75,7 +81,7 @@ export async function DELETE(req: Request) {
 
     return new NextResponse(
       JSON.stringify({
-        message: "Vehicle deleted successfully",
+        message: "Vehicle and associated images deleted successfully",
       }),
       {
         status: 200,
@@ -101,3 +107,4 @@ export async function DELETE(req: Request) {
     });
   }
 }
+

@@ -7,7 +7,6 @@ export async function PUT(req: Request) {
   const pathnameParts = url.pathname.split("/");
   const vehicles_id = pathnameParts[pathnameParts.length - 1];
 
-
   try {
     const tokenHeader = req.headers.get("Authorization");
     const token = tokenHeader?.split(" ")[1];
@@ -34,30 +33,36 @@ export async function PUT(req: Request) {
       });
     }
 
-     const body = await req.json();
-     const { name, capacity, model, year, no_plat, imageUrl } =
-       body;
-
-     if (!name || !capacity ||  !model || !year || !no_plat || !imageUrl) {
-       return new NextResponse(
-         JSON.stringify({ error: "Please provide all required fields" }),
-         {
-           status: 400,
-           headers: {
-             "Content-Type": "application/json",
-           },
-         }
-       );
-     }
+    const body = await req.json();
+    const { name, capacity, model, year, no_plat, imageUrl } = body;
+    if (
+      !name ||
+      !capacity ||
+      !model ||
+      !year ||
+      !no_plat ||
+      !Array.isArray(imageUrl) ||
+      imageUrl.length === 0
+    ) {
+      return new NextResponse(
+        JSON.stringify({
+          error:
+            "Please provide all required fields and at least one image URL",
+        }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
 
     try {
-      const vehicle = await prisma.vehicle
-        .findUnique({
-          where: { vehicles_id: String(vehicles_id) },
-        })
-        .catch((error) => {
-          throw error;
-        });
+      const vehicle = await prisma.vehicle.findUnique({
+        where: { vehicles_id: String(vehicles_id) },
+        include: { VehicleImages: true }, 
+      });
 
       if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
         return new NextResponse(
@@ -79,15 +84,21 @@ export async function PUT(req: Request) {
           model,
           year,
           no_plat,
-          imageUrl,
+          VehicleImages: {
+            deleteMany: {}, 
+            createMany: {
+              data: imageUrl.map((url: string) => ({ imageUrl: url })),
+            },
+          },
           merchant_id: decoded.merchantId,
         },
+        include: { VehicleImages: true }, // Sertakan juga VehicleImages dalam respons
       });
 
       return new NextResponse(
         JSON.stringify({
-          message: "Vehicle update successfully",
-          vehicle: updatedVehicle
+          message: "Vehicle updated successfully",
+          vehicle: updatedVehicle,
         }),
         {
           status: 200,

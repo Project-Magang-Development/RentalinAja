@@ -8,30 +8,39 @@ import {
   Col,
   Form,
   DatePicker,
+  Image,
   Button,
   Input,
   notification,
   Modal,
+  Spin,
+  Carousel,
+  Card,
+  Steps
 } from "antd";
 import moment from "moment";
 import { useParams, useSearchParams } from "next/navigation";
-import Image from "next/image";
-import Cookies from "js-cookie";
 import axios from "axios";
+import { Footer } from "antd/es/layout/layout";
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 const { Content } = Layout;
+const { Step } = Steps;
 
 interface Vehicle {
   vehicles_id: string;
   name: string;
   capacity: number;
   price: number;
-  imageUrl: string;
+  VehicleImages: VehicleImage[];
   model: string;
   no_plat: string;
   year: number;
   Schedules?: Schedule[];
+}
+
+interface VehicleImage {
+  imageUrl: string;
 }
 
 interface Schedule {
@@ -60,11 +69,13 @@ export default function DetailVehiclePage() {
   const [loading, setLoading] = useState(false);
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
   const query = useParams();
   const vehicles_id = query.vehicles_id;
   const searchParams = useSearchParams();
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
+  const apiKey = searchParams.get("apiKey");
 
   const getDetailVehicle = async () => {
     setLoading(true);
@@ -111,7 +122,21 @@ export default function DetailVehiclePage() {
     }
   }, [startDate, endDate]);
 
-  // TODO: Buat function createInvcoie customer
+  const startDateInDate = startDate ? new Date(startDate) : null;
+  const endDateInDate = endDate ? new Date(endDate) : null;
+
+  if (
+    (startDateInDate && isNaN(startDateInDate.getTime())) ||
+    (endDateInDate && isNaN(endDateInDate.getTime()))
+  ) {
+    console.error("Invalid date format");
+    return null;
+  }
+
+  const diffTime = Math.abs(
+    endDateInDate!.getTime() - startDateInDate!.getTime()
+  );
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
   const createInvoice = async (
     invoiceData: any,
@@ -129,7 +154,7 @@ export default function DetailVehiclePage() {
 
       const payload = {
         external_id: externalId,
-        amount: invoiceData.total_amount,
+        amount: invoiceData.total_amount * diffDays,
         currency: "IDR",
         customer: {
           given_names: invoiceData.customer_name,
@@ -159,8 +184,6 @@ export default function DetailVehiclePage() {
     }
   };
 
-  // Fungsi untuk menangani penyelesaian form
-  // Fungsi untuk menangani penyelesaian form
   const onFinish = async (values: any) => {
     if (!selectedSchedule) {
       notification.error({
@@ -173,12 +196,11 @@ export default function DetailVehiclePage() {
     try {
       setLoading(true);
 
-      const tokenMerchant = Cookies.get("token");
-
-      // Buat externalId di sini sekali dan gunakan di seluruh fungsi
       const externalId = "INV-" + Math.random().toString(36).substring(2, 9);
 
-      // postOrder, engirim data order ke table order
+      const startDateFormat = moment(startDate, "YYYY-MM-DD");
+      const endDateFormat = moment(endDate, "YYYY-MM-DD");
+
       const response = await fetch("/api/order/create", {
         method: "POST",
         headers: {
@@ -186,13 +208,13 @@ export default function DetailVehiclePage() {
         },
         body: JSON.stringify({
           customer_name: values.name,
-          start_date: values.startDate.format("YYYY-MM-DD"),
-          end_date: values.endDate.format("YYYY-MM-DD"),
+          start_date: startDateFormat!.format("YYYY-MM-DD"),
+          end_date: endDateFormat!.format("YYYY-MM-DD"),
           schedules_id: selectedSchedule.schedules_id,
-          merchant_id: selectedSchedule.merchant_id,
           price: selectedSchedule.price,
-          external_id: externalId, // Tambahkan externalId ke payload
-          token: tokenMerchant,
+          phone: values.phone,
+          external_id: externalId,
+          apiKey,
         }),
       });
 
@@ -209,14 +231,8 @@ export default function DetailVehiclePage() {
         external_id: externalId,
       };
 
-      // Panggil fungsi createInvoice dengan newData dan externalId
       const result = await createInvoice(newData, externalId);
       console.log(result);
-
-      // Cek apakah faktur berhasil dibuat dan status pesanan adalah "paid"
-      if (result.id_invoice && data.status === "paid") {
-        // Panggil fungsi postPayment jika status pesanan adalah "paid"
-      }
 
       notification.success({
         message: "Order Successful",
@@ -224,7 +240,7 @@ export default function DetailVehiclePage() {
         duration: 5,
       });
 
-      setIsModalVisible(true);
+      setIsPaymentModalVisible(true);
       setInvoiceData(newData);
     } catch (error) {
       console.error(error);
@@ -238,12 +254,9 @@ export default function DetailVehiclePage() {
     }
   };
 
-  const dateFormat = "DD MMMM YYYY";
-
-  // Fungsi untuk memposting order ke database
-
   const handleCancel = () => {
     setIsModalVisible(false);
+    setIsPaymentModalVisible(false);
   };
 
   const handleOk = async () => {
@@ -253,7 +266,6 @@ export default function DetailVehiclePage() {
         return;
       }
 
-      // Generate externalId jika belum ada di invoiceData
       const externalId =
         invoiceData.external_id ||
         "INV-" + Math.random().toString(36).substring(2, 9);
@@ -262,7 +274,6 @@ export default function DetailVehiclePage() {
       const result = await createInvoice(invoiceData, externalId);
       console.log(result);
 
-      // Buka invoice_url saat invoice telah berhasil dibuat
       if (result && result.invoice_url) {
         window.open(result.invoice_url, "_blank");
       }
@@ -274,115 +285,194 @@ export default function DetailVehiclePage() {
   };
 
   return (
-    <Layout>
-      <Content style={{ padding: "24px" }}>
+    <Layout style={{ minHeight: "100vh" }}>
+      <Content style={{ padding: "20px 50px" }}>
+        <Row
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <Steps
+            current={2}
+            style={{
+              marginTop: "20px",
+              marginBottom: "20px",
+            }}
+          >
+            <Step title="Select Date" />
+            <Step title="Select Vehicle" />
+            <Step title="Fill Personal Data & Payment" />
+            <Step title="Done" />
+          </Steps>
+        </Row>
         {vehicle ? (
           <>
             <Row gutter={24}>
               <Col xs={24} md={12}>
-                <Image
-                  src={vehicle.imageUrl}
-                  alt="vehicle"
-                  width={500}
-                  height={300}
-                  layout="responsive"
-                />
+                {vehicle.VehicleImages && vehicle.VehicleImages.length > 0 ? (
+                  <Carousel autoplay>
+                    {vehicle.VehicleImages.map((image, index) => (
+                      <div key={index}>
+                        <Image
+                          src={image.imageUrl}
+                          alt={`vehicle-${index}`}
+                          width={500}
+                          height={300}
+                          style={{ width: "100%", height: "auto" }}
+                        />
+                      </div>
+                    ))}
+                  </Carousel>
+                ) : (
+                  <div>No images available</div>
+                )}
               </Col>
               <Col xs={24} md={12}>
-                <Title>{vehicle.name}</Title>
-                <Paragraph>Capacity: {vehicle.capacity}</Paragraph>
-                <Paragraph>
-                  Price: Rp
-                  {selectedSchedule
-                    ? new Intl.NumberFormat("id-ID").format(
-                        selectedSchedule.price
-                      )
-                    : ")"}
-                  / Hari
-                </Paragraph>
-                <Form
-                  onFinish={onFinish}
-                  layout="vertical"
-                  initialValues={initialValues}
-                >
-                  <Form.Item
-                    label="Name"
-                    name="name"
-                    rules={[
-                      { required: true, message: "Please input your name!" },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                  <Form.Item
-                    label="Start Date"
-                    name="startDate"
-                    rules={[
-                      { required: true, message: "Please select start date!" },
-                    ]}
-                    style={{ display: "none" }} // Menyembunyikan Form.Item
-                  >
-                    <DatePicker format={dateFormat} />
-                  </Form.Item>
-                  <Form.Item
-                    label="End Date"
-                    name="endDate"
-                    rules={[
-                      { required: true, message: "Please select end date!" },
-                    ]}
-                    style={{ display: "none" }}
-                  >
-                    <DatePicker format={dateFormat} />
-                  </Form.Item>
-                  <Button type="primary" htmlType="submit" loading={loading}>
-                    Submit
-                  </Button>
-                </Form>
+                <Card>
+                  <Title level={3}>{vehicle.name}</Title>
+                  <Paragraph>
+                    <strong>Model:</strong> {vehicle.model}
+                  </Paragraph>
+                  <Paragraph>
+                    <strong>Capacity:</strong> {vehicle.capacity} people
+                  </Paragraph>
+                  <Paragraph>
+                    <strong>License Plate:</strong> {vehicle.no_plat}
+                  </Paragraph>
+                  <Paragraph>
+                    <strong>Year:</strong> {vehicle.year}
+                  </Paragraph>
+                  <Paragraph>
+                    Price: Rp
+                    {selectedSchedule
+                      ? selectedSchedule.price
+                      : vehicle.price}{" "}
+                    / Hari
+                  </Paragraph>
+                </Card>
               </Col>
             </Row>
-            <Modal
-              title="Invoice Details"
-              visible={isModalVisible}
-              onCancel={handleCancel}
-              footer={[
-                <Button key="back" onClick={handleCancel}>
-                  Return
-                </Button>,
-                <Button key="submit" onClick={handleOk}>
-                  Payment
-                </Button>,
-              ]}
-            >
-              {invoiceData && (
-                <>
-                  <Paragraph>
-                    <strong>Order ID:</strong> {invoiceData.order_id}
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>Name:</strong> {invoiceData.customer_name}
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>Start Date:</strong>{" "}
-                    {moment(invoiceData.start_date).format("DD MMMM YYYY")}
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>End Date:</strong>{" "}
-                    {moment(invoiceData.end_date).format("DD MMMM YYYY")}
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>Total Amount:</strong> Rp{" "}
-                    {new Intl.NumberFormat("id-ID").format(
-                      invoiceData.total_amount
-                    )}
-                  </Paragraph>
-                </>
-              )}
-            </Modal>
+            <Row gutter={24} style={{ marginTop: "24px" }}>
+              <Col xs={24} md={12}>
+                <Card>
+                  <Title level={4}>Book This Vehicle</Title>
+                  <Form
+                    layout="vertical"
+                    onFinish={onFinish}
+                    initialValues={initialValues}
+                  >
+                    <Form.Item
+                      label="Name"
+                      name="name"
+                      rules={[
+                        { required: true, message: "Please enter your name" },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                    <Form.Item
+                      label="Phone"
+                      name="phone"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please enter your phone number",
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                    <Form.Item
+                      label="Start Date"
+                      name="startDate"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please select a start date",
+                        },
+                      ]}
+                    >
+                      <DatePicker />
+                    </Form.Item>
+                    <Form.Item
+                      label="End Date"
+                      name="endDate"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please select an end date",
+                        },
+                      ]}
+                    >
+                      <DatePicker />
+                    </Form.Item>
+                    <Form.Item>
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        loading={loading}
+                      >
+                        Submit
+                      </Button>
+                    </Form.Item>
+                  </Form>
+                </Card>
+              </Col>
+            </Row>
           </>
         ) : (
-          <Title>Vehicle not found</Title>
+          <Spin />
         )}
       </Content>
+      <Modal
+        title="Booking Confirmation"
+        visible={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        okText="Proceed to Payment"
+      >
+        <p>
+          Thank you for your booking. Please proceed to payment to confirm your
+          booking.
+        </p>
+      </Modal>
+      <Modal
+        title="Payment"
+        visible={isPaymentModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        okText="Pay Now"
+      >
+        <p>
+          Your booking is successful. Click the button below to proceed to
+          payment.
+        </p>
+      </Modal>
+      <Footer>
+        <h1
+          style={{
+            textAlign: "center",
+            color: "rgba(0, 0, 0, 0.5)",
+            fontWeight: "normal",
+            fontSize: "1rem",
+            marginTop: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Powered By
+          <Image
+            src="/logo.png"
+            alt="Vercel Logo"
+            width={120}
+            height={30}
+            style={{ marginLeft: "8px" }}
+          />
+        </h1>
+      </Footer>
     </Layout>
   );
 }

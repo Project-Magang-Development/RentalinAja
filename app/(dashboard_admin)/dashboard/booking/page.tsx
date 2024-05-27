@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Divider,
@@ -13,7 +13,10 @@ import {
   Form,
   UploadFile,
   Upload,
+  Image,
   notification,
+  Flex,
+  Input,
 } from "antd";
 import moment from "moment";
 import Title from "antd/es/typography/Title";
@@ -24,7 +27,6 @@ import {
   InfoCircleOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import Image from "next/image";
 import { UploadChangeParam } from "antd/es/upload";
 import useSWR from "swr";
 import Cookies from 'js-cookie';
@@ -53,6 +55,7 @@ interface Order {
   customer_name: string;
   price: number;
   status: string;
+  customer_phone: string;
   Schedule: {
     Vehicle: {
       vehicle_id: string;
@@ -96,6 +99,7 @@ export default function AdminBookingDashboard() {
   const [isUploadModalVisible, setIsUploadModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [searchText, setSearchText] = useState("");
 
 
 
@@ -254,6 +258,13 @@ export default function AdminBookingDashboard() {
         record?.Order?.customer_name || "Data tidak tersedia",
     },
     {
+      title: "No. Telp Pelanggan",
+      dataIndex: "customer_phone",
+      key: "customer_phone",
+      render: (text: any, record: any) =>
+        record?.Order?.customer_phone || "Data tidak tersedia",
+    },
+    {
       title: "No Plat",
       key: "no_plat",
       render: (record: any) =>
@@ -293,7 +304,29 @@ export default function AdminBookingDashboard() {
       title: "Status Pembayaran",
       dataIndex: "payment_status",
       key: "payment_status",
-      render: (_: any, record: any) => record.Payment.status,
+      render: (_: any, record: any) => {
+        const status = record.Payment.status;
+        let backgroundColor = "gray";
+        let textColor = "#FFFFFF";
+        if (status === "PAID") {
+          textColor = "#00B69B";
+          backgroundColor = "#CCF0EB";
+        }
+        return (
+          <div
+            style={{
+              backgroundColor,
+              color: textColor,
+              padding: "5px",
+              borderRadius: "5px",
+              textAlign: "center",
+              fontWeight: "bold",
+            }}
+          >
+            {status || "Pending"}
+          </div>
+        );
+      },
     },
     {
       title: "Aksi",
@@ -345,6 +378,11 @@ export default function AdminBookingDashboard() {
       key: "customer_name",
       attribute: "Nama Pelanggan",
       value: selectedRecord?.Order?.customer_name || "N/A",
+    },
+    {
+      key: "customer_phone",
+      attribute: "No. Telp Pelanggan",
+      value: selectedRecord?.Order?.customer_phone || "N/A",
     },
     {
       key: "no_plat",
@@ -401,11 +439,7 @@ export default function AdminBookingDashboard() {
       value: selectedRecord?.imageUrl || "N/A",
       render: (imageUrl: any) => {
         return imageUrl !== "N/A" ? (
-            <Image
-              src={imageUrl}
-              alt="Kredensial"
-              style={{ width: "100px", height: "auto" }}
-            />
+          <Image src={imageUrl} alt="Kredensial" width={10} height={10} />
         ) : (
           "Belum Di Upload"
         );
@@ -429,9 +463,8 @@ export default function AdminBookingDashboard() {
             <Image
               src={record.value}
               alt="booking image"
-              width={500}
-              height={500}
-              unoptimized={true}
+              width={150}
+              height={100}
             />
           );
         }
@@ -439,6 +472,31 @@ export default function AdminBookingDashboard() {
       },
     },
   ];
+
+  const handleSearch = (e: any) => {
+    setSearchText(e.target.value);
+  };
+
+  const filteredBooking = useMemo(() => {
+    if (!bookings) return [];
+
+    return bookings.filter(
+      (booking: any) =>
+        booking.Order?.customer_name
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        booking.Order?.Schedule?.Vehicle?.no_plat
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        booking.Order?.Schedule?.Vehicle?.name
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        booking.Order.start_date.toLowerCase().includes(searchText.toLowerCase()) ||
+        booking.Order.end_date.toLowerCase().includes(searchText.toLowerCase()) ||
+        booking.Payement?.status.toLowerCase().includes(searchText.toLowerCase()) ||
+        booking.Payment?.amount.toString().includes(searchText)
+    );
+  }, [bookings, searchText]);
 
   if (loading) {
     return <TableSkeleton />;
@@ -448,12 +506,24 @@ export default function AdminBookingDashboard() {
     <div>
       <Title level={3}>Data Booking Kendaraan</Title>
       <Divider />
-      <Space direction="vertical" style={{ marginBottom: "24px" }}>
-        <StatusFilter />
-      </Space>
+      <Flex justify="end">
+        {/* <Space direction="vertical" style={{ marginBottom: "24px" }}>
+          <StatusFilter />
+        </Space> */}
+        <Input
+          placeholder="Cari Booking."
+          value={searchText}
+          onChange={handleSearch}
+          style={{ width: "50%", height: "35px", marginBottom: "24px" }}
+        />
+      </Flex>
       <Table
         columns={column}
-        dataSource={bookings}
+        dataSource={filteredBooking.map((booking: any, index: any) => ({
+          ...booking,
+          index,
+          key: booking.booking_id,
+        }))}
         loading={loading}
         rowKey="booking_id"
         onChange={(pagination) => {
@@ -540,8 +610,6 @@ export default function AdminBookingDashboard() {
                       <Image
                         src={file.url ?? (file.thumbUrl || "")}
                         alt={file.name}
-                        layout="fill"
-                        objectFit="contain"
                       />
                       {file.status === "uploading" && (
                         <div
