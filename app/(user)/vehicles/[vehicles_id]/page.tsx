@@ -16,15 +16,16 @@ import {
   Spin,
   Carousel,
   Card,
-  Steps
+  Steps,
+  Flex,
+  Divider,
 } from "antd";
 import moment from "moment";
 import { useParams, useSearchParams } from "next/navigation";
 import axios from "axios";
-import { Footer } from "antd/es/layout/layout";
 
 const { Title, Paragraph, Text } = Typography;
-const { Content } = Layout;
+const { Content, Footer } = Layout;
 const { Step } = Steps;
 
 interface Vehicle {
@@ -56,6 +57,7 @@ interface InvoiceData {
   customer_name: string;
   start_date: Date;
   end_date: Date;
+  customer_phone: string;
   total_amount: number;
   external_id?: string;
 }
@@ -70,12 +72,14 @@ export default function DetailVehiclePage() {
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isPaymentModalVisible, setIsPaymentModalVisible] = useState(false);
+  const [isBookingModalVisible, setIsBookingModalVisible] = useState(false);
   const query = useParams();
   const vehicles_id = query.vehicles_id;
   const searchParams = useSearchParams();
   const startDate = searchParams.get("startDate");
   const endDate = searchParams.get("endDate");
   const apiKey = searchParams.get("apiKey");
+  const tax = 5000;
 
   const getDetailVehicle = async () => {
     setLoading(true);
@@ -154,11 +158,14 @@ export default function DetailVehiclePage() {
 
       const payload = {
         external_id: externalId,
-        amount: invoiceData.total_amount * diffDays,
+        amount: invoiceData.total_amount * diffDays + tax ,
         currency: "IDR",
         customer: {
           given_names: invoiceData.customer_name,
         },
+        success_redirect_url: "http://localhost:3000/vehicles/success",
+        fees: [{
+          type: "ADMIN", value: tax}],
       };
 
       const response = await axios.post(endpoint, payload, {
@@ -257,6 +264,7 @@ export default function DetailVehiclePage() {
   const handleCancel = () => {
     setIsModalVisible(false);
     setIsPaymentModalVisible(false);
+    setIsBookingModalVisible(false);
   };
 
   const handleOk = async () => {
@@ -284,9 +292,19 @@ export default function DetailVehiclePage() {
     }
   };
 
+  const showBookingModal = () => {
+    setIsBookingModalVisible(true);
+  };
+
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Content style={{ padding: "20px 50px" }}>
+      <Content
+        style={{
+          padding: "20px 50px",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <Row
           style={{
             display: "flex",
@@ -307,148 +325,354 @@ export default function DetailVehiclePage() {
             <Step title="Done" />
           </Steps>
         </Row>
+        <Title level={2} style={{ textAlign: "center", color: "#6B7CFF" }}>
+          Vehicle Details
+        </Title>
         {vehicle ? (
           <>
-            <Row gutter={24}>
-              <Col xs={24} md={12}>
-                {vehicle.VehicleImages && vehicle.VehicleImages.length > 0 ? (
-                  <Carousel autoplay>
-                    {vehicle.VehicleImages.map((image, index) => (
-                      <div key={index}>
-                        <Image
-                          src={image.imageUrl}
-                          alt={`vehicle-${index}`}
-                          width={500}
-                          height={300}
-                          style={{ width: "100%", height: "auto" }}
-                        />
-                      </div>
-                    ))}
-                  </Carousel>
-                ) : (
-                  <div>No images available</div>
-                )}
-              </Col>
-              <Col xs={24} md={12}>
-                <Card>
-                  <Title level={3}>{vehicle.name}</Title>
-                  <Paragraph>
-                    <strong>Model:</strong> {vehicle.model}
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>Capacity:</strong> {vehicle.capacity} people
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>License Plate:</strong> {vehicle.no_plat}
-                  </Paragraph>
-                  <Paragraph>
-                    <strong>Year:</strong> {vehicle.year}
-                  </Paragraph>
-                  <Paragraph>
-                    Price: Rp
-                    {selectedSchedule
-                      ? selectedSchedule.price
-                      : vehicle.price}{" "}
-                    / Hari
-                  </Paragraph>
-                </Card>
-              </Col>
-            </Row>
-            <Row gutter={24} style={{ marginTop: "24px" }}>
-              <Col xs={24} md={12}>
-                <Card>
-                  <Title level={4}>Book This Vehicle</Title>
-                  <Form
-                    layout="vertical"
-                    onFinish={onFinish}
-                    initialValues={initialValues}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "50px",
+              }}
+            >
+              <Row gutter={24}>
+                <Col xs={24} md={15}>
+                  {vehicle.VehicleImages && vehicle.VehicleImages.length > 0 ? (
+                    <Card
+                      style={{
+                        boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                        flex: "0 0 auto",
+                      }}
+                    >
+                      <Carousel autoplay>
+                        {vehicle.VehicleImages.map((image, index) => (
+                          <div key={index}>
+                            <Image
+                              src={image.imageUrl}
+                              alt={`vehicle-${index}`}
+                              width={900}
+                              height={500}
+                              style={{ objectFit: "cover" }}
+                            />
+                          </div>
+                        ))}
+                      </Carousel>
+                    </Card>
+                  ) : (
+                    <div>No images available</div>
+                  )}
+                </Col>
+                <Col xs={24} md={9}>
+                  <div style={{ marginBottom: "20px" }}>
+                    <Row
+                      style={{
+                        display: "flex",
+                        flexWrap: "nowrap",
+                        overflowX: "auto",
+                      }}
+                    >
+                      {vehicle.VehicleImages.map((image, index) => (
+                        <div
+                          key={index}
+                          style={{ flex: "0 0 auto", marginRight: "10px" }}
+                        >
+                          <Card
+                            style={{ boxShadow: "0 4px 8px rgba(0,0,0,0.1)" }}
+                          >
+                            <Image
+                              src={image.imageUrl}
+                              alt={`vehicle-${index}`}
+                              width={250}
+                              height={150}
+                              style={{ objectFit: "cover" }}
+                            />
+                          </Card>
+                        </div>
+                      ))}
+                    </Row>
+                  </div>
+                  <Card
+                    style={{
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+                      borderRadius: "8px",
+                      padding: "20px",
+                      backgroundColor: "#fff",
+                      marginBottom: "px",
+                      flex: "1 1 auto",
+                    }}
                   >
-                    <Form.Item
-                      label="Name"
-                      name="name"
-                      rules={[
-                        { required: true, message: "Please enter your name" },
-                      ]}
+                    <Title
+                      level={4}
+                      style={{ color: "#1F1F1F", marginBottom: "20px" }}
                     >
-                      <Input />
-                    </Form.Item>
-                    <Form.Item
-                      label="Phone"
-                      name="phone"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please enter your phone number",
-                        },
-                      ]}
+                      {vehicle.name}
+                    </Title>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "15px",
+                      }}
                     >
-                      <Input />
-                    </Form.Item>
-                    <Form.Item
-                      label="Start Date"
-                      name="startDate"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please select a start date",
-                        },
-                      ]}
+                      <div style={{ flex: 1, paddingRight: "10px" }}>
+                        <Text style={{ color: "#888" }}>Model: </Text>
+                        <Text strong style={{ color: "#1F1F1F" }}>
+                          {vehicle.model}
+                        </Text>
+                      </div>
+                      <div style={{ flex: 1, paddingLeft: "10px" }}>
+                        <Text style={{ color: "#888" }}>Kapasitas: </Text>
+                        <Text strong style={{ color: "#1F1F1F" }}>
+                          {vehicle.capacity} Orang
+                        </Text>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        marginBottom: "15px",
+                      }}
                     >
-                      <DatePicker />
-                    </Form.Item>
-                    <Form.Item
-                      label="End Date"
-                      name="endDate"
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please select an end date",
-                        },
-                      ]}
+                      <div style={{ flex: 1, paddingRight: "10px" }}>
+                        <Text style={{ color: "#888" }}>Tahun: </Text>
+                        <Text strong style={{ color: "#1F1F1F" }}>
+                          {vehicle.year}
+                        </Text>
+                      </div>
+                      <div style={{ flex: 1, paddingLeft: "10px" }}>
+                        <Text style={{ color: "#888" }}>Plat: </Text>
+                        <Text strong style={{ color: "#1F1F1F" }}>
+                          {vehicle.no_plat}
+                        </Text>
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
                     >
-                      <DatePicker />
-                    </Form.Item>
-                    <Form.Item>
+                      <Row style={{ display: "flex", alignItems: "center" }}>
+                        {selectedSchedule?.price && (
+                          <>
+                            <Title
+                              level={3}
+                              style={{
+                                margin: 0,
+                                fontWeight: "bold",
+                                color: "#333",
+                              }}
+                            >
+                              {new Intl.NumberFormat("id-ID", {
+                                style: "currency",
+                                currency: "IDR",
+                                minimumFractionDigits: 0,
+                              }).format(selectedSchedule.price)}
+                            </Title>
+                            <Title
+                              level={5}
+                              style={{
+                                color: "grey",
+                                margin: 0,
+                                marginLeft: 5,
+                              }}
+                            >
+                              /day
+                            </Title>
+                          </>
+                        )}
+                      </Row>
                       <Button
                         type="primary"
-                        htmlType="submit"
-                        loading={loading}
+                        style={{
+                          backgroundColor: "#6B7CFF",
+                          borderColor: "#6B7CFF",
+                          borderRadius: "5px",
+                          width: "100px",
+                          height: "40px",
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                        }}
+                        onClick={showBookingModal}
                       >
-                        Submit
+                        Order
                       </Button>
-                    </Form.Item>
-                  </Form>
-                </Card>
-              </Col>
-            </Row>
+                    </div>
+                  </Card>
+                </Col>
+              </Row>
+            </div>
           </>
         ) : (
           <Spin />
         )}
       </Content>
       <Modal
-        title="Booking Confirmation"
-        visible={isModalVisible}
-        onOk={handleOk}
+        title="Fill in the following personal data for rental"
+        visible={isBookingModalVisible}
         onCancel={handleCancel}
-        okText="Proceed to Payment"
+        footer={null}
       >
-        <p>
-          Thank you for your booking. Please proceed to payment to confirm your
-          booking.
-        </p>
+        <Form
+          layout="vertical"
+          onFinish={onFinish}
+          initialValues={initialValues}
+        >
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Please enter your name" }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Phone"
+            name="phone"
+            rules={[
+              {
+                required: true,
+                message: "Please enter your phone number",
+              },
+            ]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item>
+            <Button type="primary" htmlType="submit" loading={loading}>
+              Submit
+            </Button>
+          </Form.Item>
+        </Form>
       </Modal>
       <Modal
-        title="Payment"
         visible={isPaymentModalVisible}
-        onOk={handleOk}
+        title="Payment Details"
         onCancel={handleCancel}
-        okText="Pay Now"
+        footer={[
+          <Button key="back" onClick={handleCancel}>
+            Cancel
+          </Button>,
+          <Button
+            key="submit"
+            type="primary"
+            onClick={handleOk}
+            style={{
+              backgroundColor: "#6B7CFF",
+              borderColor: "#6B7CFF",
+            }}
+          >
+            Proceed to Payment
+          </Button>,
+        ]}
       >
-        <p>
-          Your booking is successful. Click the button below to proceed to
-          payment.
-        </p>
+        {invoiceData ? (
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              padding: "20px",
+            }}
+          >
+            <Card
+              style={{
+                width: "1200px", // Increased width
+                borderRadius: "10px",
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              }}
+            >
+              <Title
+                level={3}
+                style={{ textAlign: "center", color: "#6B7CFF" }}
+              >
+                Detail Invoice
+              </Title>
+              <Text
+                style={{
+                  textAlign: "center",
+                  display: "block",
+                  marginBottom: "20px",
+                  color: "#B0B3B8",
+                }}
+              >
+                Check Your Rental Details!
+              </Text>
+              <Divider />
+              <Row gutter={[16, 16]}>
+                <Col span={8}>
+                  <Text strong>Invoice to:</Text>
+                  <Paragraph>{invoiceData.customer_name}</Paragraph>
+                  <Paragraph>{invoiceData.customer_phone}</Paragraph>
+                </Col>
+                <Col span={8}>
+                  <Text strong>Date:</Text>
+                  <Paragraph>
+                    {moment(startDate).format("DD MMM YYYY")} -{" "}
+                    {moment(endDate).format("DD MMM YYYY")}
+                  </Paragraph>
+                </Col>
+                <Col span={8}>
+                  <Text strong>Order ID:</Text>
+                  <Paragraph>{invoiceData.order_id}</Paragraph>
+                </Col>
+              </Row>
+              <Divider />
+              <Row
+                style={{
+                  backgroundColor: "#F0F4FF",
+                  padding: "10px",
+                  borderRadius: "8px",
+                }}
+              >
+                <Col span={12}>
+                  <Text strong>Rent</Text>
+                </Col>
+                <Col span={4}>
+                  <Text strong>Price</Text>
+                </Col>
+                <Col span={4}>
+                  <Text strong>Day</Text>
+                </Col>
+                <Col span={4}>
+                  <Text strong>Total</Text>
+                </Col>
+              </Row>
+              <Row
+                style={{ padding: "10px", borderBottom: "1px solid #E0E0E0" }}
+              >
+                <Col span={12}>
+                  <Text>{vehicle?.name}</Text>
+                </Col>
+                <Col span={4}>
+                  <Text>Rp {selectedSchedule?.price.toLocaleString()}</Text>
+                </Col>
+                <Col span={4}>
+                  <Text>{diffDays}</Text>
+                </Col>
+                <Col span={4}>
+                  <Text>Rp {(invoiceData.total_amount * diffDays).toLocaleString()}</Text>
+                </Col>
+              </Row>
+              <Row justify="end" style={{ marginTop: "20px" }}>
+                <Col span={12}>
+                  <Paragraph style={{ textAlign: "right" }}>
+                    TAX: Rp {tax.toLocaleString()}
+                  </Paragraph>
+                  <Divider />
+                  <Paragraph strong style={{ textAlign: "right" }}>
+                    Invoice total: Rp{" "}
+                    {((invoiceData.total_amount * diffDays) + tax).toLocaleString()}
+                  </Paragraph>
+                </Col>
+              </Row>
+            </Card>
+          </div>
+        ) : (
+          <Spin />
+        )}
       </Modal>
       <Footer>
         <h1

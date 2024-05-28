@@ -174,13 +174,13 @@ const VehiclePage = () => {
                       <div style={{ display: "flex", alignItems: "center" }}>
                         <CarTwoTone
                           style={{
-                            fontSize: "30px",
+                            fontSize: "20px",
                             marginRight: "10px",
                             color: "#6B7CFF",
                           }}
                         />
                         <Title
-                          level={4}
+                          level={5}
                           style={{
                             marginLeft: "8px",
                             color: "rgba(0, 0, 0, 0.65)",
@@ -193,13 +193,13 @@ const VehiclePage = () => {
                       <div style={{ display: "flex", alignItems: "center" }}>
                         <UsergroupAddOutlined
                           style={{
-                            fontSize: "30px",
+                            fontSize: "20px",
                             marginRight: "10px",
                             color: "#6B7CFF",
                           }}
                         />
                         <Title
-                          level={4}
+                          level={5}
                           style={{
                             marginLeft: "8px",
                             color: "rgba(0, 0, 0, 0.65)",
@@ -217,22 +217,24 @@ const VehiclePage = () => {
                         alignItems: "center",
                       }}
                     >
-                      <Title
-                        level={3}
-                        style={{ margin: 0, fontWeight: "bold" }}
-                      >
-                        {new Intl.NumberFormat("id-ID", {
-                          style: "currency",
-                          currency: "IDR",
-                          minimumFractionDigits: 0,
-                        }).format(schedule.price)}
-                      </Title>
-                      <Title
-                        level={5}
-                        style={{ color: "grey", marginBlock: 2 }}
-                      >
-                        /day
-                      </Title>
+                      <Row style={{ display: "flex", alignItems: "center" }}>
+                        <Title
+                          level={3}
+                          style={{ margin: 0, fontWeight: "bold" }}
+                        >
+                          {new Intl.NumberFormat("id-ID", {
+                            style: "currency",
+                            currency: "IDR",
+                            minimumFractionDigits: 0,
+                          }).format(schedule.price)}
+                        </Title>
+                        <Title
+                          level={5}
+                          style={{ color: "grey", margin: 0, marginLeft: 5 }}
+                        >
+                          /day
+                        </Title>
+                      </Row>
                       <Button
                         onClick={() =>
                           handleCardClick(schedule.Vehicle.vehicles_id)
