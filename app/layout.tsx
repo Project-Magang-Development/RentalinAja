@@ -18,8 +18,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <AntdRegistry> {children}</AntdRegistry> 
+      <body className={inter.className} style={{ overflowX: "hidden" }}>
+        <AntdRegistry> {children}</AntdRegistry>
       </body>
     </html>
   );

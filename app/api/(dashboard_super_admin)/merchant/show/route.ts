@@ -4,7 +4,7 @@ import prisma from "@/lib/prisma";
 export async function GET(req: Request) {
   try {
     const url = new URL(req.url);
-    const email = url.searchParams.get("email");
+    const email = url.searchParams.get("merchant_email");
     const tokenHeader = req.headers.get("Authorization");
     const token = tokenHeader?.split(" ")[1];
 
@@ -22,9 +22,9 @@ export async function GET(req: Request) {
         );
       }
 
-      const merchant = await prisma.merchant.findUnique({
+      const merchant: any = await prisma.merchantPendingPayment.findMany({
         where: {
-          email: email,
+          merchant_email: email,
         },
         include: {
           package: true,
@@ -51,9 +51,9 @@ export async function GET(req: Request) {
       });
     } else if (token) {
       // Handle GET request with token for fetching all merchants
-      const merchant = await prisma.merchant.findMany({
+      const merchant = await prisma.merchantPendingPayment.findMany({
         orderBy: {
-          merchant_id: "desc",
+          pending_id: "desc",
         },
         include: {
           package: true,

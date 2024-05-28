@@ -42,7 +42,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
           right: 0,
           zIndex: 999,
           transition: "background-color 0.5s ease",
-          backgroundColor: scrollY > 0 ? "rgba(0, 0, 0, 0.1)" : "transparent",
+          backgroundColor: scrollY > 0 ? "rgba(0, 0, 0, 0.1)" : "white",
           backdropFilter: scrollY > 0 ? "blur(10px)" : "none",
         }}
       >
@@ -113,15 +113,21 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 </Link>
               </Col>
               <Col>
-                <Button type="primary">Daftar</Button>
+                <Button
+                  style={{
+                    backgroundColor: "#1D2130",
+                    color: "white",
+                    border: "none",
+                  }}
+                >
+                  Daftar
+                </Button>
               </Col>
             </Row>
           </Col>
         </Row>
       </div>
-      <div style={{ marginTop: 100, padding: 24 }}>
-        {children}
-      </div>
+      <div style={{ marginTop: 100, padding: 0 }}>{children}</div>
     </>
   );
 };

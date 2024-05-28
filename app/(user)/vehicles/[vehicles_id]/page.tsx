@@ -112,6 +112,13 @@ export default function DetailVehiclePage() {
   }, [startDate, endDate]);
 
   // TODO: Buat function createInvcoie customer
+  // const diffTime = Math.abs(
+  //   endDateInDate!.getTime() - startDateInDate!.getTime()
+  // );
+
+  // const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  const tax = 5000;
 
   const createInvoice = async (
     invoiceData: any,
@@ -127,13 +134,33 @@ export default function DetailVehiclePage() {
       const endpoint = "https://api.xendit.co/v2/invoices";
       const basicAuthHeader = `Basic ${btoa(secretKey + ":")}`;
 
+      if (!vehicle || !selectedSchedule) {
+        throw Error("Vehicle or Schedule is not defined");
+      }
+
+      const vehicleName = `${vehicle.name} ${vehicle.model}`;
+
       const payload = {
         external_id: externalId,
-        amount: selectedSchedule?.price,
+        amount: invoiceData.total_amount + tax,
         currency: "IDR",
         customer: {
           given_names: invoiceData.customer_name,
         },
+        items: [
+          {
+            name: vehicleName,
+            quantity: 1,
+            price: selectedSchedule.price,
+          },
+        ],
+
+        fees: [
+          {
+            type: "admin",
+            value: tax,
+          },
+        ],
       };
 
       const response = await axios.post(endpoint, payload, {
@@ -197,6 +224,7 @@ export default function DetailVehiclePage() {
       });
 
       if (!response.ok) {
+        console.log("harga kendaraan", vehicle?.price);
         throw new Error(`Error: ${response.statusText}`);
       }
 
