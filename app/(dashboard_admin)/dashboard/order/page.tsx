@@ -21,7 +21,7 @@ import TableSkeleton from "@/app/components/tableSkeleton";
 import useSWR, { mutate } from "swr";
 import Cookies from "js-cookie";
 import { PlusOutlined } from "@ant-design/icons";
-
+import { useRouter } from "next/navigation";
 const { Option } = Select;
 
 interface Order {
@@ -33,8 +33,8 @@ interface Order {
   customer_name: string;
   price: number;
   status: string;
-  phone: string
-  Schedule: Schedule
+  phone: string;
+  Schedule: Schedule;
 }
 
 interface Schedule {
@@ -44,7 +44,7 @@ interface Schedule {
   start_date: string;
   end_date: string;
   price: number;
-  Vehicle: Vehicle
+  Vehicle: Vehicle;
 }
 interface Vehicle {
   vehicle_id: string;
@@ -91,6 +91,7 @@ export default function AdminOrderDashboard() {
   const dateFormat = "DD MMMM YYYY";
   const [selectedVehicle, setSelectedVehicle] = useState<string>("");
   const [searchText, setSearchText] = useState("");
+  const router = useRouter();
 
   const [form] = Form.useForm();
 
@@ -210,7 +211,7 @@ export default function AdminOrderDashboard() {
   const rowClickHandler = (record: any) => {
     return {
       onClick: () => {
-        window.location.href = `/dashboard/order/${record.external_id}`;
+        router.push(`/dashboard/order/${record.external_id}`);
       },
     };
   };
@@ -223,39 +224,38 @@ export default function AdminOrderDashboard() {
     setIsModalVisible(false);
   };
 
- const handleFinish = async (values: any) => {
-   const startDate = values.startDate.format("YYYY-MM-DD");
-   const endDate = values.endDate.format("YYYY-MM-DD");
+  const handleFinish = async (values: any) => {
+    const startDate = values.startDate.format("YYYY-MM-DD");
+    const endDate = values.endDate.format("YYYY-MM-DD");
 
-   const payloadData = {
-     start_date: startDate,
-     end_date: endDate,
-     customer_name: values.name,
-     schedules_id: selectedScheduleId,
-     price: selectedPrice,
-     phone: values.phone,
-   };
+    const payloadData = {
+      start_date: startDate,
+      end_date: endDate,
+      customer_name: values.name,
+      schedules_id: selectedScheduleId,
+      price: selectedPrice,
+      phone: values.phone,
+    };
 
-   try {
-     const response = await fetch("/api/order/createOrder", {
-       method: "POST",
-       headers: {
-         Authorization: `Bearer ${Cookies.get("token")}`,
-         "Content-Type": "application/json",
-       },
-       body: JSON.stringify(payloadData),
-     });
+    try {
+      const response = await fetch("/api/order/createOrder", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${Cookies.get("token")}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payloadData),
+      });
 
-     if (!response.ok) {
-       throw new Error("Failed to create order");
-     }
-
-   } catch (error) {
-     console.error("Error creating order:", error);
-   } finally {
-     setIsModalVisible(false);
-   }
- };
+      if (!response.ok) {
+        throw new Error("Failed to create order");
+      }
+    } catch (error) {
+      console.error("Error creating order:", error);
+    } finally {
+      setIsModalVisible(false);
+    }
+  };
 
   const handleDateChange = async (field: string, value: any) => {
     if (field === "startDate") {
@@ -265,14 +265,14 @@ export default function AdminOrderDashboard() {
     }
 
     if (startDate && endDate) {
-      setLoading(true); 
+      setLoading(true);
       try {
         await mutate(
           `/api/vehicle/show?startDate=${startDate}&endDate=${endDate}`
         );
-        setLoading(false); 
+        setLoading(false);
       } catch (error) {
-        setLoading(false); 
+        setLoading(false);
         console.error("Failed to refresh vehicle data:", error);
       }
     }
@@ -281,10 +281,9 @@ export default function AdminOrderDashboard() {
   const availableVehicles =
     vehicles?.filter((vehicle: Vehicle) => vehicle.status === "Tersedia") || [];
 
-    const handleSearch = (e: any) => {
-      setSearchText(e.target.value);
-    };
-
+  const handleSearch = (e: any) => {
+    setSearchText(e.target.value);
+  };
 
   const filteredOrder = useMemo(() => {
     if (!orders) return [];
@@ -298,13 +297,12 @@ export default function AdminOrderDashboard() {
         order.Schedule.Vehicle.model
           .toLowerCase()
           .includes(searchText.toLowerCase()) ||
-          order.start_date.toLowerCase().includes(searchText.toLowerCase()) ||
-          order.end_date.toLowerCase().includes(searchText.toLowerCase()) ||
-          order.status.toLowerCase().includes(searchText.toLowerCase()) ||
-          order.total_amount.toString().includes(searchText)
+        order.start_date.toLowerCase().includes(searchText.toLowerCase()) ||
+        order.end_date.toLowerCase().includes(searchText.toLowerCase()) ||
+        order.status.toLowerCase().includes(searchText.toLowerCase()) ||
+        order.total_amount.toString().includes(searchText)
     );
   }, [orders, searchText]);
-
 
   if (loading) {
     return <TableSkeleton />;
@@ -331,7 +329,7 @@ export default function AdminOrderDashboard() {
           placeholder="Cari Order..."
           value={searchText}
           onChange={handleSearch}
-          style={{ width: "50%",  height: "35px" }}
+          style={{ width: "50%", height: "35px" }}
         />
       </Flex>
 
