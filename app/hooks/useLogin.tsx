@@ -11,7 +11,7 @@ export const useCompanyName = () => {
     if (token) {
       setCompanyName(getCompanyName(token));
     } else {
-      // router.push("/dashboard/login");
+      router.push("/dashboard/login");
     }
   }, []);
   return companyName;
@@ -25,7 +25,7 @@ export const useMerchantName = () => {
     if (token) {
       setMerchantName(getName(token));
     } else {
-      // router.push("/dahboard/login");
+      router.push("/dashboard/login");
     }
   }, []);
   return merchantName;

@@ -13,6 +13,7 @@ export async function GET(req: Request) {
         vehicles_id: String(vehicles_id),
       },
       include:  {
+        VehicleImages: true,
         Schedules: true,
       }
     });

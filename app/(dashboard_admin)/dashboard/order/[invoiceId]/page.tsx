@@ -30,7 +30,6 @@ interface PaymentData {
   alamat: string;
 }
 
-//! GET DATA PAYMENT {ALAMAT} NAMUN TIDAK DISARANKAN, GUNAKAN di PAYLOAD INVOICE
 function GetInvoiceComponent() {
   const targetRef = useRef<HTMLDivElement>(null);
   const params = useParams<{ invoiceId: string }>();

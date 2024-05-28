@@ -1,9 +1,35 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
 
 export async function POST(req: Request) {
   try {
+
+    const tokenHeader = req.headers.get("Authorization");
+    const token = tokenHeader?.split(" ")[1];
+
+    if (!token) {
+      return new Response(JSON.stringify({ error: "Token not provided" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
+        merchantId: string;
+        email: string;  
+        merchant_company: string
+      };
+    } catch (error) {
+      return new Response(JSON.stringify({ error: "Invalid token" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const {
       schedules_id,
@@ -12,9 +38,10 @@ export async function POST(req: Request) {
       customer_name,
       price,
       external_id,
-      apiKey,
-      phone
+      phone,
     } = body;
+
+    console.log(body)
 
     if (
       !schedules_id ||
@@ -23,15 +50,12 @@ export async function POST(req: Request) {
       !customer_name ||
       !price ||
       !external_id ||
-      !apiKey ||
       !phone
     ) {
       throw new Error("Missing required fields");
     }
 
-   const merchantId = await prisma.merchant.findUnique({
-     where: { api_key: apiKey },
-   });
+    
 
     const startDate = new Date(start_date);
     const endDate = new Date(end_date);
@@ -41,7 +65,7 @@ export async function POST(req: Request) {
     }
 
     const merchant = await prisma.merchant.findUnique({
-      where: { merchant_id: merchantId!.merchant_id },
+      where: { merchant_id: decoded.merchantId },
       include: { package: true, vehicles: true },
     });
 
@@ -95,10 +119,10 @@ export async function POST(req: Request) {
         start_date: startDate,
         end_date: endDate,
         customer_name,
-        external_id,
+        external_id : "",
         customer_phone: phone,
         total_amount: totalPrice,
-        merchant_id: merchantId!.merchant_id,
+        merchant_id: decoded.merchantId,
       },
     });
 
@@ -117,7 +141,7 @@ export async function POST(req: Request) {
 
     await transporter.sendMail({
       from: '"RentalinAja" <no-reply@gmail.com>',
-      to: merchantId!.email,
+      to: decoded.email,
       subject: "Ada Yang Order Nih!",
       html: `
 <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; padding: 40px; color: #333;">
@@ -126,7 +150,7 @@ export async function POST(req: Request) {
       <h1 style="color: #ffffff; margin: 0; padding: 0 20px;">Ada Yang Order Nih!</h1>
     </div>
     <div style="padding: 20px;">
-      <p style="font-size: 16px;">Hai ${merchantId!.merchant_company},</p>
+      <p style="font-size: 16px;">Hai ${decoded.merchant_company},</p>
       <p style="font-size: 16px;">Ada order baru dengan detail sebagai berikut:</p>
       <ul style="text-align: left;">
         <li>Nama Customer: ${customer_name}</li>

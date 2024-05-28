@@ -36,10 +36,14 @@ export async function GET(req: Request) {
       const startDate = new Date(startDateStr);
       const endDate = new Date(endDateStr);
 
-      // Get all vehicles
+      // Get all vehicles with their images
       const allVehicles = await prisma.vehicle.findMany({
         where: { merchant_id: decoded.merchantId },
         orderBy: { vehicles_id: "desc" },
+        include: {
+          Schedules: true,
+          VehicleImages: true,
+        },
       });
 
       // Find overlapping orders
@@ -70,15 +74,20 @@ export async function GET(req: Request) {
         status: bookedVehicleIds.includes(vehicle.vehicles_id)
           ? "Tidak Tersedia"
           : "Tersedia",
+        imageUrl: vehicle.VehicleImages.map((image) => image.imageUrl), // Map image URLs
       }));
     } else {
       vehicles = await prisma.vehicle.findMany({
         where: { merchant_id: decoded.merchantId },
+        include: {
+          VehicleImages: true,
+        },
       });
 
       vehicles = vehicles.map((vehicle) => ({
         ...vehicle,
         status: "Tersedia",
+        imageUrl: vehicle.VehicleImages.map((image) => image.imageUrl), // Map image URLs
       }));
     }
 

@@ -91,10 +91,17 @@ model Vehicle {
   model       String
   year        Int
   no_plat     String     @unique
-  imageUrl    String     @db.LongText
   capacity    Int
   Merchant    Merchant   @relation(fields: [merchant_id], references: [merchant_id])
   Schedules   Schedule[]
+  VehicleImages VehicleImage[]
+}
+
+model VehicleImage {
+  vehicles_image_id          String     @id @default(uuid())
+  vehicles_id   String
+  imageUrl    String        @db.LongText
+  Vehicle     Vehicle    @relation(fields: [vehicles_id], references: [vehicles_id])
 }
 
 model Schedule {
@@ -132,7 +139,8 @@ model Order {
   start_date    DateTime
   end_date      DateTime
   customer_name String
-  total_amount  Int
+  customer_phone String @default("")
+  total_amount  Int 
   status        String   @default("Pending")
   created_at    DateTime @default(now())
 

@@ -9,8 +9,10 @@ import {
   Flex,
   Layout,
   Menu,
+  Modal,
   Spin,
   message,
+  notification,
   theme,
 } from "antd";
 import Link from "next/link";
@@ -87,6 +89,49 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const shouldHideCompanyName = disableCompanyName.some((route) =>
     pathname.includes(route)
   );
+
+  useEffect(() => {
+    const token = Cookies.get("token");
+
+
+    if (!token) return;
+
+    const updateSubscriptionStatus = async () => {
+      try {
+        const response = await fetch("/api/checkSubscription", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to update subscription status");
+        }
+
+        if (data.message === "Langganan sudah berakhir.") {
+          Cookies.remove("token");
+          router.push("dashboard/login");
+        }
+
+        if(data.message.length > 0) {
+          notification.info({
+            message: "Notifikasi Langganan",
+            description: data.message,
+          });
+        }
+
+      } catch (error) {
+        console.error("Error updating subscription status:", error);
+      }
+    };
+
+    updateSubscriptionStatus();
+  }, [router]);
+
 
   const fetchDataWithLastChecked = async (
     endpoint: string,
@@ -250,6 +295,20 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const selectedKeys = determineSelectedKeys(pathname, items);
 
+  const confirmLogout = () => {
+    Modal.confirm({
+      title: "Konfirmasi Keluar",
+      content: "Apakah Anda yakin ingin keluar?",
+      okText: "Ya",
+      cancelText: "Tidak",
+      onOk: () => {
+        Cookies.remove("token");
+        message.success("Logout successful!");
+        window.location.href = "/dashboard/login";
+      },
+    });
+  };
+
   const userMenu = (
     <Menu
       items={[
@@ -257,11 +316,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           key: "logout",
           label: "Keluar",
           icon: <LogoutOutlined />,
-          onClick: () => {
-            Cookies.remove("token");
-            message.success("Logout successful!");
-            window.location.href = "/dashboard/login";
-          },
+          onClick: confirmLogout,
         },
       ]}
     />

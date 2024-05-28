@@ -13,17 +13,18 @@ import {
   Divider,
   Tooltip,
   Table,
+  Image,
 } from "antd";
 import Title from "antd/es/typography/Title";
 import {
   DeleteOutlined,
   EditOutlined,
   InboxOutlined,
+  PlusOutlined,
   ScheduleOutlined,
 } from "@ant-design/icons";
 import { notification } from "antd";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { UploadChangeParam, UploadFile } from "antd/lib/upload/interface";
 import TableSkeleton from "@/app/components/tableSkeleton";
 import useSWR, { mutate } from "swr";
@@ -39,7 +40,7 @@ interface Vehicle {
   model: string;
   year: number;
   price: number;
-  imageUrl: string;
+  imageUrl: string[];
   status: string;
 }
 
@@ -50,6 +51,7 @@ const fetcher = (url: any) =>
 
 export default function AdminVehicleDashboard() {
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
+  const [parsedImageUrls, setParsedImageUrls] = useState<string[]>([]);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -115,15 +117,15 @@ export default function AdminVehicleDashboard() {
   };
 
   useEffect(() => {
-    if (editingVehicle && editingVehicle.imageUrl) {
-      setFileList([
-        {
-          uid: "-1",
-          name: "image.png",
+    if (editingVehicle && Array.isArray(editingVehicle.imageUrl)) {
+      setFileList(
+        editingVehicle.imageUrl.map((url, index) => ({
+          uid: `${index}`,
+          name: `image${index}.png`,
           status: "done",
-          url: editingVehicle.imageUrl,
-        },
-      ]);
+          url,
+        }))
+      );
     } else {
       setFileList([]);
     }
@@ -131,24 +133,19 @@ export default function AdminVehicleDashboard() {
 
   const handleFileChange = (info: UploadChangeParam) => {
     let newFileList = [...info.fileList];
-    newFileList = newFileList.slice(-1);
 
-    if (newFileList[0] && newFileList[0].originFileObj) {
-      convertFileToBase64(newFileList[0].originFileObj, (base64) => {
-        const fileInBase64 = base64 as string;
+    const promises = newFileList.map((file) => {
+      if (file.originFileObj) {
+        return convertFileToBase64(file.originFileObj).then((base64) => {
+          file.url = base64;
+        });
+      }
+      return Promise.resolve();
+    });
 
-        setFileList([
-          {
-            uid: "-1",
-            name: newFileList[0].name,
-            status: "done",
-            url: fileInBase64,
-          },
-        ]);
-      });
-    } else {
-      setFileList([]);
-    }
+    Promise.all(promises).then(() => {
+      setFileList(newFileList);
+    });
   };
 
   const handleEdit = (vehicles_id: string) => {
@@ -159,9 +156,9 @@ export default function AdminVehicleDashboard() {
       setEditingVehicle(vehicleToEdit);
       form.setFieldsValue({
         ...vehicleToEdit,
-        imageUrl: vehicleToEdit.imageUrl
-          ? [{ url: vehicleToEdit.imageUrl }]
-          : [],
+        imageUrl: Array.isArray(vehicleToEdit.imageUrl)
+          ? vehicleToEdit.imageUrl.map((url: string) => ({ url }))
+          : [], // Ensure imageUrl is an array
       });
       setIsModalVisible(true);
     }
@@ -175,14 +172,14 @@ export default function AdminVehicleDashboard() {
     let response;
     try {
       const values = await form.validateFields();
-      const imageUrl = fileList.length > 0 ? fileList[0].url : "";
+      const imageUrl = fileList.map((file) => file.url);
       const payload = {
         name: values.name,
         capacity: parseInt(values.capacity, 10),
         model: values.model,
         year: parseInt(values.year, 10),
         no_plat: values.no_plat,
-        imageUrl,
+        imageUrl, // Ensure this is an array of strings
       };
       setLoading(true);
 
@@ -213,10 +210,15 @@ export default function AdminVehicleDashboard() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        if (response.status === 400) {
+        if (response.status === 401) {
           notification.error({
             message: "Gagal",
             description: "Limit Tambah Kendaraan Sudah Habis",
+          });
+        } else if (response.status === 400) {
+          notification.error({
+            message: "Gagal",
+            description: "Field Tidak Boleh Kosong",
           });
         } else {
           throw new Error(errorData.message || "Failed to process vehicle");
@@ -280,21 +282,13 @@ export default function AdminVehicleDashboard() {
     }
   };
 
-  const convertFileToBase64 = (
-    file: Blob,
-    callback: (result: string | ArrayBuffer | null) => void
-  ) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => callback(reader.result);
-  };
-
-  const handleMouseEnter = () => {
-    setHoverDelete(true);
-  };
-
-  const handleMouseLeave = () => {
-    setHoverDelete(false);
+  const convertFileToBase64 = (file: File | Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
   };
 
   const filteredVehicles = useMemo(() => {
@@ -303,7 +297,10 @@ export default function AdminVehicleDashboard() {
     return vehicles.filter(
       (vehicle: any) =>
         vehicle.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        vehicle.model.toLowerCase().includes(searchText.toLowerCase())
+        vehicle.model.toLowerCase().includes(searchText.toLowerCase()) ||
+        vehicle.no_plat.toLowerCase().includes(searchText.toLowerCase()) ||
+        vehicle.capacity.toString().includes(searchText) ||
+        vehicle.year.toString().includes(searchText)
     );
   }, [vehicles, searchText]);
 
@@ -326,18 +323,20 @@ export default function AdminVehicleDashboard() {
         index + 1 + (pagination.current - 1) * pagination.pageSize,
     },
     {
-      title: "Gambar",
+      title: "Foto",
       dataIndex: "imageUrl",
       key: "imageUrl",
-      render: (imageUrl: string) => (
-        <Image
-          src={imageUrl}
-          alt="vehicle"
-          width={100}
-          height={60}
-          unoptimized={true}
-        />
-      ),
+      render: (imageUrl: string[]) =>
+        imageUrl.length > 0 ? (
+          <Image
+            src={imageUrl[0]}
+            alt="Vehicle Image"
+            width={150}
+            height={100}
+          />
+        ) : (
+          "No Image"
+        ),
     },
     {
       title: "Nama",
@@ -380,18 +379,14 @@ export default function AdminVehicleDashboard() {
               }}
             />
           </Tooltip>
-          <Tooltip title="Hapus">
+          <Tooltip title="Hapus Data">
             <Button
-              icon={<DeleteOutlined />}
               onClick={() => handleDelete(record.vehicles_id)}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              danger={hoverDelete}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
+              type="primary"
+              danger
+              icon={<DeleteOutlined />}
+              onMouseEnter={() => setHoverDelete(true)}
+              onMouseLeave={() => setHoverDelete(false)}
             />
           </Tooltip>
           <Tooltip title="Jadwal">
@@ -465,7 +460,7 @@ export default function AdminVehicleDashboard() {
             gap="16px"
             style={{ marginBottom: "16px", marginTop: "24px" }}
           >
-            <Button type="primary" onClick={showModal}>
+            <Button type="primary" onClick={showModal} icon={<PlusOutlined />}>
               Tambah Data Kendaraan
             </Button>
 
@@ -597,84 +592,22 @@ export default function AdminVehicleDashboard() {
             >
               <Input placeholder="Nomor Plat" />
             </Form.Item>
-            <Form.Item
-              name="imageUrl"
-              valuePropName="fileList"
-              getValueFromEvent={({ fileList: newFileList }) => {
-                if (newFileList.length > 1) {
-                  const lastFile = newFileList[newFileList.length - 1];
-                  return [lastFile].map((file) => ({
-                    ...file,
-                    url: file.originFileObj
-                      ? URL.createObjectURL(file.originFileObj)
-                      : file.url,
-                  }));
-                }
-                return newFileList.map((file: any) => ({
-                  ...file,
-                  url: file.originFileObj
-                    ? URL.createObjectURL(file.originFileObj)
-                    : file.url,
-                }));
-              }}
-            >
+            <Form.Item>
               <Upload.Dragger
                 name="files"
-                listType="picture-card"
+                multiple
                 fileList={fileList}
                 onChange={handleFileChange}
                 beforeUpload={() => false}
-                showUploadList={false}
+                listType="picture"
               >
-                {fileList.length > 0 ? (
-                  fileList.map((file) => (
-                    <div
-                      key={file.uid}
-                      style={{
-                        position: "relative",
-                        width: "100%",
-                        height: "200px",
-                        marginBottom: "16px",
-                      }}
-                    >
-                      <Image
-                        src={file.url ?? (file.thumbUrl || "")}
-                        alt={file.name}
-                        layout="fill"
-                        objectFit="contain"
-                      />
-                      {file.status === "uploading" && (
-                        <div
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            right: 0,
-                            bottom: 0,
-                            left: 0,
-                            background: "rgba(255,255,255,0.5)",
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
-                        >
-                          <div>Loading...</div>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <div>
-                    <p className="ant-upload-drag-icon">
-                      <InboxOutlined />
-                    </p>
-                    <p className="ant-upload-text">
-                      Klik atau drag file ke area ini untuk upload
-                    </p>
-                    <p className="ant-upload-hint">
-                      Support untuk single upload.
-                    </p>
-                  </div>
-                )}
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">
+                  Klik atau seret file ke area ini untuk mengunggah
+                </p>
+                <p className="ant-upload-hint">Mendukung beberapa file</p>
               </Upload.Dragger>
             </Form.Item>
             <Form.Item>
