@@ -84,7 +84,7 @@ export default function DetailVehiclePage() {
   const getDetailVehicle = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/vehicle/detail/${vehicles_id}`, {
+      const response = await fetch(/api/vehicle/detail/${vehicles_id}, {
         headers: {
           method: "GET",
           "Content-Type": "application/json",
@@ -154,7 +154,7 @@ export default function DetailVehiclePage() {
       }
 
       const endpoint = "https://api.xendit.co/v2/invoices";
-      const basicAuthHeader = `Basic ${btoa(secretKey + ":")}`;
+      const basicAuthHeader = Basic ${btoa(secretKey + ":")};
 
       const payload = {
         external_id: externalId,
@@ -167,6 +167,43 @@ export default function DetailVehiclePage() {
         fees: [{
           type: "ADMIN", value: tax}],
       };
+
+      const response = await axios.post(endpoint, payload, {
+        headers: {
+          Authorization: basicAuthHeader,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (response.status === 200) {
+        const { invoice_url, id } = response.data;
+        console.log(response.data);
+
+        return { id_invoice: id, invoice_url, external_id: externalId };
+      } else {
+        console.error("Gagal membuat invoice");
+        console.log(response.data);
+        return { id_invoice: null, external_id: null };
+      }
+    } catch (error) {
+      console.error("Terjadi kesalahan:", error);
+      return { id_invoice: null, external_id: null };
+    }
+  };
+
+  const onFinish = async (values: any) => {
+    if (!selectedSchedule) {
+      notification.error({
+        message: "Submission Error",
+        description: "No schedule has been selected.",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const externalId = "INV-" + Math.random().toString(36).substring(2, 9);
 
       const response = await axios.post(endpoint, payload, {
         headers: {
@@ -226,6 +263,7 @@ export default function DetailVehiclePage() {
       });
 
       if (!response.ok) {
+        console.log("harga kendaraan", vehicle?.price);
         throw new Error(`Error: ${response.statusText}`);
       }
 

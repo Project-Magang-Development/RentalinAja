@@ -15,7 +15,7 @@ interface InvoiceData {
   status: string;
   external_id: string;
   customer: { given_names: string; email: string };
-  items: { name: string }[];
+  items: { name: string; quantity: number; price: number }[]; // Tambahkan quantity dan price
   amount: number;
   currency: string;
   payment_method: string;
@@ -34,9 +34,6 @@ function GetInvoiceComponent() {
   const targetRef = useRef<HTMLDivElement>(null);
   const params = useParams<{ invoiceId: string }>();
   const [loading, setLoading] = useState(true);
-  const [paymentData, setPaymentData] = useState<PaymentData>({
-    alamat: "",
-  });
   const [invoiceData, setInvoiceData] = useState<InvoiceData>({
     id: "",
     status: "",
@@ -126,7 +123,7 @@ function GetInvoiceComponent() {
               size="large"
               shape="round"
               type="primary"
-              style={{ width: "10%", marginInline: "1rem" }}
+              style={{ width: "15%", marginInline: "1rem" }}
               icon={<ArrowLeftOutlined />}
             >
               Kembali
@@ -274,7 +271,25 @@ function GetInvoiceComponent() {
                   </h4>
                 </Flex>
               </Flex>
-              {/* ... inget tambahin data dlu disini ... */}
+              <Flex>
+                <h1>Item</h1>
+              </Flex>
+              <ul style={{ listStyleType: "none", padding: 0, margin: 0 }}>
+                {invoiceData.items && invoiceData.items.length > 0 ? (
+                  invoiceData.items.map((item, index) => (
+                    <li key={index}>
+                      {item.name} x {item.quantity} = Rp{" "}
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "decimal",
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                      }).format(item.price * item.quantity)}
+                    </li>
+                  ))
+                ) : (
+                  <li>No items found</li>
+                )}
+              </ul>
             </Flex>
           </div>
           <button
