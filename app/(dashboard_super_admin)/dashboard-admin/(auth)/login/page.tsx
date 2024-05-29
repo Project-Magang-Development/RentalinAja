@@ -35,7 +35,7 @@ export default function LoginDashboardSuperAdmin() {
       Cookies.set("tokenAdmin", data.token);
       message.success("Login successful!");
       setLoading(false);
-      router.push("/dashboard-admin");
+      window.location.href ="/dashboard-admin";
     } catch (error) {
       message.error("Login failed.");
     }

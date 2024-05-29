@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
-
-
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const pathnameParts = url.pathname.split("/");
@@ -23,9 +21,7 @@ export async function GET(req: Request) {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: string;
-      };
+      decoded = jwt.verify(token, process.env.JWT_SECRET as string);
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -35,9 +31,9 @@ export async function GET(req: Request) {
       });
     }
 
-    if (!year) {
+    if (!year || isNaN(Number(year))) {
       return new NextResponse(
-        JSON.stringify({ error: "Please provide a year" }),
+        JSON.stringify({ error: "Please provide a valid year" }),
         {
           status: 400,
           headers: {
@@ -47,30 +43,35 @@ export async function GET(req: Request) {
       );
     }
 
-    const bookings = await prisma.order.findMany({
+    const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
+
+    const merchants = await prisma.merchantPendingPayment.findMany({
       where: {
-        status: "Berhasil",
-        AND: [
-          { start_date: { gte: new Date(`${year}-01-01`) } },
-          { start_date: { lte: new Date(`${year}-12-31`) } },
-          { merchant_id: decoded.merchantId },
-          
-        ],
+        status: "PAID",
+        payment_date: {
+          gte: startDate,
+          lte: endDate,
+        },
       },
     });
 
-    const bookingsPerMonth = bookings.reduce((acc: any, booking) => {
-      const month = booking.start_date.getMonth();
-      if (!acc[month]) {
-        acc[month] = { month: month + 1, count: 0 };
+    const bookingsPerMonth = Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      amount: 0,
+    }));
+
+    merchants.forEach((merchant) => {
+      if (merchant.payment_date) {
+        const month = new Date(merchant.payment_date).getMonth(); // 0-based index (0 for January, 11 for December)
+        const merchantYear = new Date(merchant.payment_date).getFullYear(); // Get the year of the payment_date
+        if (merchantYear.toString() === year) {
+          bookingsPerMonth[month].amount += merchant.amount; // Accumulate the amount for the corresponding month
+        }
       }
-      acc[month].count += 1;
-      return acc;
-    }, {});
+    });
 
-    const formattedData = Object.values(bookingsPerMonth);
-
-    return new NextResponse(JSON.stringify(formattedData), {
+    return new NextResponse(JSON.stringify(bookingsPerMonth), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

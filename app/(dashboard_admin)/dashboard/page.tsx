@@ -30,7 +30,7 @@ const { Option } = Select;
 const fetcher = (url: any) =>
   fetch(url, {
     headers: new Headers({
-      Authorization: `Bearer ${Cookies.get('token')}`,
+      Authorization: `Bearer ${Cookies.get("token")}`,
       "Content-Type": "application/json",
     }),
   })
@@ -59,31 +59,31 @@ export default function AdminDashboard() {
     "/api/order/totalOrder",
     fetcher
   );
-  const { data: totalPayments, error: errorTotalPayments } = useSWR(
+  const { data: totalBookings, error: errorTotalBookings } = useSWR(
     "/api/payment/totalPayment",
     fetcher
   );
+
+  const { data: totalPayments, error: errorTotalPayments } = useSWR(
+    "/api/payment/totalAmount",
+    fetcher
+  )
   const { data: monthlyPayments, error: errorMonthlyPayments } = useSWR(
     `/api/payment/${selectedYear}`,
     fetcher
   );
-  const { data: monthlyTotalAmount, error: errorMonthlyTotalAmount } = useSWR(
-    "/api/payment/totalAmount",
-    fetcher
-  );
-  const { data: monthlyOrders, error: errorMonthlyOrders } = useSWR(
-    `/api/order/${selectedYear}`,
+  const { data: monthlyBookings, error: errorMonthlyBookings } = useSWR(
+    `/api/booking/${selectedYear}`,
     fetcher
   );
 
-  
   const errors = [
     errorTotalVehicles,
     errorTotalOrders,
-    errorTotalPayments,
+    errorTotalBookings,
     errorMonthlyPayments,
-    errorMonthlyTotalAmount,
-    errorMonthlyOrders,
+    errorMonthlyBookings,
+    errorTotalPayments,
   ].find((e) => e);
 
   if (errors) {
@@ -100,18 +100,31 @@ export default function AdminDashboard() {
   if (
     typeof totalVehicles === "undefined" ||
     typeof totalOrders === "undefined" ||
-    typeof totalPayments === "undefined" ||
+    typeof totalBookings === "undefined" ||
     typeof monthlyPayments === "undefined" ||
-    typeof monthlyTotalAmount === "undefined" ||
-    typeof monthlyOrders === "undefined"
+    typeof monthlyBookings === "undefined" ||
+    typeof totalPayments === "undefined"
   ) {
     return <DashboardSkeleton />;
   }
 
+  const totalRevenue = totalPayments._sum.amount;
+
+  const monthlyPaymentsData = monthlyPayments.map((item: any) => ({
+    month: moment(item.month, "M").locale("id").format("MMMM"),
+    "Total Pendapatan": item.amount,
+    TotalPendapatanFormatted: `Rp ${item.amount.toLocaleString()}`,
+  }));
+
+  const monthlyBookingsData = monthlyBookings.map((item: any) => ({
+    month: moment(item.month, "M").locale("id").format("MMMM"),
+    "Jumlah Penyewaan": item.count,
+  }));
+
   return (
     <div>
       <>
-          <Title level={3}>{currentMonthYearSentence}</Title>
+        <Title level={3}>{currentMonthYearSentence}</Title>
         <Row gutter={16} style={{ margin: "20px 0" }}>
           {[
             {
@@ -126,14 +139,12 @@ export default function AdminDashboard() {
             },
             {
               title: "TOTAL BOOKING",
-              value: totalPayments,
+              value: totalBookings,
               icon: <BookOutlined />,
             },
             {
               title: "TOTAL PENDAPATAN",
-              value: monthlyPayments
-                ?.reduce((acc: any, item: any) => acc + item.amount, 0)
-                .toLocaleString(),
+              value: "Rp " + totalRevenue.toLocaleString(),
               icon: <DollarCircleOutlined />,
             },
           ].map((item, index) => (
@@ -202,90 +213,96 @@ export default function AdminDashboard() {
                 ))}
               </Select>
             </Col>
-            <Card
-              title={`Data Sewa Per Bulan Tahun ${selectedYear}`}
-              bordered={true}
-              style={{
-                marginBottom: 20,
-                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-                borderRadius: "10px",
-              }}
-            >
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={totalOrders}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            <Row gutter={16} style={{ marginTop: 40 }}>
+              <Col span={12}>
+                <Card
+                  title={`Data Sewa Per Bulan Tahun ${selectedYear}`}
+                  bordered={true}
+                  style={{
+                    marginBottom: 20,
+                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                    borderRadius: "10px",
+                  }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis
-                    allowDecimals={false}
-                    domain={["dataMin - 1", "dataMax + 1"]}
-                    label={{
-                      value: "Jumlah",
-                      angle: -90,
-                      position: "insideLeft",
-                    }}
-                  />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="Jumlah Penyewaan"
-                    stroke="#8884d8"
-                    activeDot={{ r: 8 }}
-                    animationBegin={500}
-                    animationDuration={2000}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </Card>
-            <Card
-              title={`Data Pendapatan Per Bulan Tahun ${selectedYear}`}
-              bordered={true}
-              style={{
-                marginBottom: 20,
-                boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
-                borderRadius: "10px",
-              }}
-            >
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart
-                  data={monthlyPayments}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={monthlyBookingsData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis
+                        allowDecimals={false}
+                        domain={["dataMin - 1", "dataMax + 1"]}
+                        label={{
+                          value: "Jumlah",
+                          angle: -90,
+                          position: "insideLeft",
+                        }}
+                      />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="Jumlah Penyewaan"
+                        stroke="#8884d8"
+                        activeDot={{ r: 8 }}
+                        animationBegin={500}
+                        animationDuration={2000}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Card>
+              </Col>
+              <Col span={12}>
+                <Card
+                  title={`Data Pendapatan Per Bulan Tahun ${selectedYear}`}
+                  bordered={true}
+                  style={{
+                    marginBottom: 20,
+                    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+                    borderRadius: "10px",
+                  }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis
-                    tickFormatter={(value) =>
-                      `${(value / 1000000).toFixed(1)} Jt`
-                    }
-                    domain={["dataMin", "dataMax"]}
-                    label={{
-                      value: "Total (Jt)",
-                      angle: -90,
-                      position: "insideLeft",
-                    }}
-                  />
-                  <Tooltip
-                    formatter={(value: any, name: any, props: any) => [
-                      props.payload.TotalPendapatanFormatted,
-                      "Total Pendapatan",
-                    ]}
-                  />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="TotalPendapatan"
-                    stroke="#82ca9d"
-                    name="Total Pendapatan"
-                    activeDot={{ r: 8 }}
-                    animationBegin={500}
-                    animationDuration={2000}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </Card>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={monthlyPaymentsData}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis
+                        tickFormatter={(value) =>
+                          `${(value / 1000000).toFixed(1)} Jt`
+                        }
+                        domain={["dataMin", "dataMax"]}
+                        label={{
+                          value: "Total (Jt)",
+                          angle: -90,
+                          position: "insideLeft",
+                        }}
+                      />
+                      <Tooltip
+                        formatter={(value: any, name: any, props: any) => [
+                          props.payload.TotalPendapatanFormatted,
+                          "Total Pendapatan",
+                        ]}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="Total Pendapatan"
+                        stroke="#82ca9d"
+                        name="Total Pendapatan"
+                        activeDot={{ r: 8 }}
+                        animationBegin={500}
+                        animationDuration={2000}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Card>
+              </Col>
+            </Row>
           </Col>
         </Row>
       </>

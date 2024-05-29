@@ -5,6 +5,7 @@ import {
   BankOutlined,
   BookOutlined,
   DashboardOutlined,
+  DatabaseOutlined,
   LogoutOutlined,
   OrderedListOutlined,
   TruckOutlined,
@@ -93,46 +94,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   };
 
-//   useEffect(() => {
-//     fetchDataWithLastChecked(
-//       "/api/order/count",
-//       "lastCheckedOrderTime",
-//       setNewOrdersCount
-//     );
-//     fetchDataWithLastChecked(
-//       "/api/booking/count",
-//       "lastCheckedBookingTime",
-//       setNewBookingsCount
-//     );
-
-//     const intervalId = setInterval(() => {
-//       fetchDataWithLastChecked(
-//         "/api/order/count",
-//         "lastCheckedOrderTime",
-//         setNewOrdersCount
-//       );
-//       fetchDataWithLastChecked(
-//         "/api/booking/count",
-//         "lastCheckedBookingTime",
-//         setNewBookingsCount
-//       );
-//     }, 30000);
-
-//     return () => clearInterval(intervalId);
-//   }, []);
-
-//   const handleOrderClick = () => {
-//     localStorage.setItem("lastCheckedOrderTime", Date.now().toString());
-//     setNewOrdersCount(0);
-//     router.push("/dashboard/order");
-//   };
-
-//   const handleBookingClick = () => {
-//     localStorage.setItem("lastCheckedBookingTime", Date.now().toString());
-//     setNewBookingsCount(0);
-//     router.push("/dashboard/booking");
-//   };
-
   if (shouldHideSidebar) {
     return <>{children}</>;
   }
@@ -145,12 +106,12 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     },
     {
       key: "/dashboard-admin/merchant",
-      icon: <TruckOutlined />,
+      icon: <UserOutlined />,
       label: <Link href="/dashboard-admin/merchant">Pelanggan</Link>,
     },
     {
       key: "/dashboard-admin/package",
-      icon: <TruckOutlined />,
+      icon: <DatabaseOutlined />,
       label: <Link href="/dashboard-admin/package">Paket</Link>,
     },
   ];

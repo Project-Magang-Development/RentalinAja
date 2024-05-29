@@ -21,7 +21,8 @@ export async function POST(req: Request) {
       package_description,
       package_price,
       package_feature,
-      count,
+      count_order,
+      count_vehicle,
       duration,
     } = body;
     let featureList = [];
@@ -54,8 +55,8 @@ export async function POST(req: Request) {
         package_description,
         package_price,
         package_feature,
-        count_order: count,
-        count_vehicle: count,
+        count_order: count_order,
+        count_vehicle: count_vehicle,
         duration,
       },
     });

@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const pathnameParts = url.pathname.split("/");
-  const year = parseInt(pathnameParts[pathnameParts.length - 1]);
+  const year = pathnameParts[pathnameParts.length - 1];
 
   try {
     const tokenHeader = req.headers.get("Authorization");
@@ -21,9 +21,7 @@ export async function GET(req: Request) {
 
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET as string) as {
-        merchantId: string;
-      };
+      decoded = jwt.verify(token, process.env.JWT_SECRET as string);
     } catch (error) {
       return new NextResponse(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -33,9 +31,9 @@ export async function GET(req: Request) {
       });
     }
 
-    if (!year) {
+    if (!year || isNaN(Number(year))) {
       return new NextResponse(
-        JSON.stringify({ error: "Please provide a year" }),
+        JSON.stringify({ error: "Please provide a valid year" }),
         {
           status: 400,
           headers: {
@@ -45,32 +43,35 @@ export async function GET(req: Request) {
       );
     }
 
-    const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year + 1, 0, 1);
+    const startDate = new Date(`${year}-01-01T00:00:00.000Z`);
+    const endDate = new Date(`${year}-12-31T23:59:59.999Z`);
 
-    const payments = await prisma.payment.findMany({
+    const merchants = await prisma.merchantPendingPayment.findMany({
       where: {
         status: "PAID",
-        AND: [
-          { merchant_id: decoded.merchantId },
-          { payment_date: { gte: startDate, lt: endDate } },
-        ],
+        payment_date: {
+          gte: startDate,
+          lte: endDate,
+        },
       },
     });
 
-    const paymentsPerMonth = Array.from({ length: 12 }, (_, index) => ({
-      month: index + 1,
-      amount: 0,
+    const bookingsPerMonth = Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      count: 0,
     }));
 
-    payments.forEach((payment) => {
-      const month = payment.payment_date?.getMonth();
-      if (month !== undefined) {
-        paymentsPerMonth[month].amount += payment.amount;
+    merchants.forEach((merchant) => {
+      if (merchant.payment_date) {
+        const month = new Date(merchant.payment_date).getMonth() + 1; // 1-based index (1 for January, 12 for December)
+        const merchantYear = new Date(merchant.payment_date).getFullYear(); // Get the year of the payment_date
+        if (merchantYear.toString() === year) {
+          bookingsPerMonth[month - 1].count += 1;
+        }
       }
     });
 
-    return new NextResponse(JSON.stringify(paymentsPerMonth), {
+    return new NextResponse(JSON.stringify(bookingsPerMonth), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

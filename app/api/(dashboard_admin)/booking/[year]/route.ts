@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const pathnameParts = url.pathname.split("/");
-  const year = parseInt(pathnameParts[pathnameParts.length - 1]);
+  const year = pathnameParts[pathnameParts.length - 1];
 
   try {
     const tokenHeader = req.headers.get("Authorization");
@@ -33,9 +33,9 @@ export async function GET(req: Request) {
       });
     }
 
-    if (!year) {
+    if (!year || isNaN(Number(year))) {
       return new NextResponse(
-        JSON.stringify({ error: "Please provide a year" }),
+        JSON.stringify({ error: "Please provide a valid year" }),
         {
           status: 400,
           headers: {
@@ -45,32 +45,43 @@ export async function GET(req: Request) {
       );
     }
 
-    const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year + 1, 0, 1);
+    const startDate = new Date(`${year}-01-01`);
+    const endDate = new Date(`${year}-12-31`);
 
-    const payments = await prisma.payment.findMany({
+    const bookings = await prisma.booking.findMany({
       where: {
-        status: "PAID",
-        AND: [
-          { merchant_id: decoded.merchantId },
-          { payment_date: { gte: startDate, lt: endDate } },
-        ],
+        merchant_id: decoded.merchantId,
+        Payment: {
+          status: "PAID",
+          Order: {
+            start_date: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+        },
+      },
+      include: {
+        Payment: {
+          include: {
+            Order: true,
+          },
+        },
       },
     });
 
-    const paymentsPerMonth = Array.from({ length: 12 }, (_, index) => ({
-      month: index + 1,
-      amount: 0,
+    const bookingsPerMonth = Array.from({ length: 12 }, (_, i) => ({
+      month: i + 1,
+      count: 0,
     }));
 
-    payments.forEach((payment) => {
-      const month = payment.payment_date?.getMonth();
-      if (month !== undefined) {
-        paymentsPerMonth[month].amount += payment.amount;
-      }
+    bookings.forEach((booking) => {
+      const month = booking.Payment.Order.start_date.getMonth(); // 0-based index (0 for January, 11 for December)
+      bookingsPerMonth[month].count += 1;
     });
 
-    return new NextResponse(JSON.stringify(paymentsPerMonth), {
+    // No need to filter, just return the full array
+    return new NextResponse(JSON.stringify(bookingsPerMonth), {
       status: 200,
       headers: {
         "Content-Type": "application/json",

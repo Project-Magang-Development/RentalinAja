@@ -556,6 +556,7 @@ export default function DetailVehiclePage() {
         visible={isPaymentModalVisible}
         title="Payment Details"
         onCancel={handleCancel}
+        width={1200}
         footer={[
           <Button key="back" onClick={handleCancel}>
             Cancel
