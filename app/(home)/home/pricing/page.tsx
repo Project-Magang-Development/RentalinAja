@@ -230,13 +230,16 @@ const Home: React.FC = () => {
             height: "auto",
           }}
         >
-          <Flex style={{ position: "relative", width: "100%", height: "100%" }}>
+          <Flex
+            style={{ position: "relative", width: "100%", height: "30rem" }}
+          >
             {/* Gambar */}
             <img
               style={{
                 objectFit: "cover",
                 borderRadius: "20px",
                 width: "100%",
+
                 height: "100%",
               }}
               src="/image/freeTrial.png"
@@ -248,7 +251,7 @@ const Home: React.FC = () => {
               style={{
                 position: "absolute",
                 top: 0,
-                left: -250,
+                left: -240,
                 width: "100%",
                 height: "100%",
                 justifyContent: "center",
@@ -259,7 +262,7 @@ const Home: React.FC = () => {
                 layout="vertical"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.8)",
-                  padding: "20px",
+                  padding: "10px",
                   borderRadius: "20px",
                   maxWidth: "400px",
                 }}
@@ -271,12 +274,13 @@ const Home: React.FC = () => {
                   style={{
                     textAlign: "center",
                     fontWeight: "bold",
-                    fontSize: "22px",
+                    fontSize: "18px",
                   }}
                 >
                   Dapatkan Uji Coba Gratis Sekarang!
                 </Title>
                 <Form.Item
+                  style={{ padding: "0" }}
                   label="Nama Lengkap"
                   name="fullName"
                   rules={[

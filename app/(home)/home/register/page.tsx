@@ -24,6 +24,8 @@ import {
   CheckOutlined,
 } from "@ant-design/icons";
 import { useSearchParams } from "next/navigation";
+import Navbar from "@/app/components/Navbar";
+import FooterSection from "@/app/components/footer";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -148,23 +150,6 @@ const RegisterDashboard: React.FC = () => {
       return { id_invoice: null };
     }
   };
-
-  // const getMerchantByEmail = async (email: string): Promise<any> => {
-  //   try {
-  //     const response = await axios.get(`/api/merchant/show?email=${email}`);
-  //     if (response.status === 200 && response.data) {
-  //       return response.data;
-  //     } else {
-  //       throw new Error("Failed to get merchant by email");
-  //     }
-  //   } catch (error: any) {
-  //     console.error(
-  //       "Error fetching merchant by email:",
-  //       error.response?.data || error.message
-  //     );
-  //     throw error;
-  //   }
-  // };
 
   useEffect(() => {
     if (pendingId && packageData.package_price === 0) {
@@ -330,291 +315,333 @@ const RegisterDashboard: React.FC = () => {
   };
 
   return (
-    <Layout className="layout" style={{ minHeight: "100vh" }}>
-      {/*//Container untuk Layout Form  */}
-
-      <Content
-        style={{
-          padding: "50px",
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "space-evenly",
-        }}
+    <>
+      <Navbar />
+      <Layout
+        className="layout"
+        style={{ minHeight: "100vh", backgroundColor: "transparent" }}
       >
-        <Flex vertical gap={25}>
-          <Flex
-            vertical
-            style={{
-              backgroundColor: "white",
-              height: "auto",
-              width: "300px",
-              padding: "2rem",
-              boxShadow:
-                "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
-              borderRadius: "20px",
-            }}
-            justify="start"
-          >
-            <p style={{ fontSize: "19px", fontWeight: "bold" }}>
-              {packageData.package_name}
-            </p>
-            <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
-              Rp.
-              {packageData?.package_price
-                ? packageData.package_price.toLocaleString()
-                : "0"}
-            </p>
-            <p
-              style={{
-                color: "#A5A5A5",
-                fontSize: "17px",
-                fontWeight: "normal",
-              }}
-            >
-              /bulan
-            </p>
-            {/* //TODO: tambahkan field package_description */}
-            {/* //TODO: tambahkan field package_feature */}
-            <p style={{ marginTop: "1rem" }}>
-              {packageData.package_description}
-            </p>
-            <ul>
-              {features.length > 0 ? (
-                features.map((feature, index) => (
-                  <li
-                    key={index}
-                    style={{ display: "flex", marginTop: "1rem" }}
-                  >
-                    <CheckOutlined style={{ marginRight: "5px" }} />
-
-                    {feature}
-                  </li>
-                ))
-              ) : (
-                <li>Tidak ada fitur yang tersedia</li>
-              )}
-            </ul>
-          </Flex>
-          <Flex
-            style={{
-              backgroundColor: "white",
-              height: "auto",
-              marginBottom: "20px",
-            }}
-          >
-            Master Card
-          </Flex>
-        </Flex>
-        <Flex
+        {/*//Container untuk Layout Form  */}
+        <img
+          src="/icons/wave10.svg"
           style={{
+            objectFit: "cover",
+            position: "absolute",
+            bottom: 0,
+            width: "100%",
+            height: "auto",
+            zIndex: 0,
+            top: "26px",
+          }}
+        />
+
+        <Content
+          style={{
+            backgroundColor: "transparent",
+            justifyItems: " center",
+            zIndex: 1,
             padding: "50px",
-            backgroundColor: "#FFFFFF",
-            borderRadius: "20px",
-            boxShadow:
-              "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-evenly",
           }}
         >
-          {/* form mengirim value ke function createInvoice dan createMerchant */}
-          <Form
-            form={form}
-            name="register"
-            className="register-form"
-            onFinish={onFinish}
-            style={{ maxWidth: "900px" }}
-            size="large"
-          >
-            <Title
-              level={2}
+          <Flex align="center" vertical gap={25} style={{ zIndex: 1 }}>
+            <Flex
+              vertical
               style={{
-                textAlign: "center",
-                marginBottom: "24px",
-                fontWeight: "bolder",
+                backgroundColor: "white",
+                height: "auto",
+                width: "300px",
+                padding: "2rem",
+                boxShadow:
+                  "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
+                borderRadius: "20px",
               }}
+              justify="start"
             >
-              Pendaftaran Rental
-            </Title>
-            <p
-              style={{
-                fontSize: "19px",
-                fontWeight: "bold",
-                marginBottom: 0,
-              }}
-            >
-              Register Penanggung Jawab Rental
-            </p>
-            <Divider style={{ border: "1px solid #6B7CFF", marginTop: 5 }} />
-            <Flex gap={10}>
-              <Form.Item
-                name="given_name"
-                rules={[{ required: true, message: "Please input your Name!" }]}
-              >
-                <Input
-                  prefix={<UserOutlined className="site-form-item-icon" />}
-                  placeholder="Nama Depan"
-                  style={formBig}
-                />
-              </Form.Item>
-              <Form.Item
-                name="surname"
-                rules={[{ required: true, message: "Please input your Name!" }]}
-              >
-                <Input
-                  prefix={<UserOutlined className="site-form-item-icon" />}
-                  placeholder="Nama Belakang"
-                  style={formBig}
-                />
-              </Form.Item>
-            </Flex>
-            <Form.Item
-              name="whatsapp"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your whatsapp number!",
-                },
-              ]}
-            >
-              <Input
-                prefix={<PhoneOutlined className="site-form-item-icon" />}
-                placeholder="No Whatsapp"
-                style={formBig}
-              />
-            </Form.Item>
-            {/*//Form  Data rental  */}
-
-            <p
-              style={{
-                fontSize: "19px",
-                fontWeight: "bold",
-                marginBottom: 0,
-              }}
-            >
-              Data Rental
-            </p>
-            <Divider style={{ border: "1px solid #6B7CFF", marginTop: 5 }} />
-            <Flex gap={10} style={{ width: "100%" }}>
-              <Form.Item
-                name="company"
-                rules={[
-                  {
-                    required: true,
-                    message: "Masukan Nama Rental!",
-                  },
-                ]}
-              >
-                <Input
-                  prefix={<UserOutlined className="site-form-item-icon" />}
-                  placeholder="Nama Rental"
-                  style={formBig}
-                />
-              </Form.Item>
-              <Form.Item
+              <p style={{ fontSize: "19px", fontWeight: "bold" }}>
+                {packageData.package_name}
+              </p>
+              <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                Rp.
+                {packageData?.package_price
+                  ? packageData.package_price.toLocaleString()
+                  : "0"}
+              </p>
+              <p
                 style={{
-                  width: "50%",
+                  color: "#A5A5A5",
+                  fontSize: "17px",
+                  fontWeight: "normal",
                 }}
-                name="jenis_rental"
+              >
+                /bulan
+              </p>
+              {/* //TODO: tambahkan field package_description */}
+              {/* //TODO: tambahkan field package_feature */}
+              <p style={{ marginTop: "1rem" }}>
+                {packageData.package_description}
+              </p>
+              <ul>
+                {features.length > 0 ? (
+                  features.map((feature, index) => (
+                    <li
+                      key={index}
+                      style={{ display: "flex", marginTop: "1rem" }}
+                    >
+                      <CheckOutlined
+                        style={{ marginRight: "5px", color: "#6B7CFF" }}
+                      />
+
+                      {feature}
+                    </li>
+                  ))
+                ) : (
+                  <li>Tidak ada fitur yang tersedia</li>
+                )}
+              </ul>
+            </Flex>
+            <Flex
+              gap={15}
+              vertical
+              style={{
+                backgroundColor: "white",
+                borderRadius: " 20px",
+                height: "auto",
+                padding: "1rem",
+              }}
+            >
+              <p style={{ fontSize: "20px", fontWeight: "bold" }}>
+                Metode Pembayaran
+              </p>
+              <img
+                style={{ width: "100%" }}
+                src="/image/metode.png"
+                alt="metode"
+              />
+            </Flex>
+          </Flex>
+          <Flex
+            style={{
+              padding: "50px",
+              backgroundColor: "#FFFFFF",
+              borderRadius: "20px",
+              boxShadow:
+                "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
+            }}
+          >
+            {/* form mengirim value ke function createInvoice dan createMerchant */}
+            <Form
+              form={form}
+              name="register"
+              className="register-form"
+              onFinish={onFinish}
+              style={{ maxWidth: "900px" }}
+              size="large"
+            >
+              <Title
+                level={2}
+                style={{
+                  textAlign: "center",
+                  marginBottom: "24px",
+                  fontWeight: "bolder",
+                }}
+              >
+                Pendaftaran Rental
+              </Title>
+              <p
+                style={{
+                  fontSize: "19px",
+                  fontWeight: "bold",
+                  marginBottom: 0,
+                }}
+              >
+                Register Penanggung Jawab Rental
+              </p>
+              <Divider style={{ border: "1px solid #6B7CFF", marginTop: 5 }} />
+              <Flex gap={10}>
+                <Form.Item
+                  name="given_name"
+                  rules={[
+                    { required: true, message: "Please input your Name!" },
+                  ]}
+                >
+                  <Input
+                    prefix={<UserOutlined className="site-form-item-icon" />}
+                    placeholder="Nama Depan"
+                    style={formBig}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="surname"
+                  rules={[
+                    { required: true, message: "Please input your Name!" },
+                  ]}
+                >
+                  <Input
+                    prefix={<UserOutlined className="site-form-item-icon" />}
+                    placeholder="Nama Belakang"
+                    style={formBig}
+                  />
+                </Form.Item>
+              </Flex>
+              <Form.Item
+                name="whatsapp"
                 rules={[
                   {
                     required: true,
-                    message: "Masukan Nama Rental!",
+                    message: "Please input your whatsapp number!",
                   },
                 ]}
               >
-                <Select
-                  className="custom-select"
-                  placeholder="Jenis Rental"
-                  style={{
-                    height: "3rem",
-                    borderColor: "black",
-                    borderRadius: "20px",
-                  }}
-                >
-                  <Select.Option value="motor">Motor</Select.Option>
-                  <Select.Option value="mobil">Mobil</Select.Option>
-                  <Select.Option value="mobilMotor">
-                    Motor & Mobil
-                  </Select.Option>
-                  {/* //TODO: tambahkan option lain */}
-                </Select>
+                <Input
+                  prefix={<PhoneOutlined className="site-form-item-icon" />}
+                  placeholder="No Whatsapp"
+                  style={formBig}
+                />
               </Form.Item>
-            </Flex>
-            <Form.Item
-              name="city"
-              rules={[
-                {
-                  required: true,
-                  message: "Masukan Kota",
-                },
-              ]}
-            >
-              <Input
-                prefix={<EnvironmentOutlined className="site-form-item-icon" />}
-                placeholder="Kota"
-                style={formBig}
-              />
-            </Form.Item>
-            <Form.Item
-              name="street_line1"
-              rules={[
-                {
-                  required: true,
-                  message: "Masukan alamat",
-                },
-              ]}
-            >
-              <Input
-                prefix={<EnvironmentOutlined className="site-form-item-icon" />}
-                placeholder="Jalan"
-                style={formBig}
-              />
-            </Form.Item>
-            <Form.Item
-              name="email"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your Email!",
-                  type: "email",
-                },
-              ]}
-            >
-              <Input
-                prefix={<MailOutlined className="site-form-item-icon" />}
-                placeholder="Email"
-                style={formBig}
-              />
-            </Form.Item>
-            <Form.Item
-              name="password"
-              rules={[
-                { required: true, message: "Please input your Password!" },
-              ]}
-            >
-              <Input
-                prefix={<LockOutlined className="site-form-item-icon" />}
-                type="password"
-                placeholder="Password"
-                style={formBig}
-              />
-            </Form.Item>
-            <Form.Item>
-              <Flex justify="center">
-                <Button
-                  style={{ width: "50%", marginTop: "24px" }}
-                  type="primary"
-                  htmlType="submit"
-                  className="register-form-button"
-                  block
-                  loading={loading}
+              {/*//Form  Data rental  */}
+
+              <p
+                style={{
+                  fontSize: "19px",
+                  fontWeight: "bold",
+                  marginBottom: 0,
+                }}
+              >
+                Data Rental
+              </p>
+              <Divider style={{ border: "1px solid #6B7CFF", marginTop: 5 }} />
+              <Flex gap={10} style={{ width: "100%" }}>
+                <Form.Item
+                  name="company"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Masukan Nama Rental!",
+                    },
+                  ]}
                 >
-                  Register
-                </Button>
+                  <Input
+                    prefix={<UserOutlined className="site-form-item-icon" />}
+                    placeholder="Nama Rental"
+                    style={formBig}
+                  />
+                </Form.Item>
+                <Form.Item
+                  style={{
+                    width: "50%",
+                  }}
+                  name="jenis_rental"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Masukan Nama Rental!",
+                    },
+                  ]}
+                >
+                  <Select
+                    className="custom-select"
+                    placeholder="Jenis Rental"
+                    style={{
+                      height: "3rem",
+                      borderColor: "black",
+                      borderRadius: "20px",
+                    }}
+                  >
+                    <Select.Option value="motor">Motor</Select.Option>
+                    <Select.Option value="mobil">Mobil</Select.Option>
+                    <Select.Option value="mobilMotor">
+                      Motor & Mobil
+                    </Select.Option>
+                    {/* //TODO: tambahkan option lain */}
+                  </Select>
+                </Form.Item>
               </Flex>
-            </Form.Item>
-          </Form>
-        </Flex>
-      </Content>
-    </Layout>
+              <Form.Item
+                name="city"
+                rules={[
+                  {
+                    required: true,
+                    message: "Masukan Kota",
+                  },
+                ]}
+              >
+                <Input
+                  prefix={
+                    <EnvironmentOutlined className="site-form-item-icon" />
+                  }
+                  placeholder="Kota"
+                  style={formBig}
+                />
+              </Form.Item>
+              <Form.Item
+                name="street_line1"
+                rules={[
+                  {
+                    required: true,
+                    message: "Masukan alamat",
+                  },
+                ]}
+              >
+                <Input
+                  prefix={
+                    <EnvironmentOutlined className="site-form-item-icon" />
+                  }
+                  placeholder="Jalan"
+                  style={formBig}
+                />
+              </Form.Item>
+              <Form.Item
+                name="email"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please input your Email!",
+                    type: "email",
+                  },
+                ]}
+              >
+                <Input
+                  prefix={<MailOutlined className="site-form-item-icon" />}
+                  placeholder="Email"
+                  style={formBig}
+                />
+              </Form.Item>
+              <Form.Item
+                name="password"
+                rules={[
+                  { required: true, message: "Please input your Password!" },
+                ]}
+              >
+                <Input
+                  prefix={<LockOutlined className="site-form-item-icon" />}
+                  type="password"
+                  placeholder="Password"
+                  style={formBig}
+                />
+              </Form.Item>
+              <Form.Item>
+                <Flex justify="center">
+                  <Button
+                    style={{ width: "50%", marginTop: "24px" }}
+                    type="primary"
+                    htmlType="submit"
+                    className="register-form-button"
+                    block
+                    loading={loading}
+                  >
+                    Register
+                  </Button>
+                </Flex>
+              </Form.Item>
+            </Form>
+          </Flex>
+        </Content>
+      </Layout>
+      <FooterSection />
+    </>
   );
 };
 

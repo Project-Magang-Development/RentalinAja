@@ -43,6 +43,10 @@ module.exports = {
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js", ".jsx"],
+    fallback: {
+      path: require.resolve("path-browserify"),
+      util: require.resolve("util/"),
+    },
   },
   plugins: [
     new HtmlWebpackPlugin({

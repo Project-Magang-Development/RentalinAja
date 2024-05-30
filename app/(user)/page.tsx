@@ -29,19 +29,25 @@ interface FormValues {
   capacity: number;
 }
 
-const Schedules: React.FC = () => {
+interface SchedulesProps {
+  apiKey: string;
+}
+
+const Schedules: React.FC<SchedulesProps> = ({ apiKey: propApiKey }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState("");
+  const [apiKey, setApiKey] = useState<string>(propApiKey);
   const dateFormat = "DD MMMM YYYY";
 
   useEffect(() => {
-    const key = document
-      .querySelector("script[apiKey]")
-      ?.getAttribute("apiKey");
-    if (key) {
-      setApiKey(key);
+    if (!propApiKey) {
+      const key = document
+        .querySelector("script[apiKey]")
+        ?.getAttribute("apiKey");
+      if (key) {
+        setApiKey(key);
+      }
     }
-  }, []);
+  }, [propApiKey]);
 
   const handleFinish = async (values: FormValues) => {
     const startDateFormatted = values.startDate.format("YYYY-MM-DD");
@@ -207,23 +213,16 @@ const Schedules: React.FC = () => {
             <h1
               style={{
                 textAlign: "center",
-                color: "rgba(0, 0, 0, 0.5)",
                 fontWeight: "normal",
                 fontSize: "1rem",
                 marginTop: "20px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
+                color: "#6B7CFF",
               }}
             >
-              Powered By
-              <Image
-                src="/logo.png"
-                alt="Vercel Logo"
-                width={120}
-                height={30}
-                style={{ marginLeft: "8px" }}
-              />
+              Powered By RentalinAja
             </h1>
           </Form>
         </div>

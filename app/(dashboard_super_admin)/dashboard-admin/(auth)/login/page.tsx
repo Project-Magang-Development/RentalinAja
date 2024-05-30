@@ -35,14 +35,48 @@ export default function LoginDashboardSuperAdmin() {
       Cookies.set("tokenAdmin", data.token);
       message.success("Login successful!");
       setLoading(false);
-      window.location.href ="/dashboard-admin";
+      router.push("/dashboard-admin");
     } catch (error) {
       message.error("Login failed.");
     }
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout style={{ minHeight: "100vh", overflow: "hidden" }}>
+      <img
+        src="/icons/buletan 1.svg"
+        alt=""
+        style={{
+          position: "absolute",
+          top: 50,
+          right: 1000,
+          width: 450,
+          height: 450,
+        }}
+      />
+      <img
+        src="/icons/buletan 2.svg"
+        alt=""
+        style={{
+          position: "absolute",
+          top: -10,
+          right: -20,
+          width: 250,
+          height: 250,
+        }}
+      />
+      <img
+        src="/icons/panah3.svg"
+        alt=""
+        style={{
+          objectFit: "cover",
+          position: "absolute",
+          top: 258,
+          right: -20,
+          width: 250,
+          height: 250,
+        }}
+      />
       <Content
         style={{
           display: "flex",
@@ -60,10 +94,20 @@ export default function LoginDashboardSuperAdmin() {
             initialValues={{ remember: true }}
             onFinish={onFinish}
           >
-            <Form.Item name="email" rules={[{ required: true, message: "" }]}>
+            <Form.Item
+              name="email"
+              rules={[{ required: true, message: "Please input your Email!" }]}
+            >
               <Input
                 prefix={<UserOutlined className="site-form-item-icon" />}
-                placeholder="Email"
+                placeholder="Username"
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid #000",
+                  borderRadius: "0",
+                  paddingLeft: "0",
+                }}
+                className="custom-input"
               />
             </Form.Item>
             <Form.Item
@@ -76,11 +120,18 @@ export default function LoginDashboardSuperAdmin() {
                 prefix={<LockOutlined className="site-form-item-icon" />}
                 type="password"
                 placeholder="Password"
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid #000",
+                  borderRadius: "0",
+                  paddingLeft: "0",
+                }}
               />
             </Form.Item>
 
             <Form.Item>
               <Button
+                style={{ backgroundColor: "#6B7CFF" }}
                 type="primary"
                 htmlType="submit"
                 className="login-form-button"
