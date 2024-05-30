@@ -50,7 +50,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
           <Col>
             <Row align="middle" gutter={20}>
               <Col>
-                <Image src="/logo.png" alt="logo" width={200} height={200} />
+                <Image src="/logo.png" alt="logo" width={140} height={140} />
               </Col>
             </Row>
           </Col>
@@ -69,10 +69,11 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 </Link>
               </Col>
               <Col>
-                <Link href="/" passHref>
+                <Link href="/home/tentangKami" passHref>
                   <p
                     style={{
-                      color: pathname === "/" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
+                      color:
+                        pathname === "/home/tentangKami" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
                     }}
                   >
                     Tentang Kami
@@ -80,10 +81,10 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 </Link>
               </Col>
               <Col>
-                <Link href="/" passHref>
+                <Link href="/home/fitur" passHref>
                   <p
                     style={{
-                      color: pathname === "/" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
+                      color: pathname === "/home/fitur" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
                     }}
                   >
                     Fitur
@@ -102,10 +103,10 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
                 </Link>
               </Col>
               <Col>
-                <Link href="/" passHref>
+                <Link href="/home/Kontak" passHref>
                   <p
                     style={{
-                      color: pathname === "/" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
+                      color: pathname === "/home/Kontak" ? "#6B7CFF" : "black", // Change this line.pathname === "/" ? "#6B7CFF" : "black",
                     }}
                   >
                     Kontak
