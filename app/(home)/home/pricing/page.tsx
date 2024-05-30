@@ -1,10 +1,31 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Card, Col, Row, Spin, Alert, Flex, Button, message } from "antd";
+import {
+  Card,
+  Col,
+  Row,
+  Spin,
+  Alert,
+  Flex,
+  Button,
+  message,
+  Input,
+  Form,
+  Typography,
+} from "antd";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import { CheckOutlined } from "@ant-design/icons";
+import {
+  BankOutlined,
+  CheckOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  UserOutlined,
+} from "@ant-design/icons";
+import Navbar from "@/app/components/Navbar";
+import FooterSection from "@/app/components/footer";
+import Title from "antd/es/typography/Title";
 
 interface Package {
   package_id: string;
@@ -69,108 +90,261 @@ const Home: React.FC = () => {
     }
   };
 
+  function onFinish(values: any): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
-    <Flex align="center" vertical>
-      <h1 style={{ fontSize: "2rem", color: "#6B7CFF", fontWeight: "bold" }}>
-        Pilihan Paket Untuk Anda
-      </h1>
-      <p style={{ textAlign: "center", width: "50%", marginBlock: "1rem" }}>
-        Temukan paket sempurna untuk kebutuhan Anda dengan opsi harga yang
-        terjangkau. Temukan harga bersaing dan dapatkan nilai luar biasa yang
-        kami tawarkan pada layanan terbaik kami.
-      </p>
-      <Flex
-        style={{ display: "flex", flexWrap: "wrap", justifyContent: "center" }}
-      >
-        {packages.map((pkg, index) => (
-          <Flex
-            vertical
-            justify="end"
-            gap={40}
-            align="center"
-            key={pkg.package_id}
-            style={{
-              margin: "1rem",
-              padding: "2rem",
-              width: "340px",
-              height: "auto",
-              borderRadius: "15px",
-              WebkitBoxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
-              MozBoxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
-              boxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              cursor: "pointer",
-              maxWidth: "100%",
-              transition: "border 0.1s", // Transisi untuk efek hover
-              border: "2px solid transparent", // Set default border
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.border = "2px solid #6B7CFF"; // Ubah warna border saat hover
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.border = "2px solid transparent"; // Kembalikan warna border saat tidak dihover
-            }}
-          >
-            <Flex vertical>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <p style={{ fontSize: "1.4rem", fontWeight: "bold" }}>
-                  {pkg.package_name}
+    <>
+      <Navbar />
+      <Flex align="center" vertical>
+        <h1 style={{ fontSize: "25px", color: "#6B7CFF", fontWeight: "bold" }}>
+          Pilihan Paket Untuk Anda
+        </h1>
+        <p
+          style={{
+            fontSize: "15px",
+            textAlign: "center",
+            width: "50%",
+            marginBlock: "1rem",
+          }}
+        >
+          Temukan paket sempurna untuk kebutuhan Anda dengan opsi harga yang
+          terjangkau. Temukan harga bersaing dan dapatkan nilai luar biasa yang
+          kami tawarkan pada layanan terbaik kami.
+        </p>
+        <Flex
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+          }}
+        >
+          {packages.map((pkg, index) => (
+            <Flex
+              vertical
+              justify="end"
+              gap={40}
+              align="center"
+              key={pkg.package_id}
+              style={{
+                margin: "1rem",
+                padding: "2rem",
+                width: "320px",
+                height: "auto",
+                borderRadius: "15px",
+                WebkitBoxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
+                MozBoxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
+                boxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
+                flexDirection: "column",
+                justifyContent: "space-between",
+                cursor: "pointer",
+                maxWidth: "100%",
+                transition: "border 0.1s", // Transisi untuk efek hover
+                border: "2px solid transparent", // Set default border
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.border = "2px solid #6B7CFF"; // Ubah warna border saat hover
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.border = "2px solid transparent"; // Kembalikan warna border saat tidak dihover
+              }}
+            >
+              <Flex vertical>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <p style={{ fontSize: "17px", fontWeight: "bold" }}>
+                    {pkg.package_name}
+                  </p>
+                  <p style={{ marginTop: "0.1rem", fontSize: "15px" }}>
+                    {pkg.duration} Months
+                  </p>
+                </div>
+                <div style={{ marginTop: "0.5rem" }}>
+                  <p style={{ fontSize: "25px", fontWeight: "bold" }}>
+                    Rp {pkg.package_price.toLocaleString()}
+                  </p>
+                  <p style={{ color: "gray" }}>/bulan</p>
+                </div>
+                <p
+                  style={{
+                    marginTop: "20px",
+                    textAlign: "justify",
+                    fontSize: "13px",
+                  }}
+                >
+                  {pkg.package_description}
                 </p>
-                <p style={{ marginTop: "0.3rem" }}>{pkg.duration} Months</p>
-              </div>
-              <div style={{ marginTop: "1rem" }}>
-                <p style={{ fontSize: "1.9rem", fontWeight: "bold" }}>
-                  Rp {pkg.package_price.toLocaleString()}
-                </p>
-                <p style={{ color: "gray" }}>/bulan</p>
-              </div>
-              <p style={{ marginTop: "1rem", textAlign: "justify" }}>
-                {pkg.package_description}
-              </p>
-              <ul style={{ marginTop: "1rem" }}>
-                {features[index]?.length > 0 ? (
-                  features[index].map((feature, idx) => (
-                    <li
-                      key={idx}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginTop: "1.4rem",
-                      }}
-                    >
-                      <CheckOutlined
+                <ul style={{ marginTop: "0.2rem" }}>
+                  {features[index]?.length > 0 ? (
+                    features[index].map((feature, idx) => (
+                      <li
+                        key={idx}
                         style={{
-                          marginRight: "5px",
-                          color: "#6B7CFF",
+                          display: "flex",
+                          alignItems: "center",
+                          marginTop: "0.6rem",
                         }}
-                      />
-                      {feature.trim()}
-                    </li>
-                  ))
-                ) : (
-                  <li>Tidak ada fitur yang tersedia</li>
-                )}
-              </ul>
+                      >
+                        <CheckOutlined
+                          style={{
+                            marginRight: "5px",
+                            color: "#6B7CFF",
+                          }}
+                        />
+                        {feature.trim()}
+                      </li>
+                    ))
+                  ) : (
+                    <li>Tidak ada fitur yang tersedia</li>
+                  )}
+                </ul>
+              </Flex>
+              <Flex style={{ width: "100%" }}>
+                <Button
+                  onClick={() => handleCardClick(pkg.package_id.toString())}
+                  loading={loading}
+                  block
+                  size="large"
+                  style={{
+                    backgroundColor: "#6B7CFF",
+                    color: "white",
+                  }}
+                >
+                  Daftar Sekarang
+                </Button>
+              </Flex>
             </Flex>
-            <Flex style={{ width: "100%" }}>
-              <Button
-                onClick={() => handleCardClick(pkg.package_id.toString())}
-                loading={loading}
-                block
-                size="large"
+          ))}
+        </Flex>
+        <Flex
+          justify="center"
+          align="center"
+          style={{
+            marginTop: "2rem",
+            padding: "5rem",
+            paddingInline: "8rem",
+            position: "relative",
+            width: "100%",
+            height: "auto",
+          }}
+        >
+          <Flex style={{ position: "relative", width: "100%", height: "100%" }}>
+            {/* Gambar */}
+            <img
+              style={{
+                objectFit: "cover",
+                borderRadius: "20px",
+                width: "100%",
+                height: "100%",
+              }}
+              src="/image/freeTrial.png"
+              alt=""
+            />
+            {/* Div dengan form di dalamnya */}
+            <Flex
+              vertical
+              style={{
+                position: "absolute",
+                top: 0,
+                left: -250,
+                width: "100%",
+                height: "100%",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Form
+                layout="vertical"
                 style={{
-                  backgroundColor: "#6B7CFF",
-                  color: "white",
+                  backgroundColor: "rgba(255, 255, 255, 0.8)",
+                  padding: "20px",
+                  borderRadius: "20px",
+                  maxWidth: "400px",
                 }}
+                name="basic"
+                onFinish={onFinish}
               >
-                Daftar Sekarang
-              </Button>
+                <Title
+                  level={3}
+                  style={{
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: "22px",
+                  }}
+                >
+                  Dapatkan Uji Coba Gratis Sekarang!
+                </Title>
+                <Form.Item
+                  label="Nama Lengkap"
+                  name="fullName"
+                  rules={[
+                    { required: true, message: "Masukkan Nama Lengkap Anda!" },
+                  ]}
+                >
+                  <Input
+                    prefix={<UserOutlined />}
+                    placeholder="Masukkan Nama Lengkap Anda"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  required={true}
+                  label="Nama Perusahaan"
+                  name="companyName"
+                >
+                  <Input
+                    prefix={<BankOutlined />}
+                    placeholder="Masukkan Nama Perusahaan Anda"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  label="Email"
+                  name="email"
+                  rules={[
+                    {
+                      required: true,
+                      type: "email",
+                      message: "Masukkan Email Anda!",
+                    },
+                  ]}
+                >
+                  <Input
+                    prefix={<MailOutlined />}
+                    placeholder="Masukkan Email Anda"
+                  />
+                </Form.Item>
+
+                <Form.Item label="Nomor Telepon" name="phone">
+                  <Input
+                    prefix={<PhoneOutlined />}
+                    placeholder="Masukkan Nomor Telepon Anda"
+                  />
+                </Form.Item>
+
+                <Form.Item>
+                  <Button
+                    type="primary"
+                    htmlType="submit"
+                    style={{
+                      width: "100%",
+                      backgroundColor: "#1D2130",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Kirim Permintaan
+                  </Button>
+                </Form.Item>
+              </Form>
             </Flex>
           </Flex>
-        ))}
+        </Flex>
       </Flex>
-    </Flex>
+
+      <FooterSection />
+    </>
   );
 };
 

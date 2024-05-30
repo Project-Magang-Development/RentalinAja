@@ -107,11 +107,6 @@ export async function POST(req: Request) {
       },
     });
 
-    // const updatedMerchant = await prisma.merchant.update({
-    //   where: { merchant_id: merchantId!.merchant_id },
-    //   data: { used_storage_order: { increment: 1 } },
-    // });
-
     let transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {

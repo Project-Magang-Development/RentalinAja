@@ -2,7 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { Layout, Row, Col, Card, Typography, Button, Steps } from "antd";
-import { CarTwoTone, StopOutlined, UsergroupAddOutlined } from "@ant-design/icons";
+import {
+  CarTwoTone,
+  StopOutlined,
+  UsergroupAddOutlined,
+} from "@ant-design/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Footer } from "antd/es/layout/layout";
@@ -137,7 +141,7 @@ const VehiclePage = () => {
                     style={{
                       position: "relative",
                       width: "100%",
-                      height: "210px",
+                      height: "150px",
                     }}
                   >
                     {Array.isArray(schedule.Vehicle.VehicleImages) &&
@@ -162,7 +166,7 @@ const VehiclePage = () => {
                       />
                     )}
                   </div>
-                  <div style={{ padding: "0 16px 16px" }}>
+                  <div style={{ padding: "" }}>
                     <div
                       style={{
                         display: "flex",
@@ -217,10 +221,21 @@ const VehiclePage = () => {
                         alignItems: "center",
                       }}
                     >
-                      <Row style={{ display: "flex", alignItems: "center" }}>
+                      <Row
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                        }}
+                      >
                         <Title
                           level={3}
-                          style={{ margin: 0, fontWeight: "bold" }}
+                          style={{
+                            margin: 0,
+                            fontWeight: "bold",
+                            fontSize: 18,
+                            display: "flex",
+                          }}
                         >
                           {new Intl.NumberFormat("id-ID", {
                             style: "currency",
@@ -230,7 +245,12 @@ const VehiclePage = () => {
                         </Title>
                         <Title
                           level={5}
-                          style={{ color: "grey", margin: 0, marginLeft: 5 }}
+                          style={{
+                            color: "grey",
+                            margin: 0,
+                            marginLeft: 5,
+                            display: "flex",
+                          }}
                         >
                           /day
                         </Title>

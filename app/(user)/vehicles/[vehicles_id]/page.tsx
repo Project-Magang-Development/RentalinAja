@@ -287,7 +287,7 @@ export default function DetailVehiclePage() {
       console.log(result);
 
       if (result && result.invoice_url) {
-        window.open(result.invoice_url, "_blank");
+        window.location.href = result.invoice_url;
       }
     } catch (error) {
       console.error(error);
