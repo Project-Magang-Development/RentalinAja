@@ -140,16 +140,16 @@ export default function AdminMerchantDashboard() {
       key: "package_name",
       render: (packageName: string) => packageName || "Tidak tersedia",
     },
-    {
-      title: "Harga Paket",
-      dataIndex: ["MerchantPayment", "MerchantPendingPayment", "amount"],
-      key: "amount",
-      render: (amount: number) =>
-        amount.toLocaleString("id-ID", {
-          style: "currency",
-          currency: "IDR",
-        }) || "Tidak tersedia",
-    },
+    // {
+    //   title: "Harga Paket",
+    //   dataIndex: ["MerchantPayment", "MerchantPendingPayment", "amount"],
+    //   key: "amount",
+    //   render: (amount: number) =>
+    //     amount.toLocaleString("id-ID", {
+    //       style: "currency",
+    //       currency: "IDR",
+    //     }) || "Tidak tersedia",
+    // },
     {
       title: "Nama Rental",
       dataIndex: ["MerchantPayment", "MerchantPendingPayment", "rental_name"],
@@ -164,11 +164,6 @@ export default function AdminMerchantDashboard() {
       title: "Kota Merchant",
       dataIndex: ["MerchantPayment", "MerchantPendingPayment", "merchant_city"],
       key: "merchant_city",
-    },
-    {
-      title: "Status Pembayaran",
-      dataIndex: ["MerchantPayment", "MerchantPendingPayment", "status"],
-      key: "status",
     },
   ];
 

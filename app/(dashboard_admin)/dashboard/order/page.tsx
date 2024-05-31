@@ -14,13 +14,15 @@ import {
   Select,
   Space,
   Table,
+  Tooltip,
 } from "antd";
 import moment from "moment";
+import "moment/locale/id";
 import Title from "antd/es/typography/Title";
 import TableSkeleton from "@/app/components/tableSkeleton";
 import useSWR, { mutate } from "swr";
 import Cookies from "js-cookie";
-import { PlusOutlined } from "@ant-design/icons";
+import { EyeOutlined, PlusOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 const { Option } = Select;
 
@@ -34,6 +36,7 @@ interface Order {
   price: number;
   status: string;
   phone: string;
+  external_id: string;
   Schedule: Schedule;
 }
 
@@ -148,13 +151,13 @@ export default function AdminOrderDashboard() {
       title: "Tanggal Mulai",
       dataIndex: "start_date",
       key: "start_date",
-      render: (text: any) => moment(text).format("DD MMMM YYYY"),
+      render: (text: any) => moment(text).locale("id").format("DD MMMM YYYY"),
     },
     {
       title: "Tanggal Selesai",
       dataIndex: "end_date",
       key: "end_date",
-      render: (text: any) => moment(text).format("DD MMMM YYYY"),
+      render: (text: any) => moment(text).locale("id").format("DD MMMM YYYY"),
     },
     {
       title: "Total Harga",
@@ -206,14 +209,29 @@ export default function AdminOrderDashboard() {
         );
       },
     },
+    {
+      title: "Aksi",
+      key: "action",
+      render: (text: any, record: any) => (
+        <Space size="middle">
+          <Tooltip title="Detail Invoice">
+            <Button
+              icon={<EyeOutlined />}
+              onClick={() => rowClickHandler(record.external_id)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            />
+          </Tooltip>
+        </Space>
+      ),
+    },
   ];
 
-  const rowClickHandler = (record: any) => {
-    return {
-      onClick: () => {
-        router.push(`/dashboard/order/${record.external_id}`);
-      },
-    };
+  const rowClickHandler = (external_id: string) => {
+    router.push(`/dashboard/order/${external_id}`);
   };
 
   const showModal = () => {
@@ -316,9 +334,9 @@ export default function AdminOrderDashboard() {
     <div>
       <Flex justify="space-between">
         <Title level={3}>Data Penyewaan Kendaraan</Title>
-        <Button type="primary" onClick={showModal} icon={<PlusOutlined />}>
+        {/* <Button type="primary" onClick={showModal} icon={<PlusOutlined />}>
           Tambah Order
-        </Button>
+        </Button> */}
       </Flex>
       <Divider />
       <Flex justify="space-between">
@@ -334,7 +352,6 @@ export default function AdminOrderDashboard() {
       </Flex>
 
       <Table
-        onRow={rowClickHandler}
         columns={columns}
         dataSource={filteredOrder.map((order: any, index: any) => ({
           ...order,
@@ -351,7 +368,7 @@ export default function AdminOrderDashboard() {
         }}
       />
 
-      <Modal
+      {/* <Modal
         title="Tambah Order"
         visible={isModalVisible}
         footer={null}
@@ -425,7 +442,7 @@ export default function AdminOrderDashboard() {
             </Button>
           </Form.Item>
         </Form>
-      </Modal>
+      </Modal> */}
     </div>
   );
 }

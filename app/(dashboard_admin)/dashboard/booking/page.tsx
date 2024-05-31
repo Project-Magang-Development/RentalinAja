@@ -19,6 +19,7 @@ import {
   Input,
 } from "antd";
 import moment from "moment";
+import "moment/locale/id";
 import Title from "antd/es/typography/Title";
 import TableSkeleton from "@/app/components/tableSkeleton";
 import {
@@ -101,15 +102,6 @@ export default function AdminBookingDashboard() {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [searchText, setSearchText] = useState("");
 
-
-
-  const StatusFilter = () => (
-    <Radio.Group onChange={handleFilterChange} value={filterStatus}>
-      <Radio.Button value="">Semua</Radio.Button>
-      <Radio.Button value="Berhasil">Berhasil</Radio.Button>
-      <Radio.Button value="Gagal">Gagal</Radio.Button>
-    </Radio.Group>
-  );
 
   const handleFilterChange = (e: any) => {
     setFilterStatus(e.target.value);
@@ -280,13 +272,15 @@ export default function AdminBookingDashboard() {
       title: "Tanggal Mulai",
       dataIndex: "start_date",
       key: "start_date",
-      render: (text: any) => moment(text).format("DD MMMM YYYY"),
+      render: (_: any, record: any) =>
+        moment(record?.Order?.start_date).locale("id").format("DD MMMM YYYY"),
     },
     {
       title: "Tanggal Selesai",
       dataIndex: "end_date",
       key: "end_date",
-      render: (text: any) => moment(text).format("DD MMMM YYYY"),
+      render: (_: any, record: any) =>
+        moment(record?.Order?.end_date).locale("id").format("DD MMMM YYYY"),
     },
     {
       title: "Total Harga",
