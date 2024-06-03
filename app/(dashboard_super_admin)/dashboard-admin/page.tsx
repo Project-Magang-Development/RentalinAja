@@ -85,7 +85,8 @@ export default function SuperAdminDashboard() {
     return <DashboardSkeleton />;
   }
 
-  const totalRevenue = monthlyPayments._sum.amount;
+  const totalRevenue =
+    monthlyPayments._sum.amount !== null ? monthlyPayments._sum.amount : 0;
 
   const yearPaymentsData =
     yearAmounts?.map((item: any) => ({

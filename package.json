@@ -46,6 +46,7 @@
     "react-responsive-carousel": "^3.2.23",
     "react-to-pdf": "^1.0.1",
     "recharts": "^2.12.3",
+    "schedules-rentalinaja": "^1.0.0",
     "swr": "^2.2.5",
     "util": "^0.12.5"
   },
@@ -77,6 +78,4 @@
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^5.0.4"
   }
-  
 }
-

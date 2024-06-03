@@ -108,7 +108,8 @@ export default function AdminDashboard() {
     return <DashboardSkeleton />;
   }
 
-  const totalRevenue = totalPayments._sum.amount;
+  const totalRevenue =
+    totalPayments._sum.amount !== null ? totalPayments._sum.amount : 0;
 
   const monthlyPaymentsData = monthlyPayments.map((item: any) => ({
     month: moment(item.month, "M").locale("id").format("MMMM"),

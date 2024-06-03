@@ -39,8 +39,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const siderWidthExpanded = 200;
   const router = useRouter();
   const pathname = usePathname();
-  const companyName = useCompanyName();
-  const merchantName = useMerchantName();
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [newBookingsCount, setNewBookingsCount] = useState(0);
 
