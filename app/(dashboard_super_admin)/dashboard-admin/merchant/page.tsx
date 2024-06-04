@@ -1,101 +1,169 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Divider, message, Table } from "antd";
+import React, { useMemo, useState } from "react";
+import { Divider, Input, message, Table } from "antd";
 import moment from "moment";
+import "moment/locale/id";
 import Title from "antd/es/typography/Title";
 import Cookies from "js-cookie";
+import useSWR from "swr";
+import TableSkeleton from "@/app/components/tableSkeleton";
 
 interface Package {
   package_id: string;
   package_name: string;
   package_price: number;
-  storage_limit: number;
+}
+
+interface MerchantPendingPayment {
+  merchant_name: string;
+  package_name: string;
+  amount: number;
+  rental_name: string;
+  rental_type: string;
+  merchant_city: string;
+  status: string;
 }
 
 interface Merchant {
-  merchant_id: string;
-  merchant_name: string;
-  package: Package;
+  pending_id: string;
+  status_subscriber: string;
+  start_date: string;
+  end_date: string;
+  MerchantPayment: {
+    MerchantPendingPayment: MerchantPendingPayment;
+  };
 }
 
+const fetcher = (url: string) =>
+  fetch(url, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${Cookies.get("tokenAdmin")}`,
+    },
+  }).then((res) => res.json());
+
 export default function AdminMerchantDashboard() {
-  const [merchants, setMerchants] = useState<Merchant[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { data: merchants, error, isLoading } = useSWR("/api/merchant/show", fetcher);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
+  const [searchText, setSearchText] = useState("");
 
-  const fetchMerchants = async () => {
-    setLoading(true);
-    const token = Cookies.get("tokenAdmin");
-    if (!token) {
-      message.error("Authentication token not found.");
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/merchant/show", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch merchants.");
-
-      const data = await response.json();
-      setMerchants(data);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching merchants:", error);
-      message.error("Failed to fetch merchants.");
-      setLoading(false);
-    }
+  const handleSearch = (e: any) => {
+    setSearchText(e.target.value);
   };
 
-  useEffect(() => {
-    fetchMerchants();
-  }, []);
+  const filteredMerchants = useMemo(() => {
+    if (!merchants) return [];
+
+    return merchants.filter((merchant: Merchant) => {
+      const startDate = merchant.start_date
+        ? moment(merchant.start_date).format("D MMMM YYYY").toLowerCase()
+        : "";
+      const endDate = merchant.end_date
+        ? moment(merchant.end_date).format("D MMMM YYYY").toLowerCase()
+        : "";
+      return (
+        (merchant.MerchantPayment.MerchantPendingPayment.merchant_name || "")
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        startDate.includes(searchText.toLowerCase()) ||
+        endDate.includes(searchText.toLowerCase()) ||
+        (merchant.MerchantPayment?.MerchantPendingPayment?.package_name || "")
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        (merchant.MerchantPayment?.MerchantPendingPayment?.amount || 0)
+          .toString()
+          .includes(searchText) ||
+        (merchant.MerchantPayment?.MerchantPendingPayment?.rental_name || "")
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        (merchant.MerchantPayment?.MerchantPendingPayment?.merchant_city || "")
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        (merchant.MerchantPayment?.MerchantPendingPayment?.status || "")
+          .toLowerCase()
+          .includes(searchText.toLowerCase())
+      );
+    });
+  }, [merchants, searchText]);
+
+  if (error) {
+    message.error("Failed to fetch merchants.");
+    console.error("Error fetching merchants:", error);
+  }
+
+  if(isLoading) {
+    return <TableSkeleton/>
+  }
+
 
   const columns = [
     {
       title: "No",
-      dataIndex: "merchant_id",
-      key: "merchant_id",
+      dataIndex: "pending_id",
+      key: "pending_id",
       render: (value: number, _: Merchant, index: number) =>
         (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
       title: "Nama Merchant",
-      dataIndex: "merchant_name",
+      dataIndex: ["MerchantPayment", "MerchantPendingPayment", "merchant_name"],
       key: "merchant_name",
     },
     {
+      title: "Status Subscriber",
+      dataIndex: "status_subscriber",
+      key: "status_subscriber",
+    },
+    {
+      title: "Tanggal Mulai",
+      dataIndex: "start_date",
+      key: "start_date",
+      render: (date: string) =>
+        date
+          ? moment(date).locale("id").format("DD MMMM YYYY")
+          : "Tidak tersedia",
+    },
+    {
+      title: "Tanggal Selesai",
+      dataIndex: "end_date",
+      key: "end_date",
+      render: (date: string) =>
+        date
+          ? moment(date).locale("id").format("DD MMMM YYYY")
+          : "Tidak tersedia",
+    },
+    {
       title: "Nama Paket",
-      dataIndex: "package",
+      dataIndex: ["MerchantPayment", "MerchantPendingPayment", "package_name"],
       key: "package_name",
-      render: (packageData: Package) =>
-        packageData?.package_name || "Tidak tersedia",
+      render: (packageName: string) => packageName || "Tidak tersedia",
+    },
+    // {
+    //   title: "Harga Paket",
+    //   dataIndex: ["MerchantPayment", "MerchantPendingPayment", "amount"],
+    //   key: "amount",
+    //   render: (amount: number) =>
+    //     amount.toLocaleString("id-ID", {
+    //       style: "currency",
+    //       currency: "IDR",
+    //     }) || "Tidak tersedia",
+    // },
+    {
+      title: "Nama Rental",
+      dataIndex: ["MerchantPayment", "MerchantPendingPayment", "rental_name"],
+      key: "rental_name",
     },
     {
-      title: "Penyimpanan",
-      dataIndex: "package",
-      key: "storage_limit",
-      render: (packageData: Package) =>
-        `${packageData?.storage_limit} GB` ||
-        packageData?.storage_limit ||
-        "Tidak tersedia",
+      title: "Jenis Rental",
+      dataIndex: ["MerchantPayment", "MerchantPendingPayment", "rental_type"],
+      key: "rental_type",
     },
     {
-      title: "Harga Paket",
-      dataIndex: "package",
-      key: "package_price",
-      render: (packageData: Package) =>
-        packageData?.package_price.toLocaleString("id-ID", {
-          style: "currency",
-          currency: "IDR",
-        }) || "Tidak tersedia",
+      title: "Kota Merchant",
+      dataIndex: ["MerchantPayment", "MerchantPendingPayment", "merchant_city"],
+      key: "merchant_city",
     },
   ];
 
@@ -103,11 +171,19 @@ export default function AdminMerchantDashboard() {
     <div>
       <Title level={3}>Data Merchant</Title>
       <Divider />
+      <div style={{ display: "flex", justifyContent: "end" }}>
+        <Input
+          placeholder="Cari Merchant..."
+          value={searchText}
+          onChange={handleSearch}
+          style={{ width: "50%", height: "35px", marginBottom: "20px" }}
+        />
+      </div>
       <Table
         columns={columns}
-        dataSource={merchants}
-        loading={loading}
-        rowKey="merchant_id"
+        dataSource={filteredMerchants}
+        loading={!merchants && !error}
+        rowKey="pending_id"
         pagination={pagination}
         onChange={(newPagination) => {
           setPagination({
@@ -119,3 +195,4 @@ export default function AdminMerchantDashboard() {
     </div>
   );
 }
+

@@ -27,6 +27,11 @@ export async function GET(req: Request) {
           merchant_email: email,
         },
         include: {
+          MerchantPayment: {
+            include: {
+              Merchant: true
+            }
+          },
           package: true,
         },
       });
@@ -51,12 +56,20 @@ export async function GET(req: Request) {
       });
     } else if (token) {
       // Handle GET request with token for fetching all merchants
-      const merchant = await prisma.merchantPendingPayment.findMany({
+      const merchant = await prisma.merchant.findMany({
         orderBy: {
-          pending_id: "desc",
+          merchant_id: "desc",
         },
         include: {
-          package: true,
+          MerchantPayment: {
+            include: {
+              MerchantPendingPayment: {
+                include: {
+                  package: true,
+                }
+              }
+            }
+          },
         },
       });
 

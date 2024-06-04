@@ -81,9 +81,10 @@ export default function AdminPackageDashboard() {
         package_name: values.name,
         package_description: values.description,
         package_feature: values.feature,
-        package_price: parseInt(values.price, 10),
-        count: parseInt(values.count, 10),
-        duration: parseInt(values.duration, 10),
+        package_price: parseInt(values.price),
+        count_order: parseInt(values.count_order),
+        count_vehicle: parseInt(values.count_vehicle),
+        duration: parseInt(values.duration),
       };
       console.log(payload);
       setLoading(true);
@@ -173,7 +174,8 @@ export default function AdminPackageDashboard() {
       description: packageToEdit.package_description,
       feature: packageToEdit.package_feature,
       price: packageToEdit.package_price,
-      count: packageToEdit.count_order,
+      count_order: packageToEdit.count_order,
+      count_vehicle : packageToEdit.count_vehicle,
       duration: packageToEdit.duration,
     });
     setIsModalVisible(true);
@@ -245,14 +247,14 @@ export default function AdminPackageDashboard() {
       key: "package_feature",
     },
     {
-      title: "Penyimpanan Data",
-      dataIndex: "count_order",
-      key: "count_order",
-    },
-    {
-      title: "Penyimpanan Kendaraan",
+      title: "Penyimpanan Data Kendaraan",
       dataIndex: "count_vehicle",
       key: "count_vechicle",
+    },
+    {
+      title: "Penyimpanan Data Order",
+      dataIndex: "count_order",
+      key: "count_order",
     },
     {
       title: "Durasi",
@@ -364,15 +366,26 @@ export default function AdminPackageDashboard() {
             <Input placeholder="Harga Paket" />
           </Form.Item>
           <Form.Item
-            name="count"
+            name="count_vehicle"
             rules={[
               {
                 required: true,
-                message: "Tolong Masukan Penyimpanan Data Yang Masuk!",
+                message: "Tolong Masukan Penyimpanan Data Order Yang Masuk!",
               },
             ]}
           >
-            <Input placeholder="Penyimpanan Data Yang Masuk (Boleh Kosong)" />
+            <Input placeholder="Penyimpanan Data Order Yang Masuk (Boleh Kosong)" />
+          </Form.Item>
+          <Form.Item
+            name="count_order"
+            rules={[
+              {
+                required: true,
+                message: "Tolong Masukan Penyimpanan Data Kendaraan Yang Masuk!",
+              },
+            ]}
+          >
+            <Input placeholder="Penyimpanan Data Kendaraan Yang Masuk (Boleh Kosong)" />
           </Form.Item>
           <Form.Item
             name="duration"

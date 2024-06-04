@@ -54,6 +54,7 @@ export default function LoginDashboard() {
         src="/icons/buletan 1.svg"
         alt=""
         style={{
+
           objectFit: "fill",
           position: "absolute",
           top: 50,

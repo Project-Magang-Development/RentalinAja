@@ -1,14 +1,15 @@
 /* eslint-disable react/no-deprecated */
+import React from "react";
 import ReactDOM from "react-dom";
-import "antd"; 
-import Schedules from "../(user)/page";
+import SchedulerComponent from "./embedScheduleReact"; 
 
 const App: React.FC = () => {
- 
+  const apiKey =
+    document.querySelector("script[apiKey]")?.getAttribute("apiKey") || "";
+
   return (
     <div id="app-container">
-      <Schedules
-      />
+      <SchedulerComponent apiKey={apiKey} />
     </div>
   );
 };

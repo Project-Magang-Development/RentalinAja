@@ -60,11 +60,12 @@ export async function POST(req: Request) {
         merchantId: merchant.merchant_id,
         email: merchantPendingPayment.merchant_email,
         merchant_name: merchantPendingPayment.merchant_name,
+        api_key: merchant.api_key,
       },
       process.env.JWT_SECRET as string
     );
 
-    return NextResponse.json({ token, apiKey: merchant.api_key });
+    return NextResponse.json({token});
   } catch (error) {
     console.error("Error accessing database:", error);
     return new NextResponse(

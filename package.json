@@ -39,13 +39,16 @@
     "next": "14.1.2",
     "next-transpile-modules": "^10.0.1",
     "nodemailer": "^6.9.13",
+    "path-browserify": "^1.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-fast-marquee": "^1.6.4",
     "react-responsive-carousel": "^3.2.23",
     "react-to-pdf": "^1.0.1",
     "recharts": "^2.12.3",
-    "swr": "^2.2.5"
+    "schedules-rentalinaja": "^1.0.0",
+    "swr": "^2.2.5",
+    "util": "^0.12.5"
   },
   "devDependencies": {
     "@babel/core": "^7.24.4",

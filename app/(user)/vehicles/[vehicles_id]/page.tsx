@@ -230,7 +230,6 @@ export default function DetailVehiclePage() {
       });
 
       if (!response.ok) {
-        console.log("harga kendaraan", vehicle?.price);
         throw new Error(`Error: ${response.statusText}`);
       }
 
@@ -557,6 +556,7 @@ export default function DetailVehiclePage() {
         visible={isPaymentModalVisible}
         title="Payment Details"
         onCancel={handleCancel}
+        width={900}
         footer={[
           <Button key="back" onClick={handleCancel}>
             Cancel
