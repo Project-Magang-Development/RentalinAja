@@ -319,19 +319,27 @@ const RegisterDashboard: React.FC = () => {
       <Navbar />
       <Layout
         className="layout"
-        style={{ minHeight: "100vh", backgroundColor: "transparent" }}
+        style={{
+          zIndex: 1,
+          minHeight: "100vh",
+          backgroundColor: "transparent",
+          display: "flex",
+          overflow: "hidden",
+        }}
       >
         {/*//Container untuk Layout Form  */}
         <img
-          src="/icons/wave10.svg"
+          src="/waves/wave6.svg"
           style={{
-            objectFit: "cover",
+            overflow: "hidden",
+            objectFit: "fill",
             position: "absolute",
             bottom: 0,
             width: "100%",
             height: "auto",
             zIndex: 0,
-            top: "26px",
+            top: "-200px",
+            marginBottom: "10px",
           }}
         />
 
@@ -625,22 +633,26 @@ const RegisterDashboard: React.FC = () => {
               <Form.Item>
                 <Flex justify="center">
                   <Button
-                    style={{ width: "50%", marginTop: "24px" }}
-                    type="primary"
+                    style={{
+                      color: " white",
+                      width: "50%",
+                      marginTop: "24px",
+                      backgroundColor: " #6B7CFF",
+                    }}
                     htmlType="submit"
                     className="register-form-button"
                     block
                     loading={loading}
                   >
-                    Register
+                    Kirim Permintaan
                   </Button>
                 </Flex>
               </Form.Item>
             </Form>
           </Flex>
         </Content>
+        <FooterSection />
       </Layout>
-      <FooterSection />
     </>
   );
 };

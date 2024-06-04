@@ -54,10 +54,10 @@ export default function LoginDashboard() {
         src="/icons/buletan 1.svg"
         alt=""
         style={{
+
+          objectFit: "fill",
           position: "absolute",
           top: 50,
-          right: 1000,
-          width: 450,
           height: 450,
         }}
       />
@@ -76,7 +76,7 @@ export default function LoginDashboard() {
         src="/icons/panah3.svg"
         alt=""
         style={{
-          objectFit: "cover",
+          objectFit: "fill",
           position: "absolute",
           top: 258,
           right: -20,

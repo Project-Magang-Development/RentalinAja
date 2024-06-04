@@ -49,10 +49,9 @@ const RegisterDashboard: React.FC = () => {
         src="/icons/buletan 1.svg"
         alt=""
         style={{
+          objectFit: "fill",
           position: "absolute",
           top: 50,
-          right: 1000,
-          width: 450,
           height: 450,
         }}
       />
@@ -60,6 +59,7 @@ const RegisterDashboard: React.FC = () => {
         src="/icons/buletan 2.svg"
         alt=""
         style={{
+          objectFit: "fill",
           position: "absolute",
           top: -10,
           right: -20,

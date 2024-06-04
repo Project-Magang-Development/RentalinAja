@@ -15,6 +15,7 @@ import CustomCollapse from "@/app/components/Accordion";
 import Accordion from "@/app/components/Accordion";
 import FooterDaftar from "@/app/components/footerDaftar";
 import FooterSection from "@/app/components/footer";
+import "../../../app/globals.css";
 
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
@@ -66,23 +67,17 @@ const Home = () => {
   return (
     <div style={{ overflow: "hidden" }}>
       <Navbar />
+
       <Layout style={{ background: "#FFFFFF", overflow: "hidden" }}>
         <RadialBlur
           layer={0}
           opacity={0.9}
           height="490px"
           width="490px"
-          left="-170px"
+          left="auto"
           top="-220px"
         />
-        <RadialBlur
-          layer={0}
-          opacity={0.9}
-          left="1150px"
-          width="490px"
-          height="490px"
-          top="-120px"
-        />
+
         <Content
           style={{ paddingInline: "50px", marginBottom: "5rem", zIndex: 1 }}
         >
@@ -232,9 +227,10 @@ const Home = () => {
             position: "absolute",
             bottom: 0,
             width: "100%",
+
             height: "auto",
             zIndex: 0,
-            top: "230px",
+            top: "170px",
           }}
         />
         <Flex
@@ -617,24 +613,17 @@ const Home = () => {
             </Flex>
           </Flex>
         </Flex>
-        {/* //? Wave background */}
-        <img
-          src="/waves/wave2.svg"
-          style={{
-            objectFit: "cover",
-            position: "absolute",
-            bottom: 0,
-            width: "100%",
-            height: "auto",
-            zIndex: 0,
-            top: "2730px",
-          }}
-        />
+
         <Flex
           vertical
           justify="center"
           align="center"
-          style={{ marginTop: "12rem", zIndex: 1, marginBottom: " 10rem" }}
+          style={{
+            marginTop: "12rem",
+            zIndex: 2,
+            marginBottom: " 10rem",
+            objectFit: "contain",
+          }}
           gap={30}
         >
           <Flex vertical align="center">
@@ -686,6 +675,7 @@ const Home = () => {
             wrap="wrap"
             gap={50}
             style={{
+              zIndex: 2,
               width: "50rem",
               height: "auto",
               backgroundColor: "#9DA8FF",
@@ -742,6 +732,20 @@ const Home = () => {
               </Button>
             </Flex>
           </Flex>
+
+          {/* //? Wave background */}
+
+          <img
+            src="/waves/wave2.svg"
+            style={{
+              objectFit: "cover",
+              position: "absolute",
+              bottom: -3120,
+              width: "100%",
+              height: "auto",
+              zIndex: 0,
+            }}
+          />
         </Flex>
         <Flex vertical align="center" style={{ marginBottom: " 5.8rem" }}>
           <p
@@ -789,21 +793,22 @@ const Home = () => {
           ></div>
         </Flex>
 
-        <img
-          draggable={false}
-          style={{
-            backgroundSize: "cover",
-            position: "absolute",
-            objectFit: "cover",
-            bottom: 0,
-            width: "100%",
-            height: "auto",
-            zIndex: 0,
-            top: "3570px",
-          }}
-          src="/waves/wave3.svg"
-          alt=""
-        />
+        <div className="wave-slider">
+          <img
+            draggable={false}
+            style={{
+              backgroundSize: "contain",
+              position: "absolute",
+              objectFit: "cover",
+              bottom: 0,
+              width: "100%",
+              height: "auto",
+              zIndex: 0,
+            }}
+            src="/waves/wave3.svg"
+            alt=""
+          />
+        </div>
         <InfiniteTestimonials />
 
         <Flex vertical align="center">
@@ -889,8 +894,8 @@ const Home = () => {
           opacity={1}
           height="400px"
           width="400px"
-          left="370px"
-          top="5490px"
+          left="400px"
+          top="5690px"
         />
         <FooterSection />
       </Layout>

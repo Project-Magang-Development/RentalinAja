@@ -236,6 +236,10 @@ const Home: React.FC = () => {
             {/* Gambar */}
             <img
               style={{
+                zIndex: "0",
+                position: "absolute",
+                top: 0,
+                left: 20,
                 objectFit: "cover",
                 borderRadius: "20px",
                 width: "100%",
@@ -248,14 +252,13 @@ const Home: React.FC = () => {
             {/* Div dengan form di dalamnya */}
             <Flex
               vertical
+              justify="center"
+              align="start"
               style={{
-                position: "absolute",
-                top: 0,
-                left: -240,
+                zIndex: "1",
                 width: "100%",
                 height: "100%",
-                justifyContent: "center",
-                alignItems: "center",
+                marginInline: "50px",
               }}
             >
               <Form
@@ -264,7 +267,10 @@ const Home: React.FC = () => {
                   backgroundColor: "rgba(255, 255, 255, 0.8)",
                   padding: "10px",
                   borderRadius: "20px",
-                  maxWidth: "400px",
+
+                  display: " flex",
+                  flexWrap: "wrap",
+                  flexDirection: "column",
                 }}
                 name="basic"
                 onFinish={onFinish}
