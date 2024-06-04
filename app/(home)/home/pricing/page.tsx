@@ -230,13 +230,20 @@ const Home: React.FC = () => {
             height: "auto",
           }}
         >
-          <Flex style={{ position: "relative", width: "100%", height: "100%" }}>
+          <Flex
+            style={{ position: "relative", width: "100%", height: "30rem" }}
+          >
             {/* Gambar */}
             <img
               style={{
+                zIndex: "0",
+                position: "absolute",
+                top: 0,
+                left: 20,
                 objectFit: "cover",
                 borderRadius: "20px",
                 width: "100%",
+
                 height: "100%",
               }}
               src="/image/freeTrial.png"
@@ -245,23 +252,25 @@ const Home: React.FC = () => {
             {/* Div dengan form di dalamnya */}
             <Flex
               vertical
+              justify="center"
+              align="start"
               style={{
-                position: "absolute",
-                top: 0,
-                left: -250,
+                zIndex: "1",
                 width: "100%",
                 height: "100%",
-                justifyContent: "center",
-                alignItems: "center",
+                marginInline: "50px",
               }}
             >
               <Form
                 layout="vertical"
                 style={{
                   backgroundColor: "rgba(255, 255, 255, 0.8)",
-                  padding: "20px",
+                  padding: "10px",
                   borderRadius: "20px",
-                  maxWidth: "400px",
+
+                  display: " flex",
+                  flexWrap: "wrap",
+                  flexDirection: "column",
                 }}
                 name="basic"
                 onFinish={onFinish}
@@ -271,12 +280,13 @@ const Home: React.FC = () => {
                   style={{
                     textAlign: "center",
                     fontWeight: "bold",
-                    fontSize: "22px",
+                    fontSize: "18px",
                   }}
                 >
                   Dapatkan Uji Coba Gratis Sekarang!
                 </Title>
                 <Form.Item
+                  style={{ padding: "0" }}
                   label="Nama Lengkap"
                   name="fullName"
                   rules={[

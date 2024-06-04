@@ -10,7 +10,7 @@ const { Content } = Layout;
 const { Title } = Typography;
 
 export default function LoginDashboard() {
-   const router = useRouter();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const onFinish = async (values: any) => {
@@ -39,12 +39,51 @@ export default function LoginDashboard() {
     } catch (error) {
       message.error("Login failed.");
     }
-
-   
   };
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Layout
+      style={{
+        maxHeight: "100vh",
+        minHeight: "100vh",
+        overflow: "hidden",
+        overflowY: "hidden",
+      }}
+    >
+      <img
+        src="/icons/buletan 1.svg"
+        alt=""
+        style={{
+          objectFit: "fill",
+          position: "absolute",
+          top: 50,
+          height: 450,
+        }}
+      />
+      <img
+        src="/icons/buletan 2.svg"
+        alt=""
+        style={{
+          position: "absolute",
+          top: -10,
+          right: -20,
+          width: 250,
+          height: 250,
+        }}
+      />
+      <img
+        src="/icons/panah3.svg"
+        alt=""
+        style={{
+          objectFit: "fill",
+          position: "absolute",
+          top: 258,
+          right: -20,
+          width: 250,
+          height: 250,
+        }}
+      />
+
       <Content
         style={{
           display: "flex",
@@ -64,13 +103,18 @@ export default function LoginDashboard() {
           >
             <Form.Item
               name="email"
-              rules={[
-                { required: true, message: "" },
-              ]}
+              rules={[{ required: true, message: "Please input your Email!" }]}
             >
               <Input
                 prefix={<UserOutlined className="site-form-item-icon" />}
-                placeholder="Email"
+                placeholder="Username"
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid #000",
+                  borderRadius: "0",
+                  paddingLeft: "0",
+                }}
+                className="custom-input"
               />
             </Form.Item>
             <Form.Item
@@ -83,11 +127,18 @@ export default function LoginDashboard() {
                 prefix={<LockOutlined className="site-form-item-icon" />}
                 type="password"
                 placeholder="Password"
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid #000",
+                  borderRadius: "0",
+                  paddingLeft: "0",
+                }}
               />
             </Form.Item>
 
             <Form.Item>
               <Button
+                style={{ backgroundColor: "#6B7CFF" }}
                 type="primary"
                 htmlType="submit"
                 className="login-form-button"
