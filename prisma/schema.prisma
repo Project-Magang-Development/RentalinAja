@@ -24,6 +24,7 @@ model Merchant {
   status_subscriber      String                 @default("Aktif")
   start_date             DateTime?
   end_date               DateTime?
+  merchant_email         String                 @unique
   api_key                String                 @unique
   used_storage_vehicle   Int                    @default(0)
   used_storage_order     Int                    @default(0)
