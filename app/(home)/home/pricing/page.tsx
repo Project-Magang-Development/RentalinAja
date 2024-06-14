@@ -26,6 +26,7 @@ import {
 import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/footer";
 import Title from "antd/es/typography/Title";
+import Section from "@/app/components/RevealAnimation";
 
 interface Package {
   package_id: string;
@@ -49,7 +50,7 @@ const fetcher = async (url: string) => {
 };
 
 const Home: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+  const [loadingButton, setLoadingButton] = useState<string | null>(null);
   const [features, setFeatures] = useState<string[][]>([]);
   const { data: packages, error } = useSWR<Package[]>(
     "/api/showPackage",
@@ -73,152 +74,161 @@ const Home: React.FC = () => {
 
   if (!packages) {
     return (
-      <Spin size="large" tip="Loading Packages...">
-        <Row gutter={16} style={{ minHeight: "200px" }} />
-      </Spin>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          gap: "1rem",
+        }}
+      >
+        <Spin size="large" tip="Loading... " />
+        <p style={{ color: "#6B7CFF" }}>Sedang memuat paket</p>
+      </div>
     );
   }
 
-  const handleCardClick = (packageId: string) => {
+  const handleCardClick = async (packageId: string) => {
     try {
-      setLoading(true);
-      router.push(`/home/register?package=${packageId}`);
+      setLoadingButton(packageId);
+      await router.push(`/home/register?package=${packageId}`);
     } catch (error) {
-      setLoading(false);
       console.log(error);
-      message.error(" Terjadi kesalahan saat memilih paket");
+      message.error("Terjadi kesalahan saat memilih paket");
+    } finally {
+      setLoadingButton(null);
     }
   };
-
-  function onFinish(values: any): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <>
       <Navbar />
-      <Flex align="center" vertical>
-        <h1 style={{ fontSize: "25px", color: "#6B7CFF", fontWeight: "bold" }}>
-          Pilihan Paket Untuk Anda
-        </h1>
-        <p
-          style={{
-            fontSize: "15px",
-            textAlign: "center",
-            width: "50%",
-            marginBlock: "1rem",
-          }}
-        >
-          Temukan paket sempurna untuk kebutuhan Anda dengan opsi harga yang
-          terjangkau. Temukan harga bersaing dan dapatkan nilai luar biasa yang
-          kami tawarkan pada layanan terbaik kami.
-        </p>
-        <Flex
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
-          }}
-        >
-          {packages.map((pkg, index) => (
-            <Flex
-              vertical
-              justify="end"
-              gap={40}
-              align="center"
-              key={pkg.package_id}
-              style={{
-                margin: "1rem",
-                padding: "2rem",
-                width: "320px",
-                height: "auto",
-                borderRadius: "15px",
-                WebkitBoxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
-                MozBoxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
-                boxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                cursor: "pointer",
-                maxWidth: "100%",
-                transition: "border 0.1s", // Transisi untuk efek hover
-                border: "2px solid transparent", // Set default border
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.border = "2px solid #6B7CFF"; // Ubah warna border saat hover
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.border = "2px solid transparent"; // Kembalikan warna border saat tidak dihover
-              }}
-            >
-              <Flex vertical>
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <p style={{ fontSize: "17px", fontWeight: "bold" }}>
-                    {pkg.package_name}
+      <Section>
+        <Flex align="center" vertical>
+          <h1
+            style={{ fontSize: "20px", color: "#6B7CFF", fontWeight: "bold" }}
+          >
+            Pilihan Paket Untuk Anda
+          </h1>
+          <p
+            style={{
+              fontSize: "13px",
+              textAlign: "center",
+              width: "50%",
+              marginTop: "1rem",
+            }}
+          >
+            Temukan paket sempurna untuk kebutuhan Anda dengan opsi harga yang
+            terjangkau. Temukan harga bersaing dan dapatkan nilai luar biasa
+            yang kami tawarkan pada layanan terbaik kami.
+          </p>
+          <Flex
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+            }}
+          >
+            {packages.map((pkg, index) => (
+              <Flex
+                vertical
+                justify="end"
+                gap={40}
+                align="center"
+                key={pkg.package_id}
+                style={{
+                  margin: "1rem",
+                  padding: "2rem",
+                  width: "320px",
+                  height: "auto",
+                  borderRadius: "15px",
+                  WebkitBoxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
+                  MozBoxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
+                  boxShadow: "-39px 16px 79px -1px rgba(0,0,0,0.14)",
+                  flexDirection: "column",
+                  justifyContent: "space-between",
+                  cursor: "pointer",
+                  maxWidth: "100%",
+                  transition: "border 0.1s", // Transisi untuk efek hover
+                  border: "2px solid transparent", // Set default border
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.border = "2px solid #6B7CFF"; // Ubah warna border saat hover
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.border = "2px solid transparent"; // Kembalikan warna border saat tidak dihover
+                }}
+              >
+                <Flex vertical>
+                  <div
+                    style={{ display: "flex", justifyContent: "space-between" }}
+                  >
+                    <p style={{ fontSize: "17px", fontWeight: "bold" }}>
+                      {pkg.package_name}
+                    </p>
+                    <p style={{ marginTop: "0.1rem", fontSize: "15px" }}>
+                      {pkg.duration} Months
+                    </p>
+                  </div>
+                  <div style={{ marginTop: "0.5rem" }}>
+                    <p style={{ fontSize: "25px", fontWeight: "bold" }}>
+                      Rp {pkg.package_price.toLocaleString()}
+                    </p>
+                    <p style={{ color: "gray" }}>/bulan</p>
+                  </div>
+                  <p
+                    style={{
+                      marginTop: "20px",
+                      textAlign: "justify",
+                      fontSize: "13px",
+                    }}
+                  >
+                    {pkg.package_description}
                   </p>
-                  <p style={{ marginTop: "0.1rem", fontSize: "15px" }}>
-                    {pkg.duration} Months
-                  </p>
-                </div>
-                <div style={{ marginTop: "0.5rem" }}>
-                  <p style={{ fontSize: "25px", fontWeight: "bold" }}>
-                    Rp {pkg.package_price.toLocaleString()}
-                  </p>
-                  <p style={{ color: "gray" }}>/bulan</p>
-                </div>
-                <p
-                  style={{
-                    marginTop: "20px",
-                    textAlign: "justify",
-                    fontSize: "13px",
-                  }}
-                >
-                  {pkg.package_description}
-                </p>
-                <ul style={{ marginTop: "0.2rem" }}>
-                  {features[index]?.length > 0 ? (
-                    features[index].map((feature, idx) => (
-                      <li
-                        key={idx}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          marginTop: "0.6rem",
-                        }}
-                      >
-                        <CheckOutlined
+                  <ul style={{ marginTop: "0.2rem" }}>
+                    {features[index]?.length > 0 ? (
+                      features[index].map((feature, idx) => (
+                        <li
+                          key={idx}
                           style={{
-                            marginRight: "5px",
-                            color: "#6B7CFF",
+                            display: "flex",
+                            alignItems: "center",
+                            marginTop: "0.6rem",
                           }}
-                        />
-                        {feature.trim()}
-                      </li>
-                    ))
-                  ) : (
-                    <li>Tidak ada fitur yang tersedia</li>
-                  )}
-                </ul>
+                        >
+                          <CheckOutlined
+                            style={{
+                              marginRight: "5px",
+                              color: "#6B7CFF",
+                            }}
+                          />
+                          {feature.trim()}
+                        </li>
+                      ))
+                    ) : (
+                      <li>Tidak ada fitur yang tersedia</li>
+                    )}
+                  </ul>
+                </Flex>
+                <Flex style={{ width: "100%" }}>
+                  <Button
+                    onClick={() => handleCardClick(pkg.package_id.toString())}
+                    loading={loadingButton === pkg.package_id.toString()}
+                    block
+                    size="large"
+                    style={{
+                      backgroundColor: "#6B7CFF",
+                      color: "white",
+                    }}
+                  >
+                    Daftar Sekarang
+                  </Button>
+                </Flex>
               </Flex>
-              <Flex style={{ width: "100%" }}>
-                <Button
-                  onClick={() => handleCardClick(pkg.package_id.toString())}
-                  loading={loading}
-                  block
-                  size="large"
-                  style={{
-                    backgroundColor: "#6B7CFF",
-                    color: "white",
-                  }}
-                >
-                  Daftar Sekarang
-                </Button>
-              </Flex>
-            </Flex>
-          ))}
-        </Flex>
-        <Flex
+            ))}
+          </Flex>
+          {/* <Flex
           justify="center"
           align="center"
           style={{
@@ -233,7 +243,6 @@ const Home: React.FC = () => {
           <Flex
             style={{ position: "relative", width: "100%", height: "30rem" }}
           >
-            {/* Gambar */}
             <img
               style={{
                 zIndex: "0",
@@ -249,7 +258,7 @@ const Home: React.FC = () => {
               src="/image/freeTrial.png"
               alt=""
             />
-            {/* Div dengan form di dalamnya */}
+
             <Flex
               vertical
               justify="center"
@@ -350,8 +359,9 @@ const Home: React.FC = () => {
               </Form>
             </Flex>
           </Flex>
+        </Flex> */}
         </Flex>
-      </Flex>
+      </Section>
 
       <FooterSection />
     </>

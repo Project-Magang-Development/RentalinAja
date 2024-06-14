@@ -10,7 +10,7 @@ function FooterSection() {
       style={{
         padding: "2rem",
         backgroundColor: "#0A142F",
-        zIndex: 1,
+        zIndex: 2,
         marginTop: " 6rem",
       }}
     >
@@ -48,16 +48,16 @@ function FooterSection() {
         <Flex vertical style={{ color: "white" }}>
           <p>Quick Link</p>
           <Divider style={{ borderColor: "white" }} />
-          <Link style={{ color: "white" }} href={"/tentangKami"}>
+          <Link style={{ color: "white" }} href={"/home/tentangKami"}>
             Tentang Kami
           </Link>
-          <Link style={{ color: "white" }} href={"/fitur"}>
+          <Link style={{ color: "white" }} href={"/home/fitur"}>
             Fitur
           </Link>
-          <Link style={{ color: "white" }} href={"/pricing"}>
+          <Link style={{ color: "white" }} href={"/home/pricing"}>
             Harga
           </Link>
-          <Link style={{ color: "white" }} href={"/kontak"}>
+          <Link style={{ color: "white" }} href={"/home/Kontak"}>
             Kontak
           </Link>
         </Flex>
@@ -80,22 +80,24 @@ function FooterSection() {
               <p>kodingakademi.id</p>
             </Flex>
           </Flex>
-          <Button
-            icon={<img src="/icons/chat.svg" alt="" width={25} />}
-            size="large"
-            style={{
-              alignItems: "center",
-              justifyContent: "center",
-              display: "flex",
-              backgroundColor: "#6B7CFF",
-              color: "white",
-              width: "230px",
-              border: "none",
-            }}
-          >
-            {" "}
-            Hubungi Kami
-          </Button>
+          <Link href={"/home/Kontak"}>
+            <Button
+              icon={<img src="/icons/chat.svg" alt="" width={25} />}
+              size="large"
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                display: "flex",
+                backgroundColor: "#6B7CFF",
+                color: "white",
+                width: "230px",
+                border: "none",
+              }}
+            >
+              {" "}
+              Hubungi Kami
+            </Button>
+          </Link>
         </Flex>
       </Flex>
       <Flex

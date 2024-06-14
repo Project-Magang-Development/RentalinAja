@@ -2,6 +2,7 @@
 import { Button, Flex } from "antd";
 import React from "react";
 import RadialBlur from "./radialBlur";
+import Link from "next/link";
 
 function FooterDaftar() {
   return (
@@ -27,16 +28,18 @@ function FooterDaftar() {
         <br />
         rental dengan RentalinAja! Klik di sini untuk mempelajari selengkapnya
       </p>
-      <Button
-        size="large"
-        style={{
-          backgroundColor: "#0A142F",
-          color: "white",
-          width: "230px",
-        }}
-      >
-        Daftar Sekarang!
-      </Button>
+      <Link href={"/home/pricing"}>
+        <Button
+          size="large"
+          style={{
+            backgroundColor: "#0A142F",
+            color: "white",
+            width: "230px",
+          }}
+        >
+          Daftar Sekarang!
+        </Button>
+      </Link>
     </Flex>
   );
 }

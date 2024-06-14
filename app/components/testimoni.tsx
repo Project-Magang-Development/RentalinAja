@@ -96,7 +96,7 @@ const testimonial2 = [
 
 const Testimonials = () => {
   return (
-    <Flex vertical style={{ marginBottom: "8rem" }}>
+    <Flex vertical>
       <Marquee direction="left" gradient={false} speed={110}>
         {testimonials.map((testimonial, index) => (
           <div
@@ -110,6 +110,7 @@ const Testimonials = () => {
               width: "380px",
               height: "150px",
               textAlign: "center",
+              border: "1px solid #E5E5E5",
             }}
           >
             <Flex vertical justify="space-around">
@@ -168,6 +169,7 @@ const Testimonials = () => {
               width: "380px",
               height: "150px",
               textAlign: "center",
+              border: "1px solid #E5E5E5",
             }}
           >
             <Flex vertical justify="space-around">
