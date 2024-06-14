@@ -15,16 +15,20 @@ const createMerchant = async (invoiceData: any) => {
       await prisma.merchantPendingPayment.findUnique({
         where: { pending_id },
       });
+
     if (!existingPaymentPending) {
       throw new Error(`Order with id ${pending_id} not found`);
     }
+
     const { status, package_id, invoice_id, merchant_email } =
       existingPaymentPending;
     const startDate = new Date();
     const generateApiKey = () => crypto.randomBytes(32).toString("hex");
+
     const packageInfo = await prisma.package.findUnique({
       where: { package_id: plan },
     });
+
     if (!packageInfo) {
       return NextResponse.json({ error: "Invalid plan ID" });
     }
@@ -33,26 +37,49 @@ const createMerchant = async (invoiceData: any) => {
       .add(packageInfo.duration, "months")
       .toDate();
 
-    // Membuat merchant baru menggunakan PrismaClient
-
-    const newMerchantPayment: any = await prisma.merchantPayment.create({
-      data: {
-        pending_id,
-        invoice_id: existingPaymentPending.invoice_id,
-        status: existingPaymentPending.status,
-      },
+    const existingMerchant = await prisma.merchant.findUnique({
+      where: { merchant_email },
     });
 
-    const newMerchant: any = await prisma.merchant.create({
-      data: {
-        start_date: startDate,
-        end_date: endDate,
-        api_key: generateApiKey(),
-        package_id: plan,
-        pending_id: pending_id,
-        merchant_payment_id: newMerchantPayment.merchant_payment_id,
-      },
-    });
+    let newMerchant;
+    if (existingMerchant) {
+      newMerchant = await prisma.merchant.update({
+        where: { merchant_email },
+        data: {
+          start_date: startDate,
+          end_date: endDate,
+          api_key: generateApiKey(),
+          package_id: plan,
+          pending_id: pending_id,
+          status_subscriber: "Aktif",
+        },
+      });
+
+      console.log(`Merchant with email ${merchant_email} updated successfully`);
+    } else {
+      // Create new merchant
+      const newMerchantPayment = await prisma.merchantPayment.create({
+        data: {
+          pending_id,
+          invoice_id: existingPaymentPending.invoice_id,
+          status: existingPaymentPending.status,
+        },
+      });
+
+      newMerchant = await prisma.merchant.create({
+        data: {
+          start_date: startDate,
+          end_date: endDate,
+          api_key: generateApiKey(),
+          package_id: plan,
+          pending_id: pending_id,
+          merchant_payment_id: newMerchantPayment.merchant_payment_id,
+          merchant_email: existingPaymentPending.merchant_email,
+        },
+      });
+
+      console.log("Merchant berhasil dibuat:", newMerchant);
+    }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -92,13 +119,15 @@ const createMerchant = async (invoiceData: any) => {
       `,
     });
 
-    console.log("Merchant berhasil dibuat:", newMerchant);
-
-    return newMerchantPayment;
     return newMerchant;
   } catch (error) {
-    console.error("Terjadi kesalahan dalam membuat merchant:", error);
-    throw new Error("Terjadi kesalahan dalam membuat merchant");
+    console.error(
+      "Terjadi kesalahan dalam membuat atau memperbarui merchant:",
+      error
+    );
+    throw new Error(
+      "Terjadi kesalahan dalam membuat atau memperbarui merchant"
+    );
   }
 };
 

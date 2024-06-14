@@ -17,15 +17,20 @@ import {
   Typography,
   Button,
   Space,
+  Card,
 } from "antd";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useApiKey, useCompanyName, useMerchantName } from "../../hooks/useLogin";
+import {
+  useApiKey,
+  useCompanyName,
+  useMerchantName,
+} from "../../hooks/useLogin";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import LayoutSkeleton from "@/app/components/layoutSkeleton";
 import Cookies from "js-cookie";
-
+import { FileMarkdownTwoTone } from "@ant-design/icons";
 
 const { Paragraph } = Typography;
 
@@ -82,6 +87,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [newBookingsCount, setNewBookingsCount] = useState(0);
+  const [selectedContent, setSelectedContent] = useState<string>("");
 
   const [collapsed, setCollapsed] = useState(false);
   const {
@@ -90,7 +96,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const disableSidebar = ["/dashboard/login"];
   const shouldHideSidebar = disableSidebar.includes(pathname);
- 
 
   const disableCompanyName = [
     "/dashboard/vehicle",
@@ -104,7 +109,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   useEffect(() => {
     const token = Cookies.get("token");
-
 
     if (!token) return;
 
@@ -129,13 +133,12 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           router.push("dashboard/login");
         }
 
-        if(data.message.length > 0) {
+        if (data.message.length > 0) {
           notification.info({
             message: "Notifikasi Langganan",
             description: data.message,
           });
         }
-
       } catch (error) {
         console.error("Error updating subscription status:", error);
       }
@@ -143,7 +146,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     updateSubscriptionStatus();
   }, [router]);
-
 
   const fetchDataWithLastChecked = async (
     endpoint: string,
@@ -315,7 +317,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       cancelText: "Tidak",
       onOk: () => {
         Cookies.remove("token");
-        message.success("Logout successful!");
+        message.success("Anda telah berhasil keluar.");
         window.location.href = "/dashboard/login";
       },
     });
@@ -331,10 +333,13 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </Paragraph>
         </Space>
       ),
-      width: 600
+      width: 600,
     });
   };
 
+  const showDocumentation = () => {
+    setSelectedContent("dokumentasi");
+  };
 
   const userMenu = (
     <Menu
@@ -350,6 +355,12 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           label: "API Key",
           icon: <KeyOutlined />,
           onClick: () => showApiKey(apiKey),
+        },
+        {
+          key: "dokumentasi",
+          label: "Dokumentasi",
+          icon: <FileMarkdownTwoTone />,
+          onClick: () => showDocumentation(),
         },
       ]}
     />
@@ -386,12 +397,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <BankOutlined />
             </span>
           ) : (
-            <Image
-              src="/logo.png"
-              alt="Company Logo"
-              width={200}
-              height={200}
-            />
+            <img src="/logo.png" alt="Company Logo" width={200} height={200} />
           )}
         </div>
         <Menu
@@ -506,6 +512,45 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           RentalinAja ©{new Date().getFullYear()} Powered by RentalinAja
         </Footer>
       </Layout>
+      <Modal
+        title="Dokumentasi"
+        visible={selectedContent !== ""}
+        onCancel={() => setSelectedContent("")}
+        footer={null}
+      >
+        {selectedContent === "dokumentasi" && (
+          <>
+            <Card hoverable onClick={() => setSelectedContent("react")}>
+              <h1>Dokumentasi Penggunaan Dengan React</h1>
+            </Card>
+            <Card
+              hoverable
+              onClick={() => setSelectedContent("html")}
+              style={{ marginTop: "1rem" }}
+            >
+              <h1>Dokumentasi Penggunaan Dengan HTML</h1>
+            </Card>
+          </>
+        )}
+
+        {selectedContent === "react" && (
+          <ul>
+            <li>Langkah 1: Import React dari react</li>
+            <li>Langkah 2: Buat komponen</li>
+            <li>Langkah 3: Gunakan komponen dalam aplikasi Anda</li>
+            {/* Tambahkan item lain yang relevan */}
+          </ul>
+        )}
+
+        {selectedContent === "html" && (
+          <ul>
+            <li>Langkah 1: Buat file HTML</li>
+            <li>Langkah 2: Tambahkan elemen HTML</li>
+            <li>Langkah 3: Gaya dengan CSS</li>
+            {/* Tambahkan item lain yang relevan */}
+          </ul>
+        )}
+      </Modal>
     </Layout>
   );
 };
