@@ -352,6 +352,7 @@ export default function AdminOrderDashboard() {
       </Flex>
 
       <Table
+        scroll={{ x: "max-content" }}
         columns={columns}
         dataSource={filteredOrder.map((order: any, index: any) => ({
           ...order,

@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+
+import {
+  getApiKey,
+  getCompanyName,
+  getEmail,
+  getName,
+} from "../services/authService";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { getApiKey, getCompanyName, getName } from "../services/authService";
@@ -52,6 +59,20 @@ export const useMerchantName = () => {
   }, [token]);
 
   return merchantName;
+};
+
+export const useMerchantEmail = () => {
+  const [merchantEmail, setMerchantEmail] = useState("");
+  const router = useRouter();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      setMerchantEmail(getEmail(token));
+    } else {
+      router.push("/dashboard/login");
+    }
+  }, []);
+  return merchantEmail;
 };
 
 export const useApiKey = () => {

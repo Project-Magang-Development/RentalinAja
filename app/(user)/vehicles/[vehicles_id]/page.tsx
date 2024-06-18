@@ -159,11 +159,33 @@ export default function DetailVehiclePage() {
       const payload = {
         external_id: externalId,
         amount: invoiceData.total_amount * diffDays + tax,
+        description:
+          "Penyewaan kendaraan " +
+          vehicle?.name +
+          " " +
+          vehicle?.model +
+          "model plat :" +
+          vehicle?.no_plat +
+          "tahun :" +
+          vehicle?.year,
         currency: "IDR",
         customer: {
           given_names: invoiceData.customer_name,
+          mobile_number: invoiceData.customer_phone,
+        },
+        customer_notification_preference: {
+          invoice_created: ["whatsapp"],
+          invoice_reminder: ["whatsapp"],
+          invoice_paid: ["whatsapp"],
         },
         success_redirect_url: "http://localhost:3000/vehicles/success",
+        items: [
+          {
+            name: vehicle?.name + " " + vehicle?.model,
+            quantity: diffDays,
+            price: invoiceData.total_amount,
+          },
+        ],
         fees: [
           {
             type: "ADMIN",
@@ -304,7 +326,7 @@ export default function DetailVehiclePage() {
     <Layout style={{ minHeight: "100vh" }}>
       <Content
         style={{
-          padding: "20px 50px",
+          padding: "20px 25px",
           justifyContent: "center",
           alignItems: "center",
         }}
@@ -348,21 +370,36 @@ export default function DetailVehiclePage() {
                       style={{
                         boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
                         flex: "0 0 auto",
+                        maxWidth: "100%", // Ensure card does not exceed parent width
+                        height: "auto",
                       }}
                     >
-                      <Carousel autoplay>
-                        {vehicle.VehicleImages.map((image, index) => (
-                          <div key={index}>
-                            <Image
-                              src={image.imageUrl}
-                              alt={`vehicle-${index}`}
-                              width={900}
-                              height={500}
-                              style={{ objectFit: "cover" }}
-                            />
-                          </div>
-                        ))}
-                      </Carousel>
+                      <div style={{ objectFit: "contain" }}>
+                        <Carousel
+                          autoplay
+                          style={{
+                            width: "100%",
+                            height: "auto",
+                            maxWidth: "100%",
+                          }}
+                        >
+                          {vehicle.VehicleImages.map((image, index) => (
+                            <div key={index}>
+                              <Image
+                                src={image.imageUrl}
+                                alt={`vehicle-${index}`}
+                                width={900}
+                                height={500}
+                                style={{
+                                  width: "100%",
+                                  height: "auto",
+                                  objectFit: "contain",
+                                }}
+                              />
+                            </div>
+                          ))}
+                        </Carousel>
+                      </div>
                     </Card>
                   ) : (
                     <div>No images available</div>
@@ -456,8 +493,10 @@ export default function DetailVehiclePage() {
                     <div
                       style={{
                         display: "flex",
-                        alignItems: "center",
+                        alignItems: "start",
                         justifyContent: "space-between",
+                        flexDirection: "column",
+                        gap: "1rem",
                       }}
                     >
                       <Row style={{ display: "flex", alignItems: "center" }}>
