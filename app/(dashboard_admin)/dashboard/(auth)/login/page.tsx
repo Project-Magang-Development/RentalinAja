@@ -64,7 +64,7 @@ export default function LoginDashboard() {
       const data = await response.json();
       Cookies.set("token", data.token, { expires: 1 });
       notification.success({
-        message: "Login successful!",
+        message: "Login Berhasil!",
       });
       setLoading(false);
       window.location.href = "/dashboard";

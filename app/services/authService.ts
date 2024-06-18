@@ -11,14 +11,11 @@ interface MyTokenPayload {
   merchant_company: string;
 }
 
-export const login = () => {
-    const token = Cookies.get("token");
-    if (token) {
-        return true;
-    } else {
-        return false;
-    }
-}
+export const login = (): boolean => {
+  const token = Cookies.get("token");
+  const adminToken = Cookies.get("adminToken");
+  return !!token && !!adminToken;
+};
 
 export const getCompanyName = (token: string) => {
   const decoded = jwtDecode<MyTokenPayload>(token);

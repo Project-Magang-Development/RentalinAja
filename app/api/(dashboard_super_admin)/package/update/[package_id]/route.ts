@@ -24,7 +24,8 @@ export async function PUT(req: Request) {
       package_description,
       package_feature,
       package_price,
-      count,
+      count_order,
+      count_vehicle,
       duration,
     } = body;
     let featureList = [];
@@ -39,7 +40,8 @@ export async function PUT(req: Request) {
       package_price == null ||
       package_description == null ||
       package_feature == null ||
-      count == null ||
+      count_order == null ||
+      count_vehicle ||
       duration == null
     ) {
       return new NextResponse(
@@ -79,8 +81,8 @@ export async function PUT(req: Request) {
           package_price,
           package_description,
           package_feature,
-          count_order: count,
-          count_vehicle: count,
+          count_order: count_order,
+          count_vehicle: count_vehicle,
           duration,
         },
       });

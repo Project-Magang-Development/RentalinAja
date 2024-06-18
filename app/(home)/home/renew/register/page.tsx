@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Input, Form, message } from "antd";
+import { Button, Input, Form, message, notification, Image } from "antd";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { CheckOutlined } from "@ant-design/icons";
 import { useForm } from "antd/es/form/Form";
+import Title from "antd/es/typography/Title";
+import { Footer } from "antd/es/layout/layout";
 
 interface MerchantData {
   merchant_name: string;
@@ -48,10 +50,8 @@ const RegisterRenew = () => {
       );
 
       if (registerMerchant.status === 200 && registerMerchant.data) {
-        console.log("Merchant registered successfully:", registerMerchant.data);
         return registerMerchant.data;
       } else {
-        console.error("Failed to register merchant:", registerMerchant.data);
         throw new Error("Failed to register merchant");
       }
     } catch (error: any) {
@@ -176,11 +176,20 @@ const RegisterRenew = () => {
 
       if (data?.status === 200) {
         setMerchantData(data?.data);
-        form.setFieldsValue(data.data); // Set form values here
+        form.setFieldsValue(data.data);
+        setLoading(false);
+      } else if (data.status === 404) {
+        notification.error({
+          message: "Email tidak terdaftar",
+        });
+        setLoading(false);
       } else {
-        message.error("Merchant not found. Please enter details manually.");
+        notification.error({
+          message: "Gagal Mengecek Email",
+        });
         setMerchantData(null);
-        form.resetFields(); // Reset form fields if merchant data is not found
+        setLoading(false);
+        form.resetFields();
       }
     } catch (error) {
       message.error("Failed to fetch merchant data");
@@ -228,7 +237,6 @@ const RegisterRenew = () => {
       );
 
       if (createPayment.status === 200) {
-        console.log("Payment created successfully:", createPayment.data);
         setPendingId(createPayment.data.newPayment.pending_id);
         return createPayment.data;
       } else {
@@ -236,7 +244,6 @@ const RegisterRenew = () => {
         throw new Error("Failed to create payment");
       }
     } catch (error) {
-      console.error("Error during payment creation:", error);
       message.error("Terdapat Kesalahan dalam pembuatan pembayaran");
       throw error;
     }
@@ -247,13 +254,11 @@ const RegisterRenew = () => {
     setLoading(true);
     try {
       const formData = form.getFieldsValue();
-      console.log("FormData:", formData);
 
       let invoiceResult = { id_invoice: null, invoice_url: null };
 
       if (packageData.package_price > 0) {
         invoiceResult = await createInvoice(formData, external_id);
-        console.log("Invoice Result:", invoiceResult);
 
         if (!invoiceResult.id_invoice) {
           throw new Error("Failed to create invoice");
@@ -265,25 +270,22 @@ const RegisterRenew = () => {
         external_id,
         packageName
       );
-      console.log("Payment Result:", paymentResult);
 
       if (!paymentResult) {
         throw new Error("Failed to create payment invoice");
       }
 
       if (packageData.package_price === 0) {
-        // const merchantResult = await createMerchant(
-        //   paymentResult.newPayment.pending_id
-        // );
         console.log("Merchant Dibuat");
       }
 
-      message.success("Registration successful!");
+      notification.success({
+        message: "Registrasi Berhasil",
+      })
       if (invoiceResult.invoice_url) {
         window.location.href = invoiceResult.invoice_url;
       } else {
         if (packageData.package_price > 0) {
-          console.log("Terjadi Kesalahan");
           message.error("Terjadi Kesalahan");
         } else {
           console.log("Tidak ada invoice yang perlu dibuat");
@@ -291,141 +293,205 @@ const RegisterRenew = () => {
       }
       setLoading(false);
     } catch (error) {
-      console.error("Registration failed:", error);
       message.error("Registration failed.");
-      setLoading(false);
-    }
-  };
-
-  const onFinish = async (values: any) => {
-    setLoading(true);
-    try {
-      message.success("Renewal initiated successfully");
-    } catch (error) {
-      message.error("Failed to initiate renewal");
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div
-      style={{ display: "flex", justifyContent: "center", marginTop: "2rem" }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+      }}
     >
-      <div style={{ display: "flex", gap: "25px" }}>
+      <div
+        style={{
+          flex: "1",
+        }}
+      >
         <div
+          className="container mx-auto"
           style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            minHeight: "50vh",
+            flexDirection: "column",
+            paddingTop: "20px",
+            paddingBottom: "20px",
+          }}
+        >
+          <div
+             style={{
             backgroundColor: "white",
-            height: "auto",
-            width: "300px",
             padding: "2rem",
             boxShadow:
               "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
             borderRadius: "20px",
           }}
-        >
-          <p style={{ fontSize: "19px", fontWeight: "bold" }}>
-            {packageData.package_name}
-          </p>
-          <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
-            Rp.
-            {packageData?.package_price
-              ? packageData.package_price.toLocaleString()
-              : "0"}
-          </p>
-          <p
+          >
+            <Title
+              level={3}
+              style={{ marginBottom: "20px", textAlign: "center" }}
+            >
+              Perbarui Paket Anda
+            </Title>
+            <div>
+              <p style={{ fontSize: "19px", fontWeight: "bold" }}>
+                {packageData.package_name}
+              </p>
+              <p style={{ fontSize: "2rem", fontWeight: "bold" }}>
+                Rp.
+                {packageData?.package_price
+                  ? packageData.package_price.toLocaleString()
+                  : "0"}
+              </p>
+              <p
+                style={{
+                  color: "#A5A5A5",
+                  fontSize: "17px",
+                  fontWeight: "normal",
+                }}
+              >
+                /bulan
+              </p>
+              <p style={{ marginTop: "1rem" }}>
+                {packageData.package_description}
+              </p>
+              <ul>
+                {features.length > 0 ? (
+                  features.map((feature, index) => (
+                    <li
+                      key={index}
+                      style={{ display: "flex", marginTop: "1rem" }}
+                    >
+                      <CheckOutlined
+                        style={{ marginRight: "5px", color: "#6B7CFF" }}
+                      />
+                      {feature}
+                    </li>
+                  ))
+                ) : (
+                  <li>Tidak ada fitur yang tersedia</li>
+                )}
+              </ul>
+            </div>
+          </div>
+          <div
+            className="card"
             style={{
-              color: "#A5A5A5",
-              fontSize: "17px",
-              fontWeight: "normal",
+              marginTop: "20px",
+              marginBottom: "20px",
+              padding: "20px",
+              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+              borderRadius: "8px",
+              width: "100%",
+              maxWidth: "600px",
             }}
           >
-            /bulan
-          </p>
-          <p style={{ marginTop: "1rem" }}>{packageData.package_description}</p>
-          <ul>
-            {features.length > 0 ? (
-              features.map((feature, index) => (
-                <li key={index} style={{ display: "flex", marginTop: "1rem" }}>
-                  <CheckOutlined
-                    style={{ marginRight: "5px", color: "#6B7CFF" }}
-                  />
-                  {feature}
-                </li>
-              ))
-            ) : (
-              <li>Tidak ada fitur yang tersedia</li>
-            )}
-          </ul>
-        </div>
-
-        <div
-          style={{
-            backgroundColor: "white",
-            height: "auto",
-            width: "300px",
-            padding: "2rem",
-            boxShadow:
-              "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
-            borderRadius: "20px",
-          }}
-        >
-          <h1>Renew Package</h1>
-          <Form
-            form={form}
-            onFinish={onFinish}
-            initialValues={merchantData || {}}
-            layout="vertical"
-          >
-            <Form.Item label="Merchant Email" required>
+            <Title level={4} style={{ marginBottom: "20px" }}>
+              Masukkan Email Anda
+            </Title>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                marginBottom: "20px",
+              }}
+            >
               <Input
+                type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                onBlur={handleEmailCheck}
+                placeholder="Enter your email"
+                style={{ marginRight: "10px", flex: "1" }}
               />
-            </Form.Item>
-
+              <Button
+                type="primary"
+                onClick={handleEmailCheck}
+              >
+                Check Email
+              </Button>
+            </div>
             {merchantData && (
-              <>
+              <Form
+                form={form}
+                layout="vertical"
+                onFinish={handleSubmit}
+                initialValues={merchantData}
+                style={{ width: "100%" }}
+              >
                 <Form.Item
                   name="merchant_name"
                   label="Merchant Name"
-                  rules={[{ required: true }]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input your merchant name",
+                    },
+                  ]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name="merchant_whatsapp"
-                  label="Merchant Whatsapp"
-                  rules={[{ required: true }]}
+                  label="Merchant WhatsApp"
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input your merchant WhatsApp",
+                    },
+                  ]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name="rental_name"
                   label="Rental Name"
-                  rules={[{ required: true }]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input your rental name",
+                    },
+                  ]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name="rental_type"
                   label="Rental Type"
-                  rules={[{ required: true }]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input your rental type",
+                    },
+                  ]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name="merchant_city"
                   label="Merchant City"
-                  rules={[{ required: true }]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input your merchant city",
+                    },
+                  ]}
                 >
                   <Input />
                 </Form.Item>
                 <Form.Item
                   name="merchant_address"
                   label="Merchant Address"
-                  rules={[{ required: true }]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Please input your merchant address",
+                    },
+                  ]}
                 >
                   <Input />
                 </Form.Item>
@@ -434,16 +500,39 @@ const RegisterRenew = () => {
                     type="primary"
                     htmlType="submit"
                     loading={loading}
-                    onClick={handleSubmit}
+                    style={{ width: "100%" }}
                   >
-                    Renew Now
+                    Perbarui Sekarang
                   </Button>
                 </Form.Item>
-              </>
+              </Form>
             )}
-          </Form>
+          </div>
         </div>
       </div>
+      <Footer>
+        <h1
+          style={{
+            textAlign: "center",
+            color: "rgba(0, 0, 0, 0.5)",
+            fontWeight: "normal",
+            fontSize: "1rem",
+            marginTop: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          Powered By
+          <Image
+            src="/logo.png"
+            alt="Vercel Logo"
+            width={120}
+            height={30}
+            style={{ marginLeft: "8px" }}
+          />
+        </h1>
+      </Footer>
     </div>
   );
 };

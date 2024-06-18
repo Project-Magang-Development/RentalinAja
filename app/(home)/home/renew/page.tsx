@@ -49,7 +49,7 @@ const RenewPage: React.FC = () => {
       const featureList = filteredPackages.map((pkg) =>
         pkg.package_feature ? pkg.package_feature.split(",") : []
       );
-      setFeatures(featureList); // Logging the feature list
+      setFeatures(featureList); 
     }
   }, [packages]);
 
