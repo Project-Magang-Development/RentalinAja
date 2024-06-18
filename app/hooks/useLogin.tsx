@@ -8,7 +8,6 @@ import {
 } from "../services/authService";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { getApiKey, getCompanyName, getName } from "../services/authService";
 
 const useAuthToken = () => {
   const token = Cookies.get("token");
