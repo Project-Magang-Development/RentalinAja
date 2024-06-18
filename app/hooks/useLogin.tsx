@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import { getCompanyName, getName } from "../services/authService";
+import {
+  getApiKey,
+  getCompanyName,
+  getEmail,
+  getName,
+} from "../services/authService";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 
@@ -29,4 +34,32 @@ export const useMerchantName = () => {
     }
   }, []);
   return merchantName;
+};
+
+export const useMerchantEmail = () => {
+  const [merchantEmail, setMerchantEmail] = useState("");
+  const router = useRouter();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      setMerchantEmail(getEmail(token));
+    } else {
+      router.push("/dashboard/login");
+    }
+  }, []);
+  return merchantEmail;
+};
+
+export const useApiKey = () => {
+  const [apiKey, setApiKey] = useState("");
+  const router = useRouter();
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (token) {
+      setApiKey(getApiKey(token));
+    } else {
+      router.push("/dashboard/login");
+    }
+  }, []);
+  return apiKey;
 };

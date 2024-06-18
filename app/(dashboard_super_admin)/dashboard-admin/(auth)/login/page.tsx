@@ -47,10 +47,10 @@ export default function LoginDashboardSuperAdmin() {
         src="/icons/buletan 1.svg"
         alt=""
         style={{
+
           objectFit: "fill",
           position: "absolute",
           top: 50,
-
           height: 450,
         }}
       />

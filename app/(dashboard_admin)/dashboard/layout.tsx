@@ -14,14 +14,20 @@ import {
   message,
   notification,
   theme,
+  Typography,
+  Button,
+  Space,
 } from "antd";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCompanyName, useMerchantName } from "../../hooks/useLogin";
+import { useApiKey, useCompanyName, useMerchantName } from "../../hooks/useLogin";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import LayoutSkeleton from "@/app/components/layoutSkeleton";
 import Cookies from "js-cookie";
+
+
+const { Paragraph } = Typography;
 
 const BookOutlined = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.BookOutlined)
@@ -38,6 +44,10 @@ const LogoutOutlined = dynamic(() =>
 
 const BankOutlined = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.BankOutlined)
+);
+
+const KeyOutlined = dynamic(() =>
+  import("@ant-design/icons").then((icon) => icon.KeyOutlined)
 );
 
 const DashboardOutlined = dynamic(() =>
@@ -68,6 +78,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
   const companyName = useCompanyName();
   const merchantName = useMerchantName();
+  const apiKey = useApiKey();
   const [loading, setLoading] = useState(true);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [newBookingsCount, setNewBookingsCount] = useState(0);
@@ -79,6 +90,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const disableSidebar = ["/dashboard/login"];
   const shouldHideSidebar = disableSidebar.includes(pathname);
+ 
 
   const disableCompanyName = [
     "/dashboard/vehicle",
@@ -309,6 +321,21 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     });
   };
 
+  const showApiKey = (apiKey: string) => {
+    Modal.info({
+      title: "API Key",
+      content: (
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <Paragraph copyable={{ text: apiKey }} style={{ fontSize: "16px" }}>
+            {apiKey}
+          </Paragraph>
+        </Space>
+      ),
+      width: 600
+    });
+  };
+
+
   const userMenu = (
     <Menu
       items={[
@@ -317,6 +344,12 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           label: "Keluar",
           icon: <LogoutOutlined />,
           onClick: confirmLogout,
+        },
+        {
+          key: "apiKey",
+          label: "API Key",
+          icon: <KeyOutlined />,
+          onClick: () => showApiKey(apiKey),
         },
       ]}
     />

@@ -4,18 +4,16 @@ import { Button, Divider, Flex } from "antd";
 import axios from "axios";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import React, { useState, useEffect } from "react";
-import { useRef } from "react";
-// Import usePDF hook
+import React, { useState, useEffect, useRef } from "react";
 import generatePDF, { Resolution, Margin } from "react-to-pdf";
 
-// Definisikan tipe data untuk invoiceData
+// Define the types for invoiceData
 interface InvoiceData {
   id: string;
   status: string;
   external_id: string;
   customer: { given_names: string; email: string };
-  items: { name: string; quantity: number; price: number }[]; // Tambahkan quantity dan price
+  items: { name: string; quantity: number; price: number }[];
   amount: number;
   currency: string;
   payment_method: string;
@@ -26,10 +24,6 @@ interface InvoiceData {
   merchant_name: string;
 }
 
-interface PaymentData {
-  alamat: string;
-}
-
 function GetInvoiceComponent() {
   const targetRef = useRef<HTMLDivElement>(null);
   const params = useParams<{ invoiceId: string }>();
@@ -38,7 +32,7 @@ function GetInvoiceComponent() {
     id: "",
     status: "",
     external_id: "",
-    customer: { given_names: "", email: "" }, // Initialize customer as an empty object
+    customer: { given_names: "", email: "" },
     items: [],
     amount: 0,
     currency: "",
@@ -66,17 +60,21 @@ function GetInvoiceComponent() {
           "Content-Type": "application/json",
         },
       });
-      setInvoiceData(response.data[0]);
-      console.log("invoice data", response.data[0]);
+
+      if (response.data && response.data[0]) {
+        console.log("invoice data", response.data[0] && response.data);
+        setInvoiceData(response.data[0]);
+      } else {
+        console.log("No invoice data found");
+      }
       setLoading(false);
     } catch (error) {
       console.log("error fetching data", error);
       setLoading(false);
     }
   };
-
   const options: any = {
-    filename: "invoice.pdf",
+    filename: invoiceData.external_id + ".pdf",
     // default is `save   `
     method: "save",
     // default is Resolution.MEDIUM = 3, which should be enough, higher values
@@ -101,208 +99,295 @@ function GetInvoiceComponent() {
     // function. You probably will not need this and things can break,
     // so use with caution.
     overrides: {
-      // see https://artskydj.github.io/jsPDF/docs/jsPDF.html for more options
       pdf: {
         compress: true,
       },
-      // see https://html2canvas.hertzen.com/configuration for more options
       canvas: {
         useCORS: true,
       },
     },
   };
 
+  const renderItems = () => {
+    console.log("invoiceData.items:", invoiceData.items);
+    return (
+      <table
+        style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}
+      >
+        <thead style={{ backgroundColor: "#C8D3FF" }}>
+          <tr>
+            <th style={{ border: "1px solid #ddd", padding: "8px" }}>
+              Nama Kendaraan
+            </th>
+            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Harga</th>
+            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Hari</th>
+            <th style={{ border: "1px solid #ddd", padding: "8px" }}>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {invoiceData.items.map((item, index) => (
+            <tr key={index}>
+              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                {item.name}
+              </td>
+              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                {new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                }).format(item.price)}
+              </td>
+              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                {item.quantity}
+              </td>
+              <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+                {new Intl.NumberFormat("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                }).format(item.quantity * item.price)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    );
+  };
+
+  if (loading) {
+    return <p>Sedang Menyiapkan invoice...</p>;
+  }
+
   return (
     <Flex vertical gap={10} style={{ padding: "2rem" }}>
       {loading ? (
-        <div>Loading...</div>
+        <div>Sedang Menyiapkan invoice...</div>
       ) : (
         <>
-          <Link href="/dashboard/order">
+          <Flex
+            justify="space-between"
+            style={{ marginTop: "2rem", width: "100%" }}
+          >
+            <Link href="/dashboard/order">
+              <Button
+                size="middle"
+                shape="round"
+                type="primary"
+                style={{ width: "100%", marginInline: "1rem" }}
+                icon={<ArrowLeftOutlined />}
+              >
+                Kembali
+              </Button>
+            </Link>
             <Button
-              size="large"
-              shape="round"
-              type="primary"
-              style={{ width: "15%", marginInline: "1rem" }}
-              icon={<ArrowLeftOutlined />}
+              onClick={() => {
+                setLoading(true);
+                generatePDF(targetRef, options)
+                  .then(() => setLoading(false))
+                  .catch(() => setLoading(false));
+              }}
+              disabled={loading}
             >
-              Kembali
+              {loading ? "Sedang Menyiapkan Pdf..." : "Download PDF"}
             </Button>
-          </Link>
-          <Divider style={{ margin: 0 }} />
-          <div ref={targetRef}>
-            <Flex vertical justify="center" style={{ paddingInline: "2rem" }}>
-              <div
-                className="top-line"
-                style={{
-                  backgroundColor: "#7469B6",
-                  width: "600px",
-                  height: "10px",
-                  borderRadius: "0 0  10px 10px",
-                  display: "flex",
-                  justifyContent: "center",
-                  marginLeft: "auto", // center horizontally
-                  marginRight: "auto", // center horizontally
-                }}
-              ></div>
-              <Flex vertical>
-                <p
+          </Flex>
+          <Divider style={{ margin: 5 }} />
+          <div style={{ border: "3px solid #ddd" }}>
+            <div ref={targetRef}>
+              <Flex vertical justify="center" style={{ paddingInline: "2rem" }}>
+                <div
+                  className="top-line"
                   style={{
-                    fontSize: "2.6rem",
-                    marginTop: "2rem",
-                    marginBottom: 0,
+                    backgroundColor: "#7469B6",
+                    width: "600px",
+                    height: "10px",
+                    borderRadius: "0 0  10px 10px",
+                    display: "flex",
+                    justifyContent: "center",
+                    marginLeft: "auto", // center horizontally
+                    marginRight: "auto", // center horizontally
                   }}
-                >
-                  INVOICE
-                </p>
-                <p
-                  style={{
-                    fontSize: "1.3rem",
-                    marginBlock: 6,
-                    color: "#4B4B4b",
-                  }}
-                >
-                  Invoice ID : {invoiceData.id}
-                </p>
+                ></div>
+                <Flex vertical>
+                  <p
+                    style={{
+                      fontSize: "2.4rem",
+                      marginTop: "2rem",
+                      marginBottom: 0,
+                    }}
+                  >
+                    INVOICE
+                  </p>
+                  <p
+                    style={{
+                      fontSize: "1.2rem",
+                      marginBlock: 6,
+                      color: "#4B4B4b",
+                    }}
+                  >
+                    Invoice ID : {invoiceData.id}
+                  </p>
 
-                <p
-                  style={{
-                    fontSize: "1.3rem",
-                    marginBlock: 6,
-                    color: "#4B4B4b",
-                  }}
-                >
-                  Invoice Date :{" "}
-                  {new Date(invoiceData.created).toLocaleDateString()}
-                </p>
-              </Flex>
-
-              <Divider style={{ border: "1px solid #8E8E8E" }} />
-              <Flex justify="space-between">
-                <Flex vertical flex={4}>
-                  {" "}
                   <p
                     style={{
-                      color: "#9E9E9E",
-                      marginBottom: " 4px",
-                      fontSize: "1.3rem",
+                      fontSize: "1.1rem",
+                      marginBlock: 6,
+                      color: "#4B4B4b",
                     }}
                   >
-                    Nama Customer: {""}
-                    <span style={{ fontSize: "1.5rem", color: "black" }}>
-                      {invoiceData.customer.given_names}
-                    </span>
-                  </p>
-                  <p
-                    style={{
-                      color: "#9E9E9E",
-                      margin: "4px",
-                      fontSize: "1.3rem",
-                    }}
-                  >
-                    ID Invoice:{" "}
-                    <span style={{ fontSize: "1.5rem", color: "black" }}>
-                      {invoiceData.external_id}
-                    </span>
-                  </p>
-                  <p
-                    style={{
-                      color: "#9E9E9E",
-                      margin: "4px",
-                      fontSize: "1.3rem",
-                    }}
-                  >
-                    Pembayaran via:{" "}
-                    <span style={{ fontSize: "1.5rem", color: "black" }}>
-                      {invoiceData.payment_channel}
-                    </span>
-                  </p>
-                  <p
-                    style={{
-                      color: "#9E9E9E",
-                      margin: "4px",
-                      fontSize: "1.3rem",
-                    }}
-                  >
-                    Metode Pembayaran:{" "}
-                    <span style={{ fontSize: "1.5rem", color: "black" }}>
-                      {invoiceData.payment_method}
-                    </span>
+                    Invoice Date :{" "}
+                    {new Date(invoiceData.created).toLocaleDateString()}
                   </p>
                 </Flex>
-                <Flex vertical flex={1} align="flex-end">
-                  <img
-                    style={{ width: "100px", marginBottom: " 20px" }}
-                    src={invoiceData.merchant_profile_picture_url}
-                    alt="our company"
-                  />
-                  <p
-                    style={{
-                      margin: 0,
-                      fontSize: "1.7rem",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {invoiceData.merchant_name}
-                  </p>
-                  <h4 style={{ fontWeight: "normal ", color: "#4B4B4b" }}>
-                    Status:{" "}
-                    <span
+
+                <Divider
+                  style={{ border: "1px solid #8E8E8E", marginBlock: "0.8rem" }}
+                />
+                <Flex justify="space-between">
+                  <Flex vertical flex={4}>
+                    {" "}
+                    <p
                       style={{
-                        fontWeight: "bold",
-                        fontSize: "1.5rem",
-                        color: (() => {
-                          switch (invoiceData.status) {
-                            case "EXPIRED":
-                              return "#6A6A6A"; // abu
-                            case "PENDING":
-                              return "yellow"; // kuning
-                            case "PAID":
-                            case "SETTLED":
-                              return "#4BB261"; // hijau
-                            default:
-                              return "red"; // merah untuk status lainnya
-                          }
-                        })(),
+                        color: "#9E9E9E",
+                        marginBottom: " 15px",
+                        fontSize: "1rem",
                       }}
                     >
-                      {invoiceData.status}
+                      Nama Customer: {""}
+                      <span style={{ fontSize: "1.1rem", color: "black" }}>
+                        {invoiceData.customer.given_names}
+                      </span>
+                    </p>
+                    <p
+                      style={{
+                        color: "#9E9E9E",
+                        marginBottom: "15px",
+                        fontSize: "1rem",
+                      }}
+                    >
+                      Refrence ID:{" "}
+                      <span style={{ fontSize: "1.1rem", color: "black" }}>
+                        {invoiceData.external_id}
+                      </span>
+                    </p>
+                  </Flex>
+                  <Flex vertical flex={1} align="flex-end">
+                    <h4 style={{ fontWeight: "normal ", color: "#4B4B4b" }}>
+                      Status:{" "}
+                      <span
+                        style={{
+                          fontWeight: "bold",
+                          fontSize: "1.5rem",
+                          color: (() => {
+                            switch (invoiceData.status) {
+                              case "EXPIRED":
+                                return "#6A6A6A"; // abu
+                              case "PENDING":
+                                return "yellow"; // kuning
+                              case "PAID":
+                              case "SETTLED":
+                                return "#4BB261"; // hijau
+                              default:
+                                return "red"; // merah untuk status lainnya
+                            }
+                          })(),
+                        }}
+                      >
+                        {invoiceData.status === "SETTLED"
+                          ? "PAID"
+                          : invoiceData.status}
+                      </span>
+                    </h4>
+
+                    <p
+                      style={{
+                        color: "#9E9E9E",
+                        marginBottom: "15px",
+                        marginTop: "10px",
+                        fontSize: "1rem",
+                        textAlign: "right",
+                      }}
+                    >
+                      Metode Pembayaran:{" "}
+                      <span style={{ fontSize: "1.1rem", color: "black" }}>
+                        {invoiceData.payment_method}
+                      </span>
+                    </p>
+                    <p
+                      style={{
+                        textAlign: "right",
+                        color: "#9E9E9E",
+                        marginBottom: "15px",
+                        fontSize: "1rem",
+                      }}
+                    >
+                      Pembayaran via:{" "}
+                      <span style={{ fontSize: "1.1rem", color: "black" }}>
+                        {invoiceData.payment_channel}
+                      </span>
+                    </p>
+                  </Flex>
+                </Flex>
+
+                <Flex vertical>
+                  <div>{renderItems()}</div>
+                </Flex>
+                <Flex vertical align="end" style={{ marginTop: "0.5rem" }}>
+                  <p
+                    style={{
+                      color: "#9E9E9E",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Biaya Admin:{" "}
+                  </p>
+                  <span
+                    style={{
+                      fontWeight: "bold",
+                      color: "black",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    {new Intl.NumberFormat("id-ID", {
+                      style: "currency",
+                      currency: "IDR",
+                    }).format(5000)}
+                  </span>
+                </Flex>
+                <Flex vertical align="end">
+                  <p
+                    style={{
+                      color: "#9E9E9E",
+
+                      marginTop: "1.2rem",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    Total Pembayaran:
+                  </p>
+                  <p
+                    style={{
+                      color: "#9E9E9E",
+                      margin: "4px",
+                      marginTop: "2px",
+                      fontSize: "1rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: "bolder",
+                        color: "black",
+                        fontSize: "1.5rem",
+                      }}
+                    >
+                      {new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                      }).format(invoiceData.amount)}
                     </span>
-                  </h4>
+                  </p>
                 </Flex>
               </Flex>
-              <Flex>
-                <h1>Item</h1>
-              </Flex>
-              <ul style={{ listStyleType: "none", padding: 0, margin: 0 }}>
-                {invoiceData.items && invoiceData.items.length > 0 ? (
-                  invoiceData.items.map((item, index) => (
-                    <li key={index}>
-                      {item.name} x {item.quantity} = Rp{" "}
-                      {new Intl.NumberFormat("id-ID", {
-                        style: "decimal",
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 2,
-                      }).format(item.price * item.quantity)}
-                    </li>
-                  ))
-                ) : (
-                  <li>No items found</li>
-                )}
-              </ul>
-            </Flex>
+            </div>
           </div>
-          <button
-            onClick={() => {
-              setLoading(true);
-              generatePDF(targetRef, options)
-                .then(() => setLoading(false))
-                .catch(() => setLoading(false));
-            }}
-            disabled={loading}
-          >
-            {loading ? "Loading..." : "Download PDF"}
-          </button>
         </>
       )}
     </Flex>

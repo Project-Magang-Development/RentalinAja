@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import jwt from "jsonwebtoken";
-
-
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
@@ -54,7 +51,6 @@ export async function GET(req: Request) {
           { start_date: { gte: new Date(`${year}-01-01`) } },
           { start_date: { lte: new Date(`${year}-12-31`) } },
           { merchant_id: decoded.merchantId },
-          
         ],
       },
     });

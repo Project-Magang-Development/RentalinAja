@@ -38,6 +38,7 @@ const postPayment = async (invoiceData: any) => {
     });
 
     console.log("New payment created:", newPayment);
+
     const newBooking = await prisma.booking.create({
       data: {
         order_id,
@@ -55,7 +56,6 @@ const postPayment = async (invoiceData: any) => {
     throw error;
   }
 };
-
 export async function updateOrderFinish(externalId: string, newStatus: string) {
   try {
     // Check if the record exists
@@ -83,6 +83,33 @@ export async function updateOrderFinish(externalId: string, newStatus: string) {
         amount: transaction.total_amount,
         external_id: transaction.external_id,
       });
+
+      // Update available_balance for the merchant
+      await prisma.merchant.update({
+        where: { merchant_id: transaction.merchant_id },
+        data: {
+          available_balance: {
+            increment: transaction.total_amount,
+          },
+        },
+      });
+
+      // Record the income for the merchant
+      try {
+        const income = await prisma.income.create({
+          data: {
+            merchant_id: transaction.merchant_id,
+            amount: transaction.total_amount,
+          },
+        });
+
+        console.log("Income recorded successfully:", income);
+      } catch (incomeError) {
+        console.error("Failed to record income:", incomeError);
+        throw new Error("Failed to record income");
+      }
+
+      console.log("Merchant balance updated successfully");
     }
 
     return updatedTransaction;

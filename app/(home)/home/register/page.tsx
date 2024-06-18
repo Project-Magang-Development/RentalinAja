@@ -118,7 +118,7 @@ const RegisterDashboard: React.FC = () => {
           invoice_paid: ["email", "whatsapp"],
         },
         // redirect ke tempat register yang sama tapi sesuai package yang dipilih
-        success_redirect_url: `http://localhost:3000/home/register?package=${packageId}`,
+        success_redirect_url: `http://localhost:3000/home/register/success`,
         failure_redirect_url: `http://localhost:3000/home/register?package=${packageId}`,
         items: [
           {
@@ -136,8 +136,8 @@ const RegisterDashboard: React.FC = () => {
         },
       });
       if (response.status === 200) {
-        const { invoice_url, id } = response.data;
         console.log(response.data);
+        const { invoice_url, id } = response.data;
 
         return { id_invoice: id, invoice_url };
       } else {
@@ -291,7 +291,8 @@ const RegisterDashboard: React.FC = () => {
 
       message.success("Registration successful!");
       if (invoiceResult.invoice_url) {
-        window.location.href = invoiceResult.invoice_url;
+        console.log("Invoice URL:", invoiceResult.invoice_url);
+        // window.location.href = invoiceResult.invoice_url;
       } else {
         if (packageData.package_price > 0) {
           console.log("Terjadi Kesalahan");

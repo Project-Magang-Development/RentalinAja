@@ -52,7 +52,6 @@ const RegisterDashboard: React.FC = () => {
           objectFit: "fill",
           position: "absolute",
           top: 50,
-
           height: 450,
         }}
       />

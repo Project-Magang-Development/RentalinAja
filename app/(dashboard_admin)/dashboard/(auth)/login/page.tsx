@@ -75,12 +75,9 @@ export default function LoginDashboard() {
         src="/icons/panah3.svg"
         alt=""
         style={{
-          objectFit: "fill",
           position: "absolute",
-          top: 258,
-          right: -20,
-          width: 250,
-          height: 250,
+          bottom: 0,
+          right: -10,
         }}
       />
 

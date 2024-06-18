@@ -1,21 +1,23 @@
 import { JwtPayload } from "jsonwebtoken";
 import { jwtDecode } from "jwt-decode";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
-
-interface MyTokenPayload extends JwtPayload {
-  tenantId: number;
+interface MyTokenPayload {
+  merchantId: string;
   email: string;
-  tenant_company: string;
+  merchant_name: string;
+  api_key: string;
+  merchant_company: string;
 }
+
 export const login = () => {
-    const token = Cookies.get("token");
-    if (token) {
-        return true;
-    } else {
-        return false;
-    }
-}
+  const token = Cookies.get("token");
+  if (token) {
+    return true;
+  } else {
+    return false;
+  }
+};
 
 export const getCompanyName = (token: string) => {
   const decoded = jwtDecode<MyTokenPayload>(token);
@@ -25,4 +27,13 @@ export const getCompanyName = (token: string) => {
 export const getName = (token: string) => {
   const decoded = jwtDecode<MyTokenPayload>(token);
   return decoded.merchant_name;
+};
+export const getEmail = (token: string) => {
+  const decoded = jwtDecode<MyTokenPayload>(token);
+  return decoded.email;
+};
+
+export const getApiKey = (token: string) => {
+  const decoded = jwtDecode<MyTokenPayload>(token);
+  return decoded.api_key;
 };
