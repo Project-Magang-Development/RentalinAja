@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button, Input, Form, message, notification, Image } from "antd";
+import { Button, Input, Form, message, notification, Image, Flex } from "antd";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { CheckOutlined } from "@ant-design/icons";
@@ -281,7 +281,7 @@ const RegisterRenew = () => {
 
       notification.success({
         message: "Registrasi Berhasil",
-      })
+      });
       if (invoiceResult.invoice_url) {
         window.location.href = invoiceResult.invoice_url;
       } else {
@@ -309,35 +309,37 @@ const RegisterRenew = () => {
       <div
         style={{
           flex: "1",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          paddingTop: "20px",
+          paddingBottom: "20px",
         }}
       >
+        <Title level={2} style={{ marginBottom: "20px" }}>
+          Perbarui Paket Anda
+        </Title>
         <div
-          className="container mx-auto"
           style={{
+            maxWidth: "800px",
+            width: "100%",
             display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            minHeight: "50vh",
             flexDirection: "column",
-            paddingTop: "20px",
-            paddingBottom: "20px",
+            alignItems: "center",
           }}
         >
           <div
-             style={{
-            backgroundColor: "white",
-            padding: "2rem",
-            boxShadow:
-              "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
-            borderRadius: "20px",
-          }}
+            style={{
+              backgroundColor: "white",
+              padding: "2rem",
+              boxShadow:
+                "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
+              borderRadius: "20px",
+              marginBottom: "20px",
+              maxWidth: "600px",
+              width: "100%",
+            }}
           >
-            <Title
-              level={3}
-              style={{ marginBottom: "20px", textAlign: "center" }}
-            >
-              Perbarui Paket Anda
-            </Title>
             <div>
               <p style={{ fontSize: "19px", fontWeight: "bold" }}>
                 {packageData.package_name}
@@ -382,13 +384,11 @@ const RegisterRenew = () => {
           <div
             className="card"
             style={{
-              marginTop: "20px",
-              marginBottom: "20px",
               padding: "20px",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
               borderRadius: "8px",
-              width: "100%",
               maxWidth: "600px",
+              width: "100%",
             }}
           >
             <Title level={4} style={{ marginBottom: "20px" }}>
@@ -399,6 +399,7 @@ const RegisterRenew = () => {
                 display: "flex",
                 justifyContent: "space-between",
                 marginBottom: "20px",
+                width: "100%",
               }}
             >
               <Input
@@ -408,10 +409,7 @@ const RegisterRenew = () => {
                 placeholder="Enter your email"
                 style={{ marginRight: "10px", flex: "1" }}
               />
-              <Button
-                type="primary"
-                onClick={handleEmailCheck}
-              >
+              <Button type="primary" onClick={handleEmailCheck}>
                 Check Email
               </Button>
             </div>
