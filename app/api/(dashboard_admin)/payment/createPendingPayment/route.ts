@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -20,23 +21,24 @@ export async function POST(req: Request) {
       password,
     } = body;
 
-    // Cek apakah ada merchant dengan merchant_email yang sama
+    // Check if a merchant with the same email already exists
     const existingMerchant = await prisma.merchantPendingPayment.findFirst({
       where: { merchant_email },
     });
 
+    let hashedPassword;
+
     if (existingMerchant) {
-      return NextResponse.json({
-        error: "Merchant with the same email already exists",
-      });
+      hashedPassword = existingMerchant.password;
+    } else {
+      // Hash the password if the merchant is new
+      hashedPassword = await bcrypt.hash(password, 10);
     }
 
-    // Dapatkan tanggal saat ini
+    // Get current date
     const paymentDate = new Date();
-    // Lakukan hash pada password
-    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Buat pembayaran baru
+    // Create new payment
     const newPayment = await prisma.merchantPendingPayment.create({
       data: {
         amount,
@@ -65,7 +67,6 @@ export async function POST(req: Request) {
     return new NextResponse(
       JSON.stringify({
         error: "Terjadi kesalahan saat menyimpan data",
-        message: error,
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );

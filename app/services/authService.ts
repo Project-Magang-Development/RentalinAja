@@ -2,7 +2,7 @@ import { JwtPayload } from "jsonwebtoken";
 import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie";
 
-interface MyTokenPayload {
+interface MyTokenPayload extends JwtPayload {
   merchantId: string;
   email: string;
   merchant_name: string;
@@ -10,13 +10,10 @@ interface MyTokenPayload {
   merchant_company: string;
 }
 
-export const login = () => {
+export const login = (): boolean => {
   const token = Cookies.get("token");
-  if (token) {
-    return true;
-  } else {
-    return false;
-  }
+  const adminToken = Cookies.get("adminToken");
+  return !!token && !!adminToken;
 };
 
 export const getCompanyName = (token: string) => {

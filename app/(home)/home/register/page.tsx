@@ -52,6 +52,7 @@ const RegisterDashboard: React.FC = () => {
   const [packageId, setPackageId] = useState<any>("");
   const [loading, setLoading] = useState(false);
   const [features, setFeatures] = useState<string[]>([]);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     //sesuaikan dengan url package yang dipilih
@@ -221,6 +222,7 @@ const RegisterDashboard: React.FC = () => {
       const payloadMerchant = {
         pending_id: pending_id,
         plan: package_id,
+        email: email,
       };
 
       console.log("Payload Merchant:", payloadMerchant);
@@ -320,27 +322,19 @@ const RegisterDashboard: React.FC = () => {
       <Navbar />
       <Layout
         className="layout"
-        style={{
-          zIndex: 1,
-          minHeight: "100vh",
-          backgroundColor: "transparent",
-          display: "flex",
-          overflow: "hidden",
-        }}
+        style={{ minHeight: "100vh", backgroundColor: "transparent" }}
       >
         {/*//Container untuk Layout Form  */}
         <img
-          src="/waves/wave6.svg"
+          src="/icons/wave10.svg"
           style={{
-            overflow: "hidden",
-            objectFit: "fill",
+            objectFit: "cover",
             position: "absolute",
             bottom: 0,
             width: "100%",
             height: "auto",
             zIndex: 0,
-            top: "-200px",
-            marginBottom: "10px",
+            top: "26px",
           }}
         />
 
@@ -616,6 +610,7 @@ const RegisterDashboard: React.FC = () => {
                   prefix={<MailOutlined className="site-form-item-icon" />}
                   placeholder="Email"
                   style={formBig}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </Form.Item>
               <Form.Item
@@ -634,26 +629,22 @@ const RegisterDashboard: React.FC = () => {
               <Form.Item>
                 <Flex justify="center">
                   <Button
-                    style={{
-                      color: " white",
-                      width: "50%",
-                      marginTop: "24px",
-                      backgroundColor: " #6B7CFF",
-                    }}
+                    style={{ width: "50%", marginTop: "24px" }}
+                    type="primary"
                     htmlType="submit"
                     className="register-form-button"
                     block
                     loading={loading}
                   >
-                    Kirim Permintaan
+                    Register
                   </Button>
                 </Flex>
               </Form.Item>
             </Form>
           </Flex>
         </Content>
-        <FooterSection />
       </Layout>
+      <FooterSection />
     </>
   );
 };

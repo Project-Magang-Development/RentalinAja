@@ -460,23 +460,29 @@ export default function AdminVehicleDashboard() {
             gap="16px"
             style={{ marginBottom: "16px", marginTop: "24px" }}
           >
-            <Button type="primary" onClick={showModal} icon={<PlusOutlined />}>
-              Tambah Data Kendaraan
-            </Button>
-
-            <Space>
+            <Flex justify="space-between" gap={16}>
               <Button
-                onClick={() => handleScheduleAll()}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                type="primary"
+                onClick={showModal}
+                icon={<PlusOutlined />}
               >
-                <ScheduleOutlined />
-                Jadwal Seluruh Kendaraan
+                Tambah Data Kendaraan
               </Button>
-            </Space>
+
+              <Space>
+                <Button
+                  onClick={() => handleScheduleAll()}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <ScheduleOutlined />
+                  Jadwal Seluruh Kendaraan
+                </Button>
+              </Space>
+            </Flex>
 
             <Input
               placeholder="Cari Kendaraan..."

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Form, Input, Layout, Typography, message } from "antd";
+import { Button, Form, Input, Layout, Typography, message, notification } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -28,12 +28,20 @@ export default function LoginDashboardSuperAdmin() {
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        if(response.status === 404) {
+          notification.error({
+            message: "Email tidak terdaftar"
+          })
+        }
+         setLoading(false);
+         return;
       }
 
       const data = await response.json();
-      Cookies.set("tokenAdmin", data.token);
-      message.success("Login successful!");
+      Cookies.set("tokenAdmin", data.token, {expires: 1});
+      notification.success({
+        message: "Login Berhasil!"
+      })
       setLoading(false);
       router.push("/dashboard-admin");
     } catch (error) {

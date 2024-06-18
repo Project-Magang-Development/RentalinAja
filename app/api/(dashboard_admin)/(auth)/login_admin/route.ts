@@ -27,16 +27,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Ambil pending_id dari merchantPendingPayment
-    const pendingId = merchantPendingPayment.pending_id;
-
     // Cari merchant berdasarkan pending_id dari merchantPendingPayment
     const merchant = await prisma.merchant.findFirst({
       where: {
-        MerchantPendingPayment: {
-          pending_id: pendingId,
-        },
-        status_subscriber: "Aktif",
+        merchant_email: email,
+      },
+      select: {
+        status_subscriber: true,
+        merchant_id: true,
+        api_key: true,
       },
     });
 
@@ -44,6 +43,13 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "User not found or not active" },
         { status: 404 }
+      );
+    }
+
+    if (merchant.status_subscriber !== "Aktif") {
+      return NextResponse.json(
+        { error: "The subscription period has expired" },
+        { status: 403 }
       );
     }
 
@@ -65,7 +71,7 @@ export async function POST(req: Request) {
       process.env.JWT_SECRET as string
     );
 
-    return NextResponse.json({token});
+    return NextResponse.json({ token });
   } catch (error) {
     console.error("Error accessing database:", error);
     return new NextResponse(

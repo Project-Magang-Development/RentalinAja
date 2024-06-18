@@ -7,57 +7,91 @@ import crypto from "crypto";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { pending_id, plan } = body;
+    const { pending_id, plan, email } = body;
 
-    if (!plan || !pending_id) {
-      return NextResponse.json({ error: "Please provide pending_id and plan" });
+    if (!plan || !email) {
+      return NextResponse.json(
+        { error: "Please provide plan and email" },
+        { status: 400 }
+      );
     }
 
-    // Check if the pending payment exists
     const merchantPendingPayment =
       await prisma.merchantPendingPayment.findUnique({
         where: { pending_id },
       });
-    if (!merchantPendingPayment) {
-      return NextResponse.json({ error: "Invalid pending payment ID" });
-    }
 
-    const startDate = new Date();
+    if (!merchantPendingPayment) {
+      return NextResponse.json(
+        { error: "Pending payment not found" },
+        { status: 404 }
+      );
+    }
 
     // Get the package details
     const packageInfo = await prisma.package.findUnique({
       where: { package_id: plan },
     });
+
     if (!packageInfo) {
       return NextResponse.json({ error: "Invalid plan ID" });
     }
 
+    const startDate = new Date();
     const endDate = moment(startDate)
       .add(packageInfo.duration, "months")
       .toDate();
 
     const generateApiKey = () => crypto.randomBytes(32).toString("hex");
 
-    // Create the new merchant payment
-    const newMerchantPayment: any = await prisma.merchantPayment.create({
+    // Check if a merchant exists with the given email
+    let merchantData = await prisma.merchant.findUnique({
+      where: { merchant_email: email },
+    });
+
+    let responseMessage;
+
+    // Create a new merchant payment record
+    const newMerchantPayment = await prisma.merchantPayment.create({
       data: {
-        pending_id,
+        pending_id: merchantPendingPayment.pending_id,
         invoice_id: merchantPendingPayment.invoice_id,
         status: merchantPendingPayment.status,
       },
     });
 
-    // Create the new merchant
-    const newMerchant: any = await prisma.merchant.create({
-      data: {
-        start_date: startDate,
-        end_date: endDate,
-        api_key: generateApiKey(),
-        package_id: plan,
-        pending_id: merchantPendingPayment.pending_id,
-        merchant_payment_id: newMerchantPayment.merchant_payment_id,
-      },
-    });
+    if (merchantData) {
+      merchantData = await prisma.merchant.update({
+        where: { merchant_email: merchantData.merchant_email },
+        data: {
+          pending_id: merchantPendingPayment.pending_id,
+          merchant_payment_id: newMerchantPayment.merchant_payment_id,
+          start_date: startDate,
+          end_date: endDate,
+          package_id: plan,
+          status_subscriber: "Aktif",
+        },
+      });
+
+      responseMessage = "Merchant updated successfully.";
+    } else {
+      // Create a new merchant
+      merchantData = await prisma.merchant.create({
+        data: {
+          start_date: startDate,
+          end_date: endDate,
+          api_key: generateApiKey(),
+          package_id: plan,
+          pending_id: merchantPendingPayment.pending_id,
+          merchant_payment_id: newMerchantPayment.merchant_payment_id,
+          status_subscriber: "Aktif",
+          merchant_email: email,
+        },
+      });
+
+      responseMessage =
+        "User and payment created successfully. Activation email has been sent.";
+    }
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -98,13 +132,10 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      message:
-        "User and payment created successfully. Activation email has been sent.",
-      user: newMerchant,
-      payment: newMerchantPayment,
+      message: responseMessage,
+      user: merchantData,
     });
   } catch (error) {
-    console.error("Error accessing database or sending email:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

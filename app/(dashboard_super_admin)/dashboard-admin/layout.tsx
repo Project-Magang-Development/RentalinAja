@@ -22,13 +22,14 @@ import {
   Layout,
   Menu,
   message,
+  Modal,
   theme,
 } from "antd";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCompanyName, useMerchantName } from "../../hooks/useLogin";
 import Image from "next/image";
 import Cookies from "js-cookie";
+import { login } from "@/app/services/authService";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -39,15 +40,16 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const siderWidthExpanded = 200;
   const router = useRouter();
   const pathname = usePathname();
-  const [newOrdersCount, setNewOrdersCount] = useState(0);
-  const [newBookingsCount, setNewBookingsCount] = useState(0);
 
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const disableSidebar = ["/dashboard-admin/login", "/dashboard-admin/register"];
+  const disableSidebar = [
+    "/dashboard-admin/login",
+    "/dashboard-admin/register",
+  ];
   const shouldHideSidebar = disableSidebar.includes(pathname);
 
   const disableCompanyName = [
@@ -58,39 +60,13 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     pathname.includes(route)
   );
 
-  const fetchDataWithLastChecked = async (
-    endpoint: string,
-    lastCheckedKey: string,
-    setStateCallback: React.Dispatch<React.SetStateAction<number>>
-  ) => {
-    const token = localStorage.getItem("token");
-    const lastChecked = localStorage.getItem(lastCheckedKey) || "";
-
-    if (!token) {
-      console.error("Authentication token not found.");
-      return;
-    }
-
-    try {
-      const query = lastChecked ? `?lastChecked=${lastChecked}` : "";
-      const response = await fetch(`${endpoint}${query}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch data. Status: ${response.status}`);
+  useEffect(() => {
+    if (!login()) {
+      if (!Cookies.get("adminToken")) {
+        router.push("/dashboard-admin/login");
       }
-
-      const data = await response.json();
-      setStateCallback(data.count);
-    } catch (error) {
-      console.error("Error fetching data:", error);
     }
-  };
+  }, [router]);
 
   if (shouldHideSidebar) {
     return <>{children}</>;
@@ -131,6 +107,20 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   const selectedKeys = determineSelectedKeys(pathname, items);
 
+  const showModalLogout = () => {
+    Modal.confirm({
+      title: "Konfirmasi Keluar",
+      content: "Apakah Anda yakin ingin keluar?",
+      okText: "Ya",
+      cancelText: "Tidak",
+      onOk: () => {
+        Cookies.remove("tokenAdmin");
+        message.success("Anda telah berhasil keluar.");
+        window.location.href = "/dashboard-admin/login";
+      },
+    });
+  };
+
   const userMenu = (
     <Menu
       items={[
@@ -139,9 +129,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           label: "Keluar",
           icon: <LogoutOutlined />,
           onClick: () => {
-            Cookies.remove("tokenAdmin");
-            message.success("Logout successful!");
-            window.location.href = "/dashboard-admin/login";
+            showModalLogout()
           },
         },
       ]}

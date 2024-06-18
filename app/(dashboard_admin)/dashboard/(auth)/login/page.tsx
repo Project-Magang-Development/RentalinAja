@@ -1,7 +1,16 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Form, Input, Layout, Typography, message } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  Layout,
+  Space,
+  Typography,
+  message,
+  notification,
+} from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -12,6 +21,7 @@ const { Title } = Typography;
 export default function LoginDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showNotification, setShowNotification] = useState(true);
 
   const onFinish = async (values: any) => {
     try {
@@ -21,23 +31,47 @@ export default function LoginDashboard() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: values.email,
-          password: values.password,
-        }),
+        body: JSON.stringify(values),
       });
 
       if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
+        const errorMessage = await response.text();
+        if (response.status === 403) {
+          notification.error({
+            message: "Masa Langganan Sudah Habis",
+            description: (
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <Button type="link" onClick={() => router.push("/home/renew")}>
+                  Perpanjang Langganan
+                </Button>
+              </div>
+            ),
+            duration: 2,
+          });
+        } else if (response.status === 404) {
+          notification.error({
+            message: "Email Tidak Terdaftar",
+          });
+        } else {
+          notification.error({
+            message: `Error: ${errorMessage}`,
+          });
+        }
+        setLoading(false);
+        return;
       }
 
       const data = await response.json();
       Cookies.set("token", data.token, { expires: 1 });
-      message.success("Login successful!");
+      notification.success({
+        message: "Login Berhasil!",
+      });
       setLoading(false);
       window.location.href = "/dashboard";
     } catch (error) {
-      message.error("Login failed.");
+      notification.error({
+        message: "Login failed.",
+      });
     }
   };
 
@@ -57,6 +91,8 @@ export default function LoginDashboard() {
           objectFit: "fill",
           position: "absolute",
           top: 50,
+          right: 1000,
+          width: 450,
           height: 450,
         }}
       />
