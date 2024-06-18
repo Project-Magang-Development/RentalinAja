@@ -3,7 +3,7 @@ import { jwtDecode } from "jwt-decode";
 import Cookies from 'js-cookie';
 
 
-interface MyTokenPayload {
+interface MyTokenPayload extends JwtPayload {
   merchantId: string;
   email: string;
   merchant_name: string;
