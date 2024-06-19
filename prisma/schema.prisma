@@ -56,7 +56,6 @@ model MerchantPendingPayment {
   merchant_name     String
   password          String
   merchant_email    String
-  password          String
   merchant_whatsapp String
   rental_name       String
   rental_type       String
