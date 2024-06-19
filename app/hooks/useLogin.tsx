@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import {
   getApiKey,
   getCompanyName,
   getEmail,
+  getMerchantId,
   getName,
 } from "../services/authService";
-import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 
 const useAuthToken = () => {
   const token = Cookies.get("token");
@@ -20,12 +20,34 @@ const useRedirectBasedOnToken = () => {
   const { token, adminToken } = useAuthToken();
 
   useEffect(() => {
-    if (!token && !adminToken) {
-      router.push("/dashboard/login");
-    } else if (!adminToken) {
-      router.push("/dashboard-admin/login");
+    const path = window.location.pathname;
+    if (
+      path !== "/dashboard/login/forget-password" &&
+      path !== "/dashboard/login/confirm-password"
+    ) {
+      if (!token && !adminToken) {
+        router.push("/dashboard/login");
+      } else if (!adminToken && !token) {
+        router.push("/dashboard-admin/login");
+      }
     }
   }, [router, token, adminToken]);
+};
+
+export const useMerchantId = () => {
+  const [merchantId, setMerchantId] = useState("");
+  const router = useRouter();
+  const { token, adminToken } = useAuthToken();
+
+  useRedirectBasedOnToken();
+
+  useEffect(() => {
+    if (token) {
+      setMerchantId(getMerchantId(token));
+    }
+  }, [token]);
+
+  return merchantId;
 };
 
 export const useCompanyName = () => {
@@ -60,20 +82,6 @@ export const useMerchantName = () => {
   return merchantName;
 };
 
-export const useMerchantEmail = () => {
-  const [merchantEmail, setMerchantEmail] = useState("");
-  const router = useRouter();
-  useEffect(() => {
-    const token = Cookies.get("token");
-    if (token) {
-      setMerchantEmail(getEmail(token));
-    } else {
-      router.push("/dashboard/login");
-    }
-  }, []);
-  return merchantEmail;
-};
-
 export const useApiKey = () => {
   const [apiKey, setApiKey] = useState("");
   const router = useRouter();
@@ -89,3 +97,17 @@ export const useApiKey = () => {
 
   return apiKey;
 };
+
+export const useMerchantEmail= () => {
+  const [merchantEmail, setMerchantEmail] = useState("");
+  const router = useRouter();
+  const { token, adminToken } = useAuthToken();
+
+  useRedirectBasedOnToken();
+
+  useEffect(() => {
+    if (token) {
+      setMerchantEmail(getEmail(token));
+    }
+  }, [token]);
+}

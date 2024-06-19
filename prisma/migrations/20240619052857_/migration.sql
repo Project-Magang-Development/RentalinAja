@@ -14,6 +14,8 @@ CREATE TABLE `Merchant` (
     `status_subscriber` VARCHAR(191) NOT NULL DEFAULT 'Aktif',
     `start_date` DATETIME(3) NULL,
     `end_date` DATETIME(3) NULL,
+    `merchant_email` VARCHAR(191) NOT NULL,
+    `password` VARCHAR(191) NOT NULL,
     `api_key` VARCHAR(191) NOT NULL,
     `used_storage_vehicle` INTEGER NOT NULL DEFAULT 0,
     `used_storage_order` INTEGER NOT NULL DEFAULT 0,
@@ -21,24 +23,11 @@ CREATE TABLE `Merchant` (
     `merchant_payment_id` VARCHAR(191) NOT NULL,
     `pending_id` VARCHAR(191) NOT NULL,
 
+    UNIQUE INDEX `Merchant_merchant_email_key`(`merchant_email`),
     UNIQUE INDEX `Merchant_api_key_key`(`api_key`),
     UNIQUE INDEX `Merchant_merchant_payment_id_key`(`merchant_payment_id`),
     UNIQUE INDEX `Merchant_pending_id_key`(`pending_id`),
     PRIMARY KEY (`merchant_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `Package` (
-    `package_id` VARCHAR(191) NOT NULL,
-    `package_name` VARCHAR(191) NOT NULL,
-    `package_description` VARCHAR(191) NOT NULL,
-    `package_price` INTEGER NOT NULL,
-    `package_feature` VARCHAR(191) NOT NULL,
-    `count_vehicle` INTEGER NULL,
-    `count_order` INTEGER NULL,
-    `duration` INTEGER NOT NULL,
-
-    PRIMARY KEY (`package_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -73,6 +62,20 @@ CREATE TABLE `MerchantPayment` (
     UNIQUE INDEX `MerchantPayment_pending_id_key`(`pending_id`),
     UNIQUE INDEX `MerchantPayment_invoice_id_key`(`invoice_id`),
     PRIMARY KEY (`merchant_payment_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Package` (
+    `package_id` VARCHAR(191) NOT NULL,
+    `package_name` VARCHAR(191) NOT NULL,
+    `package_description` VARCHAR(191) NOT NULL,
+    `package_price` INTEGER NOT NULL,
+    `package_feature` VARCHAR(191) NOT NULL,
+    `count_vehicle` INTEGER NULL,
+    `count_order` INTEGER NULL,
+    `duration` INTEGER NOT NULL,
+
+    PRIMARY KEY (`package_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable

@@ -75,7 +75,7 @@ export async function POST(req: Request) {
 
       responseMessage = "Merchant updated successfully.";
     } else {
-      // Create a new merchant
+      
       merchantData = await prisma.merchant.create({
         data: {
           start_date: startDate,
@@ -86,6 +86,7 @@ export async function POST(req: Request) {
           merchant_payment_id: newMerchantPayment.merchant_payment_id,
           status_subscriber: "Aktif",
           merchant_email: email,
+          password: merchantPendingPayment.password,
         },
       });
 
