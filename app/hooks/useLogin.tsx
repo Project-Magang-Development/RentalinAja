@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import {
   getApiKey,
   getCompanyName,
+  getEmail,
   getMerchantId,
   getName,
 } from "../services/authService";
@@ -96,3 +97,17 @@ export const useApiKey = () => {
 
   return apiKey;
 };
+
+export const useMerchantEmail= () => {
+  const [merchantEmail, setMerchantEmail] = useState("");
+  const router = useRouter();
+  const { token, adminToken } = useAuthToken();
+
+  useRedirectBasedOnToken();
+
+  useEffect(() => {
+    if (token) {
+      setMerchantEmail(getEmail(token));
+    }
+  }, [token]);
+}

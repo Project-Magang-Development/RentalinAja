@@ -65,6 +65,8 @@ const Accordion = () => {
             borderRadius: "30px",
             padding: "10px",
             display: "inline-block",
+            alignContent: "center",
+            justifyContent: "center",
           }}
         >
           <RightOutlined rotate={isActive ? 90 : 0} />

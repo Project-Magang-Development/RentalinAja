@@ -40,6 +40,9 @@ model Merchant {
   MerchantPayment        MerchantPayment        @relation(fields: [merchant_payment_id], references: [merchant_payment_id])
   pending_id             String                 @unique
   MerchantPendingPayment MerchantPendingPayment @relation(fields: [pending_id], references: [pending_id])
+  available_balance      Int                    @default(0)
+  Income                 Income[]
+  Expense                Expense[]
 }
 
 
@@ -51,6 +54,7 @@ model MerchantPendingPayment {
   package_id        String
   amount            Int
   merchant_name     String
+  password          String
   merchant_email    String
   password          String
   merchant_whatsapp String
@@ -65,6 +69,21 @@ model MerchantPendingPayment {
   Merchant          Merchant?
 }
 
+model Income {
+  id          String   @id @default(uuid())
+  merchant_id String
+  amount      Int
+  created_at  DateTime @default(now())
+  merchant    Merchant @relation(fields: [merchant_id], references: [merchant_id])
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  merchant_id String
+  amount      Int
+  created_at  DateTime @default(now())
+  merchant    Merchant @relation(fields: [merchant_id], references: [merchant_id])
+}
 
 model MerchantPayment {
   merchant_payment_id String @id @default(uuid())
@@ -90,23 +109,23 @@ model Package {
 }
 
 model Vehicle {
-  vehicles_id String     @id @default(uuid())
-  merchant_id String
-  name        String
-  model       String
-  year        Int
-  no_plat     String     @unique
-  capacity    Int
-  Merchant    Merchant   @relation(fields: [merchant_id], references: [merchant_id])
-  Schedules   Schedule[]
+  vehicles_id   String         @id @default(uuid())
+  merchant_id   String
+  name          String
+  model         String
+  year          Int
+  no_plat       String         @unique
+  capacity      Int
+  Merchant      Merchant       @relation(fields: [merchant_id], references: [merchant_id])
+  Schedules     Schedule[]
   VehicleImages VehicleImage[]
 }
 
 model VehicleImage {
-  vehicles_image_id          String     @id @default(uuid())
-  vehicles_id   String
-  imageUrl    String        @db.LongText
-  Vehicle     Vehicle    @relation(fields: [vehicles_id], references: [vehicles_id])
+  vehicles_image_id String  @id @default(uuid())
+  vehicles_id       String
+  imageUrl          String  @db.LongText
+  Vehicle           Vehicle @relation(fields: [vehicles_id], references: [vehicles_id])
 }
 
 model Schedule {
@@ -137,17 +156,17 @@ model Payment {
 }
 
 model Order {
-  order_id      String   @id @default(uuid())
-  schedules_id  String
-  merchant_id   String
-  external_id   String   @unique
-  start_date    DateTime
-  end_date      DateTime
-  customer_name String
-  customer_phone String @default("")
-  total_amount  Int 
-  status        String   @default("Pending")
-  created_at    DateTime @default(now())
+  order_id       String   @id @default(uuid())
+  schedules_id   String
+  merchant_id    String
+  external_id    String   @unique
+  start_date     DateTime
+  end_date       DateTime
+  customer_name  String
+  customer_phone String   @default("")
+  total_amount   Int
+  status         String   @default("Pending")
+  created_at     DateTime @default(now())
 
   Merchant Merchant  @relation(fields: [merchant_id], references: [merchant_id])
   Schedule Schedule  @relation(fields: [schedules_id], references: [schedules_id])
