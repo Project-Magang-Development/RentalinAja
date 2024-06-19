@@ -27,6 +27,11 @@ export const getName = (token: string) => {
   return decoded.merchant_name;
 };
 
+export const getMerchantId = (token: string) => {
+  const decoded = jwtDecode<MyTokenPayload>(token);
+  return decoded.merchantId;
+};
+
 export const getApiKey = (token: string) => {
   const decoded = jwtDecode<MyTokenPayload>(token);
   return decoded.api_key;

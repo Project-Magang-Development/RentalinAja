@@ -25,6 +25,7 @@ import {
   useApiKey,
   useCompanyName,
   useMerchantName,
+  useMerchantId,
 } from "../../hooks/useLogin";
 import dynamic from "next/dynamic";
 import LayoutSkeleton from "@/app/components/layoutSkeleton";
@@ -45,6 +46,8 @@ const KeyOutlined = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.KeyOutlined)
 );
 
+const ThunderboltOutlined = dynamic(() =>
+  import("@ant-design/icons").then((icon) => icon.ThunderboltOutlined));
 
 const FileMarkdownTwoTone = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.FileMarkdownTwoTone)
@@ -71,6 +74,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const companyName = useCompanyName();
   const merchantName = useMerchantName();
   const apiKey = useApiKey();
+  const merchantId = useMerchantId();
   const [loading, setLoading] = useState(true);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [newBookingsCount, setNewBookingsCount] = useState(0);
@@ -81,7 +85,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const disableSidebar = ["/dashboard/login"];
+  const disableSidebar = ["/dashboard/login", "/dashboard/login/forget-password", "/dashboard/login/confirm-password"];
   const shouldHideSidebar = disableSidebar.includes(pathname);
 
   const disableCompanyName = [
@@ -89,6 +93,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     "/dashboard/booking",
     "/dashboard/order",
     "/dashboard/calendar/[vehicles_id]",
+    "/dashboard/subscription",
   ];
   const shouldHideCompanyName = disableCompanyName.some((route) =>
     pathname.includes(route)
@@ -328,6 +333,10 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setSelectedContent("dokumentasi");
   };
 
+  const showSubscription= () => {
+    router.push(`/dashboard/subscription`);
+  }
+
   const userMenu = (
     <Menu
       items={[
@@ -342,6 +351,12 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           label: "Dokumentasi",
           icon: <FileMarkdownTwoTone />,
           onClick: () => showDocumentation(),
+        },
+        {
+          key: "langganan",
+          label: "Langganan",
+          icon: <ThunderboltOutlined />,
+          onClick: () => showSubscription()
         },
         {
           key: "logout",

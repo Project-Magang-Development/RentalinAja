@@ -58,7 +58,7 @@ interface Vehicle {
   status: string;
 }
 
-const fetcher = async (url: string) => {
+const fetcher = async (url: any) => {
   const response = await fetch(url, {
     headers: {
       Authorization: `Bearer ${Cookies.get("token")}`,

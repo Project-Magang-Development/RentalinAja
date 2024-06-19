@@ -20,8 +20,7 @@ const createMerchant = async (invoiceData: any) => {
       throw new Error(`Order with id ${pending_id} not found`);
     }
 
-    const { status, package_id, invoice_id, merchant_email } =
-      existingPaymentPending;
+    const { merchant_email, password } = existingPaymentPending;
     const startDate = new Date();
     const generateApiKey = () => crypto.randomBytes(32).toString("hex");
 
@@ -43,6 +42,14 @@ const createMerchant = async (invoiceData: any) => {
 
     let newMerchant;
     if (existingMerchant) {
+      const newMerchantPayment = await prisma.merchantPayment.create({
+        data: {
+          pending_id,
+          invoice_id: existingPaymentPending.invoice_id,
+          status: existingPaymentPending.status,
+        },
+      });
+
       newMerchant = await prisma.merchant.update({
         where: { merchant_email },
         data: {
@@ -51,13 +58,13 @@ const createMerchant = async (invoiceData: any) => {
           api_key: generateApiKey(),
           package_id: plan,
           pending_id: pending_id,
+          merchant_payment_id: newMerchantPayment.merchant_payment_id,
           status_subscriber: "Aktif",
         },
       });
 
       console.log(`Merchant with email ${merchant_email} updated successfully`);
     } else {
-      // Create new merchant
       const newMerchantPayment = await prisma.merchantPayment.create({
         data: {
           pending_id,
@@ -72,9 +79,11 @@ const createMerchant = async (invoiceData: any) => {
           end_date: endDate,
           api_key: generateApiKey(),
           package_id: plan,
-          pending_id: pending_id,
+          pending_id,
           merchant_payment_id: newMerchantPayment.merchant_payment_id,
-          merchant_email: existingPaymentPending.merchant_email,
+          merchant_email,
+          status_subscriber: "Aktif",
+          password
         },
       });
 
@@ -91,7 +100,7 @@ const createMerchant = async (invoiceData: any) => {
 
     await transporter.sendMail({
       from: '"RentalinAja" <no-reply@gmail.com>',
-      to: existingPaymentPending.merchant_email,
+      to: merchant_email,
       subject: "Aktivasi Akun Anda",
       text: "Halo! Terima kasih telah mendaftar. Silakan klik link berikut untuk mengaktifkan akun Anda: http://localhost:3000/dashboard/login",
       html: `
@@ -128,26 +137,25 @@ const createMerchant = async (invoiceData: any) => {
     throw new Error(
       "Terjadi kesalahan dalam membuat atau memperbarui merchant"
     );
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
-// Function to update payment status
 export async function updatePaymentStatus(
   externalId: string,
   newStatus: string
 ) {
   try {
-    // Check if the record exists
     const transaction = await prisma.merchantPendingPayment.findUnique({
       where: { invoice_id: externalId },
     });
 
     if (!transaction) {
-      // Tidak melakukan apa pun jika transaksi tidak ditemukan
+      console.log(`Transaction with id ${externalId} not found`);
       return;
     }
 
-    // Update the status if the record exists
     const updatedTransaction = await prisma.merchantPendingPayment.update({
       where: { invoice_id: externalId },
       data: { status: newStatus },
@@ -155,7 +163,6 @@ export async function updatePaymentStatus(
 
     console.log("Status pembayaran berhasil diperbarui:", updatedTransaction);
 
-    // Jika status baru adalah "PAID", panggil fungsi createMerchant
     if (newStatus === "PAID") {
       await createMerchant({
         pending_id: transaction.pending_id,
@@ -167,30 +174,28 @@ export async function updatePaymentStatus(
   } catch (error) {
     console.error(
       "Terjadi kesalahan dalam memperbarui status pembayaran:",
-      error || error
+      error
     );
     throw new Error("Terjadi kesalahan dalam memperbarui status pembayaran");
   } finally {
     await prisma.$disconnect();
   }
 }
-// Function to update status to "EXPIRED"
+
 export async function updateExpiredStatus(
   externalId: string,
   newStatus: string
 ) {
   try {
-    // Check if the record exists
     const transaction = await prisma.merchantPayment.findUnique({
       where: { invoice_id: externalId },
     });
 
     if (!transaction) {
-      // Tidak melakukan apa pun jika transaksi tidak ditemukan
+      console.log(`Transaction with id ${externalId} not found`);
       return;
     }
 
-    // Update the status if the record exists
     const updatedTransaction = await prisma.merchantPayment.update({
       where: { invoice_id: externalId },
       data: { status: newStatus },
@@ -205,7 +210,7 @@ export async function updateExpiredStatus(
   } catch (error) {
     console.error(
       "Terjadi kesalahan dalam memperbarui status menjadi EXPIRED:",
-      error || error
+      error
     );
     throw new Error(
       "Terjadi kesalahan dalam memperbarui status menjadi EXPIRED"

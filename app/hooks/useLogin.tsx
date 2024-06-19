@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { getApiKey, getCompanyName, getName } from "../services/authService";
+import {
+  getApiKey,
+  getCompanyName,
+  getMerchantId,
+  getName,
+} from "../services/authService";
 
 const useAuthToken = () => {
   const token = Cookies.get("token");
@@ -14,12 +19,34 @@ const useRedirectBasedOnToken = () => {
   const { token, adminToken } = useAuthToken();
 
   useEffect(() => {
-    if (!token && !adminToken) {
-      router.push("/dashboard/login");
-    } else if (!adminToken) {
-      router.push("/dashboard-admin/login");
+    const path = window.location.pathname;
+    if (
+      path !== "/dashboard/login/forget-password" &&
+      path !== "/dashboard/login/confirm-password"
+    ) {
+      if (!token && !adminToken) {
+        router.push("/dashboard/login");
+      } else if (!adminToken && !token) {
+        router.push("/dashboard-admin/login");
+      }
     }
   }, [router, token, adminToken]);
+};
+
+export const useMerchantId = () => {
+  const [merchantId, setMerchantId] = useState("");
+  const router = useRouter();
+  const { token, adminToken } = useAuthToken();
+
+  useRedirectBasedOnToken();
+
+  useEffect(() => {
+    if (token) {
+      setMerchantId(getMerchantId(token));
+    }
+  }, [token]);
+
+  return merchantId;
 };
 
 export const useCompanyName = () => {

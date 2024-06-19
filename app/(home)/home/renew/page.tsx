@@ -5,9 +5,7 @@ import { Card, Col, Row, Spin, Alert, Button, message, Flex } from "antd";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { CheckOutlined } from "@ant-design/icons";
-import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/footer";
-import Cookies from "js-cookie";
 import Image from "next/image";
 import RenewSkeleton from "@/app/components/renewSkeleton";
 
