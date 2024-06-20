@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       from: '"RentalinAja" <no-reply@gmail.com>',
       to: email,
       subject: "Aktivasi Akun Anda",
-      text: "Halo! Silahkan Reset Password Anda: http://localhost:3000/dashboard/confirm-password",
+      text: "Halo! Silahkan Reset Password Anda: http://localhost:3000/confirm-password",
       html: `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; padding: 40px; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
             <div style="padding: 20px;">
               <p style="font-size: 16px;">Hai,</p>
               <p style="font-size: 16px;">Silahkan Reset Password Anda. Untuk menyelesaikan proses pendaftaran dan mengaktifkan akun Anda, silakan klik tombol di bawah ini:</p>
-              <a href="http://localhost:3000/dashboard/login/confirm-password?email=${email}"
+              <a href="http://localhost:3000/confirm-password?email=${email}"
                 style="display: inline-block; background-color: #0275d8; color: #ffffff; padding: 12px 24px; font-size: 18px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
                 Aktifkan Akun Anda
               </a>

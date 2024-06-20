@@ -51,7 +51,7 @@ export default function LoginDashboard() {
           });
         } else {
           notification.error({
-            message: 'Password Salah',
+            message: "Password Salah",
           });
         }
         setLoading(false);
@@ -184,7 +184,7 @@ export default function LoginDashboard() {
             </Form.Item>
             <Form.Item>
               <Link
-                href="/dashboard/login/forget-password"
+                href="/forget-password"
                 style={{
                   display: "block",
                   textAlign: "right",

@@ -22,6 +22,7 @@ CREATE TABLE `Merchant` (
     `package_id` VARCHAR(191) NOT NULL,
     `merchant_payment_id` VARCHAR(191) NOT NULL,
     `pending_id` VARCHAR(191) NOT NULL,
+    `available_balance` INTEGER NOT NULL DEFAULT 0,
 
     UNIQUE INDEX `Merchant_merchant_email_key`(`merchant_email`),
     UNIQUE INDEX `Merchant_api_key_key`(`api_key`),
@@ -50,6 +51,26 @@ CREATE TABLE `MerchantPendingPayment` (
 
     UNIQUE INDEX `MerchantPendingPayment_invoice_id_key`(`invoice_id`),
     PRIMARY KEY (`pending_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Income` (
+    `id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
+    `amount` INTEGER NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Expense` (
+    `id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
+    `amount` INTEGER NOT NULL,
+    `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -171,6 +192,12 @@ ALTER TABLE `Merchant` ADD CONSTRAINT `Merchant_pending_id_fkey` FOREIGN KEY (`p
 
 -- AddForeignKey
 ALTER TABLE `MerchantPendingPayment` ADD CONSTRAINT `MerchantPendingPayment_package_id_fkey` FOREIGN KEY (`package_id`) REFERENCES `Package`(`package_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Income` ADD CONSTRAINT `Income_merchant_id_fkey` FOREIGN KEY (`merchant_id`) REFERENCES `Merchant`(`merchant_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Expense` ADD CONSTRAINT `Expense_merchant_id_fkey` FOREIGN KEY (`merchant_id`) REFERENCES `Merchant`(`merchant_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `MerchantPayment` ADD CONSTRAINT `MerchantPayment_pending_id_fkey` FOREIGN KEY (`pending_id`) REFERENCES `MerchantPendingPayment`(`pending_id`) ON DELETE RESTRICT ON UPDATE CASCADE;

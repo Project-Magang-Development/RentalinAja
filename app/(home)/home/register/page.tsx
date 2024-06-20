@@ -294,7 +294,7 @@ const RegisterDashboard: React.FC = () => {
       message.success("Registration successful!");
       if (invoiceResult.invoice_url) {
         console.log("Invoice URL:", invoiceResult.invoice_url);
-        // window.location.href = invoiceResult.invoice_url;
+        window.location.href = invoiceResult.invoice_url;
       } else {
         if (packageData.package_price > 0) {
           console.log("Terjadi Kesalahan");

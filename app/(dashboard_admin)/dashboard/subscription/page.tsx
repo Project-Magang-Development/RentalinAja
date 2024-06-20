@@ -50,14 +50,17 @@ export default function SubscriptionPage() {
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = subscriptionDetail.subscriptionDetail?.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
+
+  const filteredItems = subscriptionDetail.subscriptionDetail?.filter(
+    (item: any, index: any, self: any) =>
+      index === self.findIndex((i: any) => i.package_id === item.package_id)
+  );
+
+  const currentItems = filteredItems?.slice(indexOfFirstItem, indexOfLastItem);
 
   return (
     <>
