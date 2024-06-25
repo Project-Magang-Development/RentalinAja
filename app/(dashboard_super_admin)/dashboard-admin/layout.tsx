@@ -55,7 +55,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     pathname.includes(route)
   );
 
-  // useRedirectBasedOnToken(); // Call the custom hook here
+  useRedirectBasedOnToken(); // Call the custom hook here
 
   if (shouldHideSidebar) {
     return <>{children}</>;
