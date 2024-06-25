@@ -16,13 +16,7 @@ import {
 } from "antd";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-import {
-  BankOutlined,
-  CheckOutlined,
-  MailOutlined,
-  PhoneOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { CheckOutlined } from "@ant-design/icons";
 import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/footer";
 import Title from "antd/es/typography/Title";
@@ -92,7 +86,7 @@ const Home: React.FC = () => {
   const handleCardClick = async (packageId: string) => {
     try {
       setLoadingButton(packageId);
-      await router.push(`/home/register?package=${packageId}`);
+      router.push(`/home/register?package=${packageId}`);
     } catch (error) {
       console.log(error);
       message.error("Terjadi kesalahan saat memilih paket");
@@ -228,138 +222,6 @@ const Home: React.FC = () => {
               </Flex>
             ))}
           </Flex>
-          {/* <Flex
-          justify="center"
-          align="center"
-          style={{
-            marginTop: "2rem",
-            padding: "5rem",
-            paddingInline: "8rem",
-            position: "relative",
-            width: "100%",
-            height: "auto",
-          }}
-        >
-          <Flex
-            style={{ position: "relative", width: "100%", height: "30rem" }}
-          >
-            <img
-              style={{
-                zIndex: "0",
-                position: "absolute",
-                top: 0,
-                left: 20,
-                objectFit: "cover",
-                borderRadius: "20px",
-                width: "100%",
-
-                height: "100%",
-              }}
-              src="/image/freeTrial.png"
-              alt=""
-            />
-
-            <Flex
-              vertical
-              justify="center"
-              align="start"
-              style={{
-                zIndex: "1",
-                width: "100%",
-                height: "100%",
-                marginInline: "50px",
-              }}
-            >
-              <Form
-                layout="vertical"
-                style={{
-                  backgroundColor: "rgba(255, 255, 255, 0.8)",
-                  padding: "10px",
-                  borderRadius: "20px",
-
-                  display: " flex",
-                  flexWrap: "wrap",
-                  flexDirection: "column",
-                }}
-                name="basic"
-                onFinish={onFinish}
-              >
-                <Title
-                  level={3}
-                  style={{
-                    textAlign: "center",
-                    fontWeight: "bold",
-                    fontSize: "18px",
-                  }}
-                >
-                  Dapatkan Uji Coba Gratis Sekarang!
-                </Title>
-                <Form.Item
-                  style={{ padding: "0" }}
-                  label="Nama Lengkap"
-                  name="fullName"
-                  rules={[
-                    { required: true, message: "Masukkan Nama Lengkap Anda!" },
-                  ]}
-                >
-                  <Input
-                    prefix={<UserOutlined />}
-                    placeholder="Masukkan Nama Lengkap Anda"
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  required={true}
-                  label="Nama Perusahaan"
-                  name="companyName"
-                >
-                  <Input
-                    prefix={<BankOutlined />}
-                    placeholder="Masukkan Nama Perusahaan Anda"
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Email"
-                  name="email"
-                  rules={[
-                    {
-                      required: true,
-                      type: "email",
-                      message: "Masukkan Email Anda!",
-                    },
-                  ]}
-                >
-                  <Input
-                    prefix={<MailOutlined />}
-                    placeholder="Masukkan Email Anda"
-                  />
-                </Form.Item>
-
-                <Form.Item label="Nomor Telepon" name="phone">
-                  <Input
-                    prefix={<PhoneOutlined />}
-                    placeholder="Masukkan Nomor Telepon Anda"
-                  />
-                </Form.Item>
-
-                <Form.Item>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    style={{
-                      width: "100%",
-                      backgroundColor: "#1D2130",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Kirim Permintaan
-                  </Button>
-                </Form.Item>
-              </Form>
-            </Flex>
-          </Flex>
-        </Flex> */}
         </Flex>
       </Section>
 
@@ -369,3 +231,138 @@ const Home: React.FC = () => {
 };
 
 export default Home;
+
+{
+  /* <Flex
+justify="center"
+align="center"
+style={{
+  marginTop: "2rem",
+  padding: "5rem",
+  paddingInline: "8rem",
+  position: "relative",
+  width: "100%",
+  height: "auto",
+}}
+>
+<Flex
+  style={{ position: "relative", width: "100%", height: "30rem" }}
+>
+  <img
+    style={{
+      zIndex: "0",
+      position: "absolute",
+      top: 0,
+      left: 20,
+      objectFit: "cover",
+      borderRadius: "20px",
+      width: "100%",
+
+      height: "100%",
+    }}
+    src="/image/freeTrial.png"
+    alt=""
+  />
+
+  <Flex
+    vertical
+    justify="center"
+    align="start"
+    style={{
+      zIndex: "1",
+      width: "100%",
+      height: "100%",
+      marginInline: "50px",
+    }}
+  >
+    <Form
+      layout="vertical"
+      style={{
+        backgroundColor: "rgba(255, 255, 255, 0.8)",
+        padding: "10px",
+        borderRadius: "20px",
+
+        display: " flex",
+        flexWrap: "wrap",
+        flexDirection: "column",
+      }}
+      name="basic"
+      onFinish={onFinish}
+    >
+      <Title
+        level={3}
+        style={{
+          textAlign: "center",
+          fontWeight: "bold",
+          fontSize: "18px",
+        }}
+      >
+        Dapatkan Uji Coba Gratis Sekarang!
+      </Title>
+      <Form.Item
+        style={{ padding: "0" }}
+        label="Nama Lengkap"
+        name="fullName"
+        rules={[
+          { required: true, message: "Masukkan Nama Lengkap Anda!" },
+        ]}
+      >
+        <Input
+          prefix={<UserOutlined />}
+          placeholder="Masukkan Nama Lengkap Anda"
+        />
+      </Form.Item>
+
+      <Form.Item
+        required={true}
+        label="Nama Perusahaan"
+        name="companyName"
+      >
+        <Input
+          prefix={<BankOutlined />}
+          placeholder="Masukkan Nama Perusahaan Anda"
+        />
+      </Form.Item>
+
+      <Form.Item
+        label="Email"
+        name="email"
+        rules={[
+          {
+            required: true,
+            type: "email",
+            message: "Masukkan Email Anda!",
+          },
+        ]}
+      >
+        <Input
+          prefix={<MailOutlined />}
+          placeholder="Masukkan Email Anda"
+        />
+      </Form.Item>
+
+      <Form.Item label="Nomor Telepon" name="phone">
+        <Input
+          prefix={<PhoneOutlined />}
+          placeholder="Masukkan Nomor Telepon Anda"
+        />
+      </Form.Item>
+
+      <Form.Item>
+        <Button
+          type="primary"
+          htmlType="submit"
+          style={{
+            width: "100%",
+            backgroundColor: "#1D2130",
+            fontWeight: "bold",
+          }}
+        >
+          Kirim Permintaan
+        </Button>
+      </Form.Item>
+    </Form>
+  </Flex>
+</Flex>
+</Flex> */
+}

@@ -217,6 +217,7 @@ export default function DetailVehiclePage() {
     }
   };
 
+  // ?fungsi untuk proceed payment
   const onFinish = async (values: any) => {
     if (!selectedSchedule) {
       notification.error({

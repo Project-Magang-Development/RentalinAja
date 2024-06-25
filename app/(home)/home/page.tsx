@@ -6,12 +6,9 @@ import Image from "next/image";
 import YouTubeEmbed from "@/app/components/youtubeEmbed";
 import RadialBlur from "@/app/components/radialBlur";
 import Navbar from "@/app/components/Navbar";
-import Testimonials from "@/app/components/testimoni";
-import Testimonial from "@/app/components/testimoni";
-import Testimo from "@/app/components/testimoni";
-import TestimonialComponent from "@/app/components/testimoni";
+
 import InfiniteTestimonials from "@/app/components/testimoni";
-import CustomCollapse from "@/app/components/Accordion";
+
 import Accordion from "@/app/components/Accordion";
 import FooterDaftar from "@/app/components/footerDaftar";
 import FooterSection from "@/app/components/footer";
@@ -955,7 +952,7 @@ const Home = () => {
                   }}
                 >
                   FAQ
-                </p>
+              </p>
                 <p
                   style={{
                     fontSize: "20px",
