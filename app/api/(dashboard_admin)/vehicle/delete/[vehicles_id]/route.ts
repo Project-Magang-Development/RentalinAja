@@ -62,12 +62,10 @@ export async function DELETE(req: Request) {
       );
     }
 
-    // Delete all VehicleImages associated with the vehicle
     await prisma.vehicleImage.deleteMany({
       where: { vehicles_id: String(vehicles_id) },
     });
 
-    // Delete the vehicle
     await prisma.$transaction([
       prisma.schedule.deleteMany({
         where: { vehicles_id: String(vehicles_id) },

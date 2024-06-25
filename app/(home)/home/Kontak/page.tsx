@@ -2,28 +2,60 @@
 import Navbar from "@/app/components/Navbar";
 import Section from "@/app/components/RevealAnimation";
 import FooterSection from "@/app/components/footer";
-import { Button, Flex, Form, Input } from "antd";
-import React from "react";
+import { Button, Flex, Form, Input, message, notification } from "antd";
+import TextArea from "antd/lib/input/TextArea";
+import React, { useState } from "react";
 
 function Kontak() {
+  const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
+
+  const onFinish = async (values: any) => {
+    setLoading(true);
+    const response = await fetch("/api/sendEmail", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: values.email,
+        message: values.message,
+      }),
+    });
+
+    setLoading(false);
+
+    if (response.ok) {
+      notification.success({
+        message: "Pesan Berhasil Di Kirim",
+      });
+      form.resetFields();
+    } else {
+      notification.error({
+        message: "Pesan Gagal Di Kirim",
+      });
+    }
+  };
+
   return (
     <Flex vertical style={{ overflow: "hidden" }}>
       <Navbar />
       <Section>
         <Flex
-          wrap="wrap"
           justify="center"
-          align="start"
-          style={{ padding: "1rem", minHeight: "100vh" }}
+          align="center"
+          style={{ padding: "1rem", minHeight: "100vh" }} // Center content vertically
         >
           <Flex
             wrap="wrap"
             style={{
               position: "relative",
               width: "1000px",
-              height: "470px",
+              height: "auto", // Adjust height to auto to accommodate content
               borderRadius: "30px",
               overflow: "hidden",
+              backgroundColor: "#C5CBF9", // Unified background color for the card
+              padding: "1.5rem", // Add padding to the card for better spacing
             }}
           >
             {/* Bagian kiri dengan warna berbeda */}
@@ -57,17 +89,16 @@ function Kontak() {
               style={{
                 position: "relative",
                 width: "100%",
-                height: "100  %",
-                paddingInline: "1.5rem",
+                height: "100%",
               }}
             >
               <Flex vertical flex={1} justify="start" align="start">
-                {" "}
                 <p
                   style={{
                     color: "black",
                     fontSize: "25px",
                     fontWeight: "bold",
+                    paddingInline: "0.5rem", // Padding to the text for better appearance
                   }}
                 >
                   Hubungi Kami
@@ -77,6 +108,7 @@ function Kontak() {
                     fontSize: "15px",
                     textAlign: "justify",
                     marginBlock: "5px",
+                    paddingInline: "0.5rem", // Padding to the text for better appearance
                   }}
                 >
                   Di RentalinAja, kami membantu bisnis rental melalui solusi
@@ -84,9 +116,11 @@ function Kontak() {
                   perubahan positif. Memiliki Pertanyaan, hubungi kami!
                 </p>
                 <Form
-                  style={{ marginTop: "8px" }}
+                  form={form}
+                  style={{ marginTop: "8px", width: "100%" }}
                   size="large"
                   layout="vertical"
+                  onFinish={onFinish}
                 >
                   <Form.Item
                     name="name"
@@ -115,27 +149,30 @@ function Kontak() {
                   </Form.Item>
                   <Form.Item
                     name="message"
-                    rules={[{ required: true, message: "No Telepon" }]}
+                    rules={[{ required: true, message: "Pesan" }]}
                   >
-                    <Input
+                    <TextArea
                       style={{
                         backgroundColor: "transparent",
                         border: "2px solid gray",
                       }}
-                      placeholder="Nomor Telp"
+                      placeholder="Pesan"
                     />
                   </Form.Item>
-                  <Button
-                    style={{
-                      backgroundColor: "#1D2130",
-                      color: "white",
-                      fontWeight: "bold",
-                      width: "100%",
-                    }}
-                    htmlType="submit"
-                  >
-                    Kirim
-                  </Button>
+                  <Form.Item>
+                    <Button
+                      style={{
+                        backgroundColor: "#1D2130",
+                        color: "white",
+                        fontWeight: "bold",
+                        width: "100%",
+                      }}
+                      htmlType="submit"
+                      loading={loading}
+                    >
+                      Kirim
+                    </Button>
+                  </Form.Item>
                   <Flex gap={15} style={{ padding: "15px" }}>
                     <Flex>
                       <img

@@ -68,14 +68,19 @@ export async function GET(req: Request) {
         (order) => order.Schedule.vehicles_id
       );
 
-      // Mark availability
-      vehicles = allVehicles.map((vehicle) => ({
-        ...vehicle,
-        status: bookedVehicleIds.includes(vehicle.vehicles_id)
-          ? "Tidak Tersedia"
-          : "Tersedia",
-        imageUrl: vehicle.VehicleImages.map((image) => image.imageUrl), // Map image URLs
-      }));
+      // Mark availability and get the image with index 0
+      vehicles = allVehicles.map((vehicle) => {
+        const imageUrl =
+          vehicle.VehicleImages.find((image) => image.index === 0)?.imageUrl ||
+          "No Image";
+        return {
+          ...vehicle,
+          status: bookedVehicleIds.includes(vehicle.vehicles_id)
+            ? "Tidak Tersedia"
+            : "Tersedia",
+          imageUrl, // Use the image URL with index 0
+        };
+      });
     } else {
       vehicles = await prisma.vehicle.findMany({
         where: { merchant_id: decoded.merchantId },
@@ -84,11 +89,16 @@ export async function GET(req: Request) {
         },
       });
 
-      vehicles = vehicles.map((vehicle) => ({
-        ...vehicle,
-        status: "Tersedia",
-        imageUrl: vehicle.VehicleImages.map((image) => image.imageUrl), // Map image URLs
-      }));
+      vehicles = vehicles.map((vehicle) => {
+        const imageUrl =
+          vehicle.VehicleImages.find((image) => image.index === 0)?.imageUrl ||
+          "No Image";
+        return {
+          ...vehicle,
+          status: "Tersedia",
+          imageUrl, 
+        };
+      });
     }
 
     return new NextResponse(JSON.stringify(vehicles), {

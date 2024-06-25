@@ -370,7 +370,7 @@ export default function DetailVehiclePage() {
                       style={{
                         boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
                         flex: "0 0 auto",
-                        maxWidth: "100%", // Ensure card does not exceed parent width
+                        maxWidth: "100%",
                         height: "auto",
                       }}
                     >
@@ -466,7 +466,7 @@ export default function DetailVehiclePage() {
                       <div style={{ flex: 1, paddingLeft: "10px" }}>
                         <Text style={{ color: "#888" }}>Kapasitas: </Text>
                         <Text strong style={{ color: "#1F1F1F" }}>
-                          {vehicle.capacity} Orang
+                          {vehicle.capacity} People
                         </Text>
                       </div>
                     </div>
@@ -484,74 +484,68 @@ export default function DetailVehiclePage() {
                         </Text>
                       </div>
                       <div style={{ flex: 1, paddingLeft: "10px" }}>
-                        <Text style={{ color: "#888" }}>Plat: </Text>
+                        <Text style={{ color: "#888" }}>No Polici: </Text>
                         <Text strong style={{ color: "#1F1F1F" }}>
                           {vehicle.no_plat}
                         </Text>
                       </div>
                     </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "start",
-                        justifyContent: "space-between",
-                        flexDirection: "column",
-                        gap: "1rem",
-                      }}
-                    >
-                      <Row style={{ display: "flex", alignItems: "center" }}>
-                        {selectedSchedule?.price && (
-                          <>
-                            <Title
-                              level={3}
-                              style={{
-                                margin: 0,
-                                fontWeight: "bold",
-                                color: "#333",
-                              }}
-                            >
-                              {new Intl.NumberFormat("id-ID", {
-                                style: "currency",
-                                currency: "IDR",
-                                minimumFractionDigits: 0,
-                              }).format(selectedSchedule.price)}
-                            </Title>
-                            <Title
-                              level={5}
-                              style={{
-                                color: "grey",
-                                margin: 0,
-                                marginLeft: 5,
-                              }}
+
+                    <Flex justify="space-between" style={{ marginTop: "40px" }}>
+                      {selectedSchedule?.price && (
+                        <>
+                          <p
+                            style={{
+                              margin: 0,
+                              fontWeight: "bold",
+                              color: "#333",
+                              fontSize: "25px",
+                            }}
+                          >
+                            {new Intl.NumberFormat("id-ID", {
+                              style: "currency",
+                              currency: "IDR",
+                              minimumFractionDigits: 0,
+                            }).format(selectedSchedule.price)}
+                            <span
+                              style={{ fontSize: "15px", fontWeight: "normal" }}
                             >
                               /day
-                            </Title>
-                          </>
-                        )}
-                      </Row>
-                      <Button
-                        type="primary"
-                        style={{
-                          backgroundColor: "#6B7CFF",
-                          borderColor: "#6B7CFF",
-                          borderRadius: "5px",
-                          width: "100px",
-                          height: "40px",
-                          fontSize: "16px",
-                          fontWeight: "bold",
-                        }}
-                        onClick={showBookingModal}
-                      >
-                        Order
-                      </Button>
-                    </div>
+                            </span>
+                          </p>
+
+                          <Button
+                            type="primary"
+                            style={{
+                              backgroundColor: "#6B7CFF",
+                              borderColor: "#6B7CFF",
+                              borderRadius: "5px",
+                              width: "100px",
+                              height: "40px",
+                              fontSize: "16px",
+                              fontWeight: "bold",
+                            }}
+                            onClick={showBookingModal}
+                          >
+                            Order
+                          </Button>
+                        </>
+                      )}
+                    </Flex>
                   </Card>
                 </Col>
               </Row>
             </div>
           </>
         ) : (
-          <Spin />
+          <Spin
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "auto",
+            }}
+          />
         )}
       </Content>
       <Modal

@@ -177,7 +177,7 @@ export default function SubscriptionPage() {
       <Pagination
         current={currentPage}
         pageSize={itemsPerPage}
-        total={subscriptionDetail.subscriptionDetail?.length}
+        total={filteredItems?.length} 
         onChange={handlePageChange}
         style={{ marginTop: 20, textAlign: "center" }}
       />

@@ -31,7 +31,7 @@ const fetcher = async (url: string) => {
 };
 
 const RenewPage: React.FC = () => {
-  const [loading, setLoading] = useState(false);
+   const [loadingButton, setLoadingButton] = useState<string | null>(null);
   const [features, setFeatures] = useState<string[][]>([]);
   const { data: packages, error } = useSWR<Package[]>(
     "/api/showPackage",
@@ -61,10 +61,10 @@ const RenewPage: React.FC = () => {
 
   const handleCardClick = (packageId: string) => {
     try {
-      setLoading(true);
+      setLoadingButton(packageId);
       router.push(`/home/renew/register?package=${packageId}`);
     } catch (error) {
-      setLoading(false);
+      setLoadingButton(null);
       console.log(error);
       message.error("Terjadi kesalahan saat memilih paket");
     }
@@ -188,7 +188,7 @@ const RenewPage: React.FC = () => {
                 <Flex style={{ width: "100%" }}>
                   <Button
                     onClick={() => handleCardClick(pkg.package_id.toString())}
-                    loading={loading}
+                    loading={loadingButton === pkg.package_id.toString()}
                     block
                     size="large"
                     style={{

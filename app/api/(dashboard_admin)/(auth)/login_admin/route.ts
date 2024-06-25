@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Cari merchantPendingPayment berdasarkan email
+
     const merchantPendingPayment =
       await prisma.merchantPendingPayment.findFirst({
         where: {

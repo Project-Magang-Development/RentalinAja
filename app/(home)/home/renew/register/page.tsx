@@ -8,6 +8,7 @@ import { CheckOutlined } from "@ant-design/icons";
 import { useForm } from "antd/es/form/Form";
 import Title from "antd/es/typography/Title";
 import { Footer } from "antd/es/layout/layout";
+import { wrap } from "module";
 
 interface MerchantData {
   merchant_name: string;
@@ -319,13 +320,11 @@ const RegisterRenew = () => {
         <Title level={2} style={{ marginBottom: "20px" }}>
           Perbarui Paket Anda
         </Title>
-        <div
+        <Flex
+          gap={30}
           style={{
             maxWidth: "800px",
             width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
           }}
         >
           <div
@@ -337,6 +336,8 @@ const RegisterRenew = () => {
               borderRadius: "20px",
               marginBottom: "20px",
               maxWidth: "600px",
+              height: "60%",
+
               width: "100%",
             }}
           >
@@ -389,6 +390,7 @@ const RegisterRenew = () => {
               borderRadius: "8px",
               maxWidth: "600px",
               width: "100%",
+              height: "30%",
             }}
           >
             <Title level={4} style={{ marginBottom: "20px" }}>
@@ -396,10 +398,14 @@ const RegisterRenew = () => {
             </Title>
             <div
               style={{
+                flexWrap: "wrap",
+                gap: "10px",
                 display: "flex",
                 justifyContent: "space-between",
                 marginBottom: "20px",
                 width: "100%",
+                height: "40px",
+                maxHeight: "50px",
               }}
             >
               <Input
@@ -506,7 +512,7 @@ const RegisterRenew = () => {
               </Form>
             )}
           </div>
-        </div>
+        </Flex>
       </div>
       <Footer>
         <h1

@@ -75,7 +75,6 @@ export async function POST(req: Request) {
 
       responseMessage = "Merchant updated successfully.";
     } else {
-      
       merchantData = await prisma.merchant.create({
         data: {
           start_date: startDate,
@@ -91,7 +90,7 @@ export async function POST(req: Request) {
       });
 
       responseMessage =
-        "User and payment created successfully. Activation email has been sent.";
+        "User and payment created successfully. Welcome email has been sent.";
     }
 
     const transporter = nodemailer.createTransport({
@@ -105,8 +104,8 @@ export async function POST(req: Request) {
     await transporter.sendMail({
       from: '"RentalinAja" <no-reply@gmail.com>',
       to: merchantPendingPayment.merchant_email,
-      subject: "Aktivasi Akun Anda",
-      text: "Halo! Terima kasih telah mendaftar. Silakan klik link berikut untuk mengaktifkan akun Anda: http://localhost:3000/dashboard/login",
+      subject: "Selamat Datang di RentalinAja",
+      text: "Halo! Terima kasih telah mendaftar. Anda sekarang dapat masuk ke dashboard Anda: http://localhost:3000/dashboard/login",
       html: `
         <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; padding: 40px; color: #333;">
           <div style="max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
@@ -114,11 +113,11 @@ export async function POST(req: Request) {
               <h1 style="color: #ffffff; margin: 0; padding: 0 20px;">Selamat Datang di RentalinAja!</h1>
             </div>
             <div style="padding: 20px;">
-              <p style="font-size: 16px;">Hai,</p>
-              <p style="font-size: 16px;">Terima kasih telah mendaftar di RentalinAja. Kami senang Anda bergabung dengan kami. Untuk menyelesaikan proses pendaftaran dan mengaktifkan akun Anda, silakan klik tombol di bawah ini:</p>
+              <p style="font-size: 16px;">Hai ${merchantPendingPayment.merchant_name},</p>
+              <p style="font-size: 16px;">Terima kasih telah mendaftar di RentalinAja. Kami senang Anda bergabung dengan kami. Anda sekarang dapat masuk ke dashboard Anda dengan mengklik tombol di bawah ini:</p>
               <a href="http://localhost:3000/dashboard/login"
                 style="display: inline-block; background-color: #0275d8; color: #ffffff; padding: 12px 24px; font-size: 18px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
-                Aktifkan Akun Anda
+                Masuk ke Dashboard
               </a>
               <p style="font-size: 16px;">Jika tombol di atas tidak bekerja, salin dan tempel tautan berikut ke browser Anda:</p>
               <p style="font-size: 16px;"><a href="http://localhost:3000/dashboard/login" style="color: #0275d8;">http://localhost:3000/dashboard/login</a></p>

@@ -30,7 +30,7 @@ import {
 } from "@ant-design/icons";
 import { UploadChangeParam } from "antd/es/upload";
 import useSWR from "swr";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
 
 interface Booking {
   booking_id: string;
@@ -89,10 +89,11 @@ const fetcher = async (url: string) => {
 
 export default function AdminBookingDashboard() {
   const [filterStatus, setFilterStatus] = useState<string>("");
-   const { data: bookings, error, mutate } = useSWR<Booking[]>(
-     `/api/booking/show?status=${filterStatus}`,
-     fetcher
-   );
+  const {
+    data: bookings,
+    error,
+    mutate,
+  } = useSWR<Booking[]>(`/api/booking/show?status=${filterStatus}`, fetcher);
   const [loading, setLoading] = useState<boolean>(false);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -101,7 +102,6 @@ export default function AdminBookingDashboard() {
   const [form] = Form.useForm();
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [searchText, setSearchText] = useState("");
-
 
   const handleFilterChange = (e: any) => {
     setFilterStatus(e.target.value);
@@ -178,10 +178,10 @@ export default function AdminBookingDashboard() {
 
   const handleUploadModalOk = async () => {
     const imageUrl = fileList.length > 0 ? fileList[0].url : "";
-     const storageSize = calculateTotalFileSize(fileList);
+    const storageSize = calculateTotalFileSize(fileList);
     const payload = {
       imageUrl,
-      storageSize
+      storageSize,
     };
     try {
       const token = Cookies.get("token");
@@ -228,11 +228,14 @@ export default function AdminBookingDashboard() {
     setIsUploadModalVisible(false);
   };
 
-  const hasImage = () => {
-    return bookings?.some(
-      (booking) => booking.imageUrl && booking.imageUrl.trim() !== ""
-    );
-  };
+ const hasImage = (booking_id: string) => {
+   return bookings?.some(
+     (booking) =>
+       booking.booking_id === booking_id &&
+       booking.imageUrl &&
+       booking.imageUrl.trim() !== ""
+   );
+ };
 
   const column = [
     {
@@ -329,14 +332,14 @@ export default function AdminBookingDashboard() {
         <Space size="middle">
           <Tooltip
             title={
-              hasImage()
+              hasImage(record.booking_id)
                 ? "Foto Kredensial Sudah Di Upload"
                 : "Foto Kredensial Belum Di Upload"
             }
           >
             <Button
               icon={
-                hasImage() ? (
+                hasImage(record.booking_id) ? (
                   <IdcardTwoTone />
                 ) : (
                   <IdcardTwoTone twoToneColor="#D9D9D9" />
@@ -347,7 +350,7 @@ export default function AdminBookingDashboard() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: hasImage() ? undefined : "#D9D9D9",
+                color: hasImage(record.booking_id) ? undefined : "#D9D9D9",
               }}
             />
           </Tooltip>
@@ -485,9 +488,15 @@ export default function AdminBookingDashboard() {
         booking.Order?.Schedule?.Vehicle?.name
           .toLowerCase()
           .includes(searchText.toLowerCase()) ||
-        booking.Order.start_date.toLowerCase().includes(searchText.toLowerCase()) ||
-        booking.Order.end_date.toLowerCase().includes(searchText.toLowerCase()) ||
-        booking.Payement?.status.toLowerCase().includes(searchText.toLowerCase()) ||
+        booking.Order.start_date
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        booking.Order.end_date
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
+        booking.Payement?.status
+          .toLowerCase()
+          .includes(searchText.toLowerCase()) ||
         booking.Payment?.amount.toString().includes(searchText)
     );
   }, [bookings, searchText]);
@@ -597,13 +606,17 @@ export default function AdminBookingDashboard() {
                       style={{
                         position: "relative",
                         width: "100%",
-                        height: "200px",
+                        height: "auto",
                         marginBottom: "16px",
                       }}
                     >
                       <Image
                         src={file.url ?? (file.thumbUrl || "")}
                         alt={file.name}
+                        style={{
+                          width: "100%",
+                          height: "auto"
+                        }}
                       />
                       {file.status === "uploading" && (
                         <div

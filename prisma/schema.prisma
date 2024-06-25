@@ -56,7 +56,6 @@ model MerchantPendingPayment {
   merchant_name     String
   password          String
   merchant_email    String
-  password          String
   merchant_whatsapp String
   rental_name       String
   rental_type       String
@@ -124,6 +123,7 @@ model Vehicle {
 model VehicleImage {
   vehicles_image_id String  @id @default(uuid())
   vehicles_id       String
+  index             Int
   imageUrl          String  @db.LongText
   Vehicle           Vehicle @relation(fields: [vehicles_id], references: [vehicles_id])
 }

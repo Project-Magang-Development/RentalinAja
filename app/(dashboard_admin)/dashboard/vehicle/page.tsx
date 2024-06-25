@@ -51,7 +51,7 @@ const fetcher = (url: any) =>
 
 export default function AdminVehicleDashboard() {
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
-  const [parsedImageUrls, setParsedImageUrls] = useState<string[]>([]);
+  const [mainImage, setMainImage] = useState<UploadFile | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -118,15 +118,25 @@ export default function AdminVehicleDashboard() {
 
   useEffect(() => {
     if (editingVehicle && Array.isArray(editingVehicle.imageUrl)) {
+      const mainImageFile: UploadFile<any> | null = editingVehicle.imageUrl[0]
+        ? {
+            uid: "-1",
+            name: "mainImage.png",
+            status: "done",
+            url: editingVehicle.imageUrl[0],
+          }
+        : null;
+      setMainImage(mainImageFile);
       setFileList(
-        editingVehicle.imageUrl.map((url, index) => ({
+        editingVehicle.imageUrl.slice(1).map((url, index) => ({
           uid: `${index}`,
-          name: `image${index}.png`,
+          name: `image${index + 1}.png`,
           status: "done",
           url,
         }))
       );
     } else {
+      setMainImage(null);
       setFileList([]);
     }
   }, [editingVehicle]);
@@ -148,6 +158,18 @@ export default function AdminVehicleDashboard() {
     });
   };
 
+  const handleMainImageChange = (info: UploadChangeParam) => {
+    const file = info.fileList[0];
+    if (file && file.originFileObj) {
+      convertFileToBase64(file.originFileObj).then((base64) => {
+        file.url = base64;
+        setMainImage(file);
+      });
+    } else {
+      setMainImage(null);
+    }
+  };
+
   const handleEdit = (vehicles_id: string) => {
     const vehicleToEdit = vehicles.find(
       (vehicle: any) => vehicle.vehicles_id === vehicles_id
@@ -158,7 +180,7 @@ export default function AdminVehicleDashboard() {
         ...vehicleToEdit,
         imageUrl: Array.isArray(vehicleToEdit.imageUrl)
           ? vehicleToEdit.imageUrl.map((url: string) => ({ url }))
-          : [], // Ensure imageUrl is an array
+          : [],
       });
       setIsModalVisible(true);
     }
@@ -172,15 +194,19 @@ export default function AdminVehicleDashboard() {
     let response;
     try {
       const values = await form.validateFields();
-      const imageUrl = fileList.map((file) => file.url);
+      const mainImageBase64 = mainImage?.url;
+      const additionalImagesBase64 = fileList.map((file) => file.url);
+
       const payload = {
         name: values.name,
         capacity: parseInt(values.capacity, 10),
         model: values.model,
         year: parseInt(values.year, 10),
         no_plat: values.no_plat,
-        imageUrl, // Ensure this is an array of strings
+        mainImage: mainImageBase64,
+        additionalImages: additionalImagesBase64,
       };
+
       setLoading(true);
 
       const token = Cookies.get("token");
@@ -234,6 +260,7 @@ export default function AdminVehicleDashboard() {
         form.resetFields();
         setIsModalVisible(false);
         setEditingVehicle(null);
+        setMainImage(null);
         setFileList([]);
       }
     } catch (error) {
@@ -326,17 +353,13 @@ export default function AdminVehicleDashboard() {
       title: "Foto",
       dataIndex: "imageUrl",
       key: "imageUrl",
-      render: (imageUrl: string[]) =>
-        imageUrl.length > 0 ? (
-          <Image
-            src={imageUrl[0]}
-            alt="Vehicle Image"
-            width={150}
-            height={100}
-          />
+      render: (imageUrl: string) => {
+        return imageUrl !== "No Image" ? (
+          <Image src={imageUrl} alt="Vehicle Image" width={150} height={100} />
         ) : (
           "No Image"
-        ),
+        );
+      },
     },
     {
       title: "Nama",
@@ -600,6 +623,26 @@ export default function AdminVehicleDashboard() {
             </Form.Item>
             <Form.Item>
               <Upload.Dragger
+                name="mainImage"
+                fileList={mainImage ? [mainImage] : []}
+                onChange={handleMainImageChange}
+                beforeUpload={() => false}
+                listType="picture"
+                maxCount={1}
+                accept=".jpg,.jpeg,.png"
+              >
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">Unggah Gambar Utama</p>
+                <p className="ant-upload-text">
+                  Klik atau seret file ke area ini untuk mengunggah
+                </p>
+                <p className="ant-upload-hint">Mendukung beberapa file</p>
+              </Upload.Dragger>
+            </Form.Item>
+            <Form.Item>
+              <Upload.Dragger
                 name="files"
                 multiple
                 fileList={fileList}
@@ -610,6 +653,7 @@ export default function AdminVehicleDashboard() {
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
+                <p className="ant-upload-text">Unggah Gambar Lainnya</p>
                 <p className="ant-upload-text">
                   Klik atau seret file ke area ini untuk mengunggah
                 </p>
