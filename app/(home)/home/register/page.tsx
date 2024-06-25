@@ -13,6 +13,7 @@ import {
   Select,
   Typography,
   message,
+  notification,
 } from "antd";
 import {
   UserOutlined,
@@ -26,6 +27,8 @@ import {
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/footer";
+import { useRouter } from "next/navigation";
+import useSWR from "swr";
 
 const { Content } = Layout;
 const { Title } = Typography;
@@ -42,7 +45,23 @@ interface FormData {
   password: string;
 }
 
+const fetcher = async (url: string) => {
+  const response = await fetch(url, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch packages.");
+  }
+  return response.json();
+};
+
 const RegisterDashboard: React.FC = () => {
+   const { data: merchantEmail, error } = useSWR(
+     "/api/register/checkEmail",
+     fetcher
+   );
   const searchParams = useSearchParams();
   const packageDataId = searchParams.get("package");
   const [packageData, setPackageData] = useState<any>("");
@@ -53,6 +72,7 @@ const RegisterDashboard: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [features, setFeatures] = useState<string[]>([]);
   const [email, setEmail] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     //sesuaikan dengan url package yang dipilih
@@ -182,9 +202,15 @@ const RegisterDashboard: React.FC = () => {
         merchant_city: formData.city,
         merchant_address: formData.street_line1,
         password: formData.password,
-        status, // Set status here
+        status, 
       };
 
+      if(formData.email == merchantEmail) {
+        return notification.error({
+          message: "Username yang anda masukkan sudah terdaftar",
+        })
+      }
+      
       const createPayment = await axios.post(
         "/api/payment/createPendingPayment",
         payloadPayment,
@@ -260,7 +286,15 @@ const RegisterDashboard: React.FC = () => {
     setLoading(true);
     try {
       const formData = form.getFieldsValue();
-      console.log("FormData:", formData);
+
+      
+      if (formData.email === merchantEmail) {
+        notification.error({
+          message: "Username yang anda masukkan sudah terdaftar",
+        });
+        setLoading(false); // Stop loading spinner
+        return; // Exit the function early
+      }
 
       let invoiceResult = { id_invoice: null, invoice_url: null };
 
@@ -291,7 +325,9 @@ const RegisterDashboard: React.FC = () => {
         console.log("Merchant Dibuat");
       }
 
-      message.success("Registration successful!");
+      notification.success({
+        message: "Registrasi Berhasil Silahkan Cek Email Anda",
+      })
       if (invoiceResult.invoice_url) {
         console.log("Invoice URL:", invoiceResult.invoice_url);
         window.location.href = invoiceResult.invoice_url;
@@ -304,6 +340,7 @@ const RegisterDashboard: React.FC = () => {
         }
       }
       setLoading(false);
+      router.push('/home/register/success');
     } catch (error) {
       console.error("Registration failed:", error);
       message.error("Registration failed.");

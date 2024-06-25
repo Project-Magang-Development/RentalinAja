@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 export async function POST(req: Request) {
   try {
@@ -29,23 +32,30 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { name, capacity, model, year, no_plat, imageUrl } = body;
+    const {
+      name,
+      capacity,
+      model,
+      year,
+      no_plat,
+      mainImage,
+      additionalImages,
+    } = body;
 
-    // Pastikan variabel dan nama field konsisten
     if (
       !name ||
       !capacity ||
       !model ||
       !year ||
       !no_plat ||
-      !imageUrl ||
-      !Array.isArray(imageUrl) ||
-      imageUrl.length === 0
+      !mainImage ||
+      !additionalImages ||
+      !Array.isArray(additionalImages)
     ) {
       return new NextResponse(
         JSON.stringify({
           error:
-            "Please provide all required fields and at least one image URL",
+            "Please provide all required fields, a main image, and additional images",
         }),
         {
           status: 400,
@@ -55,6 +65,8 @@ export async function POST(req: Request) {
         }
       );
     }
+
+    const imageUrl = [mainImage, ...additionalImages];
 
     const merchant = await prisma.merchant.findUnique({
       where: { merchant_id: decoded.merchantId },
@@ -95,11 +107,12 @@ export async function POST(req: Request) {
     });
 
     const vehicleImages = await Promise.all(
-      imageUrl.map((url) =>
+      imageUrl.map((url, index) =>
         prisma.vehicleImage.create({
           data: {
             imageUrl: url,
-            Vehicle: { connect: { vehicles_id: newVehicle.vehicles_id } }, // Menggunakan kendaraan yang sama
+            index: index,
+            vehicles_id: newVehicle.vehicles_id,
           },
         })
       )

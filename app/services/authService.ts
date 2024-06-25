@@ -30,6 +30,11 @@ export const getEmail = (token: string) => {
   return decoded.email;
 };
 
+export const getMerchantId = (token: string) => {
+  const decoded = jwtDecode<MyTokenPayload>(token);
+  return decoded.merchantId;
+};
+
 export const getApiKey = (token: string) => {
   const decoded = jwtDecode<MyTokenPayload>(token);
   return decoded.api_key;

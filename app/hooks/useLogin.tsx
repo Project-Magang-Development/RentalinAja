@@ -1,39 +1,29 @@
-import { useEffect, useState } from "react";
-
+import { useState, useEffect } from "react";
+import { useAuthToken } from "./useRedirectBasedOnToken";
 import {
   getApiKey,
   getCompanyName,
   getEmail,
+  getMerchantId,
   getName,
 } from "../services/authService";
-import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
 
-const useAuthToken = () => {
-  const token = Cookies.get("token");
-  const adminToken = Cookies.get("adminToken");
-  return { token, adminToken };
-};
-
-const useRedirectBasedOnToken = () => {
-  const router = useRouter();
-  const { token, adminToken } = useAuthToken();
+export const useMerchantId = () => {
+  const [merchantId, setMerchantId] = useState("");
+  const { token } = useAuthToken();
 
   useEffect(() => {
-    if (!token && !adminToken) {
-      router.push("/dashboard/login");
-    } else if (!adminToken) {
-      router.push("/dashboard-admin/login");
+    if (token) {
+      setMerchantId(getMerchantId(token));
     }
-  }, [router, token, adminToken]);
+  }, [token]);
+
+  return merchantId;
 };
 
 export const useCompanyName = () => {
   const [companyName, setCompanyName] = useState("");
-  const router = useRouter();
-  const { token, adminToken } = useAuthToken();
-
-  useRedirectBasedOnToken();
+  const { token } = useAuthToken();
 
   useEffect(() => {
     if (token) {
@@ -46,10 +36,7 @@ export const useCompanyName = () => {
 
 export const useMerchantName = () => {
   const [merchantName, setMerchantName] = useState("");
-  const router = useRouter();
-  const { token, adminToken } = useAuthToken();
-
-  useRedirectBasedOnToken();
+  const { token } = useAuthToken();
 
   useEffect(() => {
     if (token) {
@@ -60,26 +47,9 @@ export const useMerchantName = () => {
   return merchantName;
 };
 
-export const useMerchantEmail = () => {
-  const [merchantEmail, setMerchantEmail] = useState("");
-  const router = useRouter();
-  useEffect(() => {
-    const token = Cookies.get("token");
-    if (token) {
-      setMerchantEmail(getEmail(token));
-    } else {
-      router.push("/dashboard/login");
-    }
-  }, []);
-  return merchantEmail;
-};
-
 export const useApiKey = () => {
   const [apiKey, setApiKey] = useState("");
-  const router = useRouter();
-  const { token, adminToken } = useAuthToken();
-
-  useRedirectBasedOnToken();
+  const { token } = useAuthToken();
 
   useEffect(() => {
     if (token) {
@@ -88,4 +58,17 @@ export const useApiKey = () => {
   }, [token]);
 
   return apiKey;
+};
+
+export const useMerchantEmail = () => {
+  const [merchantEmail, setMerchantEmail] = useState("");
+  const { token } = useAuthToken();
+
+  useEffect(() => {
+    if (token) {
+      setMerchantEmail(getEmail(token));
+    }
+  }, [token]);
+
+  return merchantEmail;
 };

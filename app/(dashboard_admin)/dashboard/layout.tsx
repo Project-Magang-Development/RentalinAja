@@ -25,13 +25,19 @@ import {
   useApiKey,
   useCompanyName,
   useMerchantName,
+  useMerchantId,
 } from "../../hooks/useLogin";
 import dynamic from "next/dynamic";
 import LayoutSkeleton from "@/app/components/layoutSkeleton";
 import Cookies from "js-cookie";
-import { BankOutlined, BookOutlined, DashboardOutlined, OrderedListOutlined, TruckOutlined } from "@ant-design/icons";
+import {
+  BankOutlined,
+  BookOutlined,
+  DashboardOutlined,
+  OrderedListOutlined,
+  TruckOutlined,
+} from "@ant-design/icons";
 const { Paragraph } = Typography;
-
 
 const UserOutlined = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.UserOutlined)
@@ -40,11 +46,13 @@ const LogoutOutlined = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.LogoutOutlined)
 );
 
-
 const KeyOutlined = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.KeyOutlined)
 );
 
+const ThunderboltOutlined = dynamic(() =>
+  import("@ant-design/icons").then((icon) => icon.ThunderboltOutlined)
+);
 
 const FileMarkdownTwoTone = dynamic(() =>
   import("@ant-design/icons").then((icon) => icon.FileMarkdownTwoTone)
@@ -71,6 +79,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const companyName = useCompanyName();
   const merchantName = useMerchantName();
   const apiKey = useApiKey();
+  const merchantId = useMerchantId();
   const [loading, setLoading] = useState(true);
   const [newOrdersCount, setNewOrdersCount] = useState(0);
   const [newBookingsCount, setNewBookingsCount] = useState(0);
@@ -81,7 +90,11 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const disableSidebar = ["/dashboard/login"];
+  const disableSidebar = [
+    "/dashboard/login",
+    "/dashboard/login/forget-password",
+    "/dashboard/login/confirm-password",
+  ];
   const shouldHideSidebar = disableSidebar.includes(pathname);
 
   const disableCompanyName = [
@@ -89,6 +102,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     "/dashboard/booking",
     "/dashboard/order",
     "/dashboard/calendar/[vehicles_id]",
+    "/dashboard/subscription",
   ];
   const shouldHideCompanyName = disableCompanyName.some((route) =>
     pathname.includes(route)
@@ -328,6 +342,10 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setSelectedContent("dokumentasi");
   };
 
+  const showSubscription = () => {
+    router.push(`/dashboard/subscription`);
+  };
+
   const userMenu = (
     <Menu
       items={[
@@ -344,6 +362,12 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           onClick: () => showDocumentation(),
         },
         {
+          key: "langganan",
+          label: "Langganan",
+          icon: <ThunderboltOutlined />,
+          onClick: () => showSubscription(),
+        },
+        {
           key: "logout",
           label: "Keluar",
           icon: <LogoutOutlined />,
@@ -353,9 +377,10 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     />
   );
 
-  if (loading) {
-    return <LayoutSkeleton />;
-  }
+  // if (loading) {
+  //   return <LayoutSkeleton />;
+  // }
+
 
   return (
     <Layout hasSider style={{ minHeight: "100vh" }}>
@@ -521,21 +546,21 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         )}
 
         {selectedContent === "react" && (
-          <ul>
-            <li>Langkah 1: Import React dari react</li>
-            <li>Langkah 2: Buat komponen</li>
-            <li>Langkah 3: Gunakan komponen dalam aplikasi Anda</li>
-            {/* Tambahkan item lain yang relevan */}
-          </ul>
+          <embed
+            src="/react.pdf"
+            type="application/pdf"
+            width="100%"
+            height="600px"
+          />
         )}
 
         {selectedContent === "html" && (
-          <ul>
-            <li>Langkah 1: Buat file HTML</li>
-            <li>Langkah 2: Tambahkan elemen HTML</li>
-            <li>Langkah 3: Gaya dengan CSS</li>
-            {/* Tambahkan item lain yang relevan */}
-          </ul>
+          <embed
+            src="/html.pdf"
+            type="application/pdf"
+            width="100%"
+            height="600px"
+          />
         )}
       </Modal>
     </Layout>

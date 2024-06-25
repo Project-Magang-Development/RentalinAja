@@ -40,8 +40,6 @@ export async function PUT(req: Request) {
       package_price == null ||
       package_description == null ||
       package_feature == null ||
-      count_order == null ||
-      count_vehicle ||
       duration == null
     ) {
       return new NextResponse(

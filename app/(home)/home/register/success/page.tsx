@@ -57,7 +57,7 @@ const SuccesPage = () => {
                   textAlign: "center",
                 }}
               >
-                Thank you use our system
+                Thank you use our system and check your email
               </Title>
             </Col>
           </Row>

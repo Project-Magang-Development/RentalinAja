@@ -1,24 +1,19 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   BankOutlined,
-  BookOutlined,
   DashboardOutlined,
   DatabaseOutlined,
   LogoutOutlined,
-  OrderedListOutlined,
-  TruckOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import {
   Avatar,
-  Badge,
   Breadcrumb,
   Divider,
   Dropdown,
-  Flex,
   Layout,
   Menu,
   message,
@@ -29,7 +24,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import Cookies from "js-cookie";
-import { login } from "@/app/services/authService";
+import { useRedirectBasedOnToken } from "@/app/hooks/useRedirectBasedOnToken";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -60,13 +55,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     pathname.includes(route)
   );
 
-  useEffect(() => {
-    if (!login()) {
-      if (!Cookies.get("adminToken")) {
-        router.push("/dashboard-admin/login");
-      }
-    }
-  }, [router]);
+  // useRedirectBasedOnToken(); // Call the custom hook here
 
   if (shouldHideSidebar) {
     return <>{children}</>;
@@ -114,7 +103,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       okText: "Ya",
       cancelText: "Tidak",
       onOk: () => {
-        Cookies.remove("tokenAdmin");
+        Cookies.remove("adminToken");
         message.success("Anda telah berhasil keluar.");
         window.location.href = "/dashboard-admin/login";
       },
@@ -128,9 +117,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           key: "logout",
           label: "Keluar",
           icon: <LogoutOutlined />,
-          onClick: () => {
-            showModalLogout()
-          },
+          onClick: showModalLogout,
         },
       ]}
     />
@@ -191,10 +178,11 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             overflow: "initial",
           }}
         >
-          <Flex
-            align="center"
-            justify="space-between"
+          <div
             style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
               paddingBlock: "1rem",
               paddingInline: "3rem",
               position: "fixed",
@@ -206,7 +194,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               boxShadow: "0px 2px 4px rgba(0, 0, 0, 0.1)",
             }}
           >
-            <Flex
+            <div
               style={{
                 display: "flex",
                 listStyleType: "none",
@@ -214,10 +202,8 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 margin: 0,
                 gap: 20,
               }}
-              // eslint-disable-next-line react/no-children-prop
-              children={undefined}
-            ></Flex>
-            <Flex justify="center" align="center" gap={20}>
+            ></div>
+            <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
               <Dropdown overlay={userMenu}>
                 <a
                   onClick={(e) => e.preventDefault()}
@@ -227,23 +213,23 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     color: "white",
                   }}
                 >
-                  <Flex
-                    gap={20}
+                  <div
                     style={{
                       display: "flex",
                       alignItems: "center",
                       marginRight: 20,
+                      gap: 20,
                     }}
                   >
-                    <Avatar icon={<UserOutlined />} style={{}} />
+                    <Avatar icon={<UserOutlined />} />
                     <div style={{ color: "black", textAlign: "right" }}>
                       <div style={{ fontSize: "smaller" }}>Admin</div>
                     </div>
-                  </Flex>
+                  </div>
                 </a>
               </Dropdown>
-            </Flex>
-          </Flex>
+            </div>
+          </div>
           {!shouldHideCompanyName && (
             <>
               <Breadcrumb style={{ fontSize: "25px", fontWeight: "bold" }}>
@@ -252,20 +238,18 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <Divider />
             </>
           )}
-          {shouldHideCompanyName ? (
-            <div
-              style={{
-                padding: 24,
-                backgroundColor: "#FFF",
-                borderRadius: "10px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              }}
-            >
-              {children}
-            </div>
-          ) : (
-            <div style={{ padding: 24 }}>{children}</div>
-          )}
+          <div
+            style={{
+              padding: 24,
+              backgroundColor: shouldHideCompanyName ? "#FFF" : "transparent",
+              borderRadius: "10px",
+              boxShadow: shouldHideCompanyName
+                ? "0 4px 8px rgba(0, 0, 0, 0.1)"
+                : "none",
+            }}
+          >
+            {children}
+          </div>
         </Content>
         <Footer
           style={{

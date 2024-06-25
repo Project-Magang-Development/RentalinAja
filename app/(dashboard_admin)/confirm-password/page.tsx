@@ -1,74 +1,49 @@
 "use client";
 
-import React, { useState } from "react";
-import { Button, Form, Input, Layout, Typography, notification } from "antd";
-import {
-  UserOutlined,
-  LockOutlined,
-  EyeTwoTone,
-  EyeInvisibleOutlined,
-} from "@ant-design/icons";
+import { useSearchParams } from "next/navigation";
+import { Form, Input, Button, Typography, Layout, notification } from "antd";
+import { MailOutlined, LockOutlined } from "@ant-design/icons";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Cookies from "js-cookie";
-import Link from "next/link";
 
+const { Title, Link } = Typography;
 const { Content } = Layout;
-const { Title } = Typography;
 
-export default function LoginDashboard() {
+export default function ConfirmPassword() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [showNotification, setShowNotification] = useState(true);
 
   const onFinish = async (values: any) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await fetch("/api/login_admin", {
-        method: "POST",
+      const response = await fetch("/api/changePassword", {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          email: email,
+          password: values.password,
+        }),
       });
 
       if (!response.ok) {
-        const errorMessage = await response.text();
-        if (response.status === 403) {
-          notification.error({
-            message: "Masa Langganan Sudah Habis",
-            description: (
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <Button type="link" onClick={() => router.push("/home/renew")}>
-                  Perpanjang Langganan
-                </Button>
-              </div>
-            ),
-            duration: 2,
-          });
-        } else if (response.status === 404) {
-          notification.error({
-            message: "Email Tidak Terdaftar",
-          });
-        } else {
-          notification.error({
-            message: "Password Salah",
-          });
-        }
-        setLoading(false);
-        return;
+        throw new Error(`Error: ${response.status}`);
       }
 
-      const data = await response.json();
-      Cookies.set("token", data.token, { expires: 1 });
       notification.success({
-        message: "Login Berhasil!",
+        message: "Password berhasil diubah",
       });
-      setLoading(false);
-      window.location.href = "/dashboard";
+
+      router.push("/dashboard/login");
     } catch (error) {
+      console.error(error);
       notification.error({
-        message: "Login failed.",
+        message: "Error",
       });
+    } finally {
       setLoading(false);
     }
   };
@@ -79,7 +54,6 @@ export default function LoginDashboard() {
         maxHeight: "100vh",
         minHeight: "100vh",
         overflow: "hidden",
-        overflowY: "hidden",
         background: "linear-gradient(135deg, #f0f2f5, #d9e4f1)",
         position: "relative",
       }}
@@ -88,7 +62,6 @@ export default function LoginDashboard() {
         src="/icons/buletan 1.svg"
         alt=""
         style={{
-          objectFit: "fill",
           position: "absolute",
           top: 50,
           right: 1000,
@@ -111,9 +84,12 @@ export default function LoginDashboard() {
         src="/icons/panah3.svg"
         alt=""
         style={{
+          objectFit: "cover",
           position: "absolute",
-          bottom: 0,
-          right: -10,
+          top: 258,
+          right: -20,
+          width: 250,
+          height: 250,
         }}
       />
 
@@ -135,21 +111,45 @@ export default function LoginDashboard() {
           }}
         >
           <Title level={2} style={{ textAlign: "center", marginBottom: 40 }}>
-            Admin Login
+            Reset Password
           </Title>
           <Form
-            name="normal_login"
-            className="login-form"
-            initialValues={{ remember: true }}
+            name="reset_password"
+            className="reset-password-form"
+            initialValues={{ email: email }}
             onFinish={onFinish}
           >
             <Form.Item
               name="email"
-              rules={[{ required: true, message: "Please input your Email!" }]}
+              rules={[
+                { required: true, message: "Please input your Email!" },
+                { type: "email", message: "The input is not valid Email!" },
+              ]}
             >
               <Input
-                prefix={<UserOutlined className="site-form-item-icon" />}
+                prefix={<MailOutlined className="site-form-item-icon" />}
                 placeholder="Email"
+                style={{
+                  border: "none",
+                  borderBottom: "1px solid #000",
+                  borderRadius: "0",
+                  paddingLeft: "0",
+                  paddingBottom: "8px",
+                }}
+                className="custom-input"
+                readOnly
+              />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              rules={[
+                { required: true, message: "Please input your Password!" },
+              ]}
+              hasFeedback
+            >
+              <Input.Password
+                prefix={<LockOutlined className="site-form-item-icon" />}
+                placeholder="New Password"
                 style={{
                   border: "none",
                   borderBottom: "1px solid #000",
@@ -161,18 +161,24 @@ export default function LoginDashboard() {
               />
             </Form.Item>
             <Form.Item
-              name="password"
+              name="confirm"
+              dependencies={["password"]}
+              hasFeedback
               rules={[
-                { required: true, message: "Please input your Password!" },
+                { required: true, message: "Please confirm your Password!" },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (!value || getFieldValue("password") === value) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error("Password Tidak Sama!"));
+                  },
+                }),
               ]}
             >
               <Input.Password
                 prefix={<LockOutlined className="site-form-item-icon" />}
-                type="password"
-                placeholder="Password"
-                iconRender={(visible) =>
-                  visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-                }
+                placeholder="Confirm Password"
                 style={{
                   border: "none",
                   borderBottom: "1px solid #000",
@@ -180,32 +186,36 @@ export default function LoginDashboard() {
                   paddingLeft: "0",
                   paddingBottom: "8px",
                 }}
+                className="custom-input"
               />
             </Form.Item>
             <Form.Item>
-              <Link
-                href="/forget-password"
-                style={{
-                  display: "block",
-                  textAlign: "right",
-                  marginBottom: "16px",
-                  color: "#6B7CFF",
-                }}
-              >
-                Lupa Password?
-              </Link>
-            </Form.Item>
-            <Form.Item>
               <Button
-                style={{ backgroundColor: "#6B7CFF" }}
+                style={{
+                  backgroundColor: "#6B7CFF",
+                }}
                 type="primary"
                 htmlType="submit"
-                className="login-form-button"
+                className="reset-password-form-button"
                 block
                 loading={loading}
               >
-                Log in
+                Reset Password
               </Button>
+            </Form.Item>
+            <Form.Item>
+              <Link
+                href="#"
+                onClick={() => router.push("/dashboard/login")}
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  marginTop: "16px",
+                  color: "#6B7CFF",
+                }}
+              >
+                Kembali Ke Login
+              </Link>
             </Form.Item>
           </Form>
         </div>

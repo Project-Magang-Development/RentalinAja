@@ -17,6 +17,7 @@ const { Step } = Steps;
 
 interface VehicleImage {
   imageUrl: string;
+  index: number;
 }
 
 interface Vehicle {
@@ -145,10 +146,13 @@ const VehiclePage = () => {
                     }}
                   >
                     {Array.isArray(schedule.Vehicle.VehicleImages) &&
-                    schedule.Vehicle.VehicleImages.length > 0 &&
-                    schedule.Vehicle.VehicleImages[0].imageUrl ? (
+                    schedule.Vehicle.VehicleImages.length > 0 ? (
                       <Image
-                        src={schedule.Vehicle.VehicleImages[0].imageUrl}
+                        src={
+                          schedule.Vehicle.VehicleImages.find(
+                            (image) => image.index === 0
+                          )?.imageUrl || "/default-image.jpg" 
+                        }
                         alt="Vehicle Image"
                         width={500}
                         height={300}
@@ -172,7 +176,7 @@ const VehiclePage = () => {
                         display: "flex",
                         justifyContent: "space-between",
                         marginBottom: "34px",
-                        marginTop: "34px",
+                        marginTop: "55px",
                       }}
                     >
                       <div style={{ display: "flex", alignItems: "center" }}>

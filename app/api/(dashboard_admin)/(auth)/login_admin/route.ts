@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Cari merchantPendingPayment berdasarkan email
+
     const merchantPendingPayment =
       await prisma.merchantPendingPayment.findFirst({
         where: {
@@ -27,7 +27,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Cari merchant berdasarkan pending_id dari merchantPendingPayment
     const merchant = await prisma.merchant.findFirst({
       where: {
         merchant_email: email,
@@ -36,6 +35,7 @@ export async function POST(req: Request) {
         status_subscriber: true,
         merchant_id: true,
         api_key: true,
+        password: true,
       },
     });
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     const isPasswordValid = await bcrypt.compare(
       password,
-      merchantPendingPayment.password
+      merchant.password
     );
     if (!isPasswordValid) {
       return NextResponse.json({ error: "Invalid password" }, { status: 401 });

@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -70,10 +70,10 @@ const fetcher = async (url: string) => {
 function Calendar() {
   const query = useParams();
   const vehicles_id = query.vehicles_id;
-  const {
-    data: schedules,
-    mutate,
-  } = useSWR(`/api/schedule/show/${vehicles_id}`, fetcher);
+  const { data: schedules, mutate } = useSWR(
+    `/api/schedule/show/${vehicles_id}`,
+    fetcher
+  );
 
   const [loading, setLoading] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<Schedule | null>(null);
@@ -81,12 +81,40 @@ function Calendar() {
   const [form] = Form.useForm();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
+  const [scheduleColors, setScheduleColors] = useState<{
+    [key: string]: string;
+  }>({});
 
-   useEffect(() => {
-     if (schedules && schedules.length > 0) {
-       setVehicleDetails(schedules[0].Vehicle);
-     }
-   }, [schedules]);
+  useEffect(() => {
+    if (schedules && schedules.length > 0) {
+      setVehicleDetails(schedules[0].Vehicle);
+    }
+  }, [schedules]);
+
+  useEffect(() => {
+    if (schedules) {
+      const colors = [
+        "rgb(229, 115, 115)",
+        "rgb(255, 182, 77)",
+        "rgb(78, 182, 171)",
+        "rgb(66, 133, 244)",
+        "rgb(102, 187, 106)",
+      ];
+
+      const newScheduleColors = { ...scheduleColors }; 
+      let colorIndex = 0;
+
+      schedules.forEach((schedule: any) => {
+        if (!newScheduleColors[schedule.schedules_id]) {
+          newScheduleColors[schedule.schedules_id] =
+            colors[colorIndex % colors.length];
+          colorIndex++;
+        }
+      });
+
+      setScheduleColors(newScheduleColors);
+    }
+  }, [schedules]);
 
   const showSuccessNotification = (isUpdate: any) => {
     notification.success({
@@ -96,6 +124,7 @@ function Calendar() {
       }`,
     });
   };
+
   const showFailureNotification = () => {
     notification.error({
       message: "Gagal Membuat Jadwal",
@@ -197,7 +226,7 @@ function Calendar() {
   const handleDeleteEvent = async (schedules_id: number) => {
     setLoading(true);
     try {
-      const token = Cookies.get('token');
+      const token = Cookies.get("token");
       const response = await fetch(`/api/schedule/delete/${schedules_id}`, {
         method: "DELETE",
         headers: {
@@ -212,7 +241,9 @@ function Calendar() {
       }
 
       mutate(
-        schedules.filter((schedule: any) => schedule.schedules_id !== schedules_id),
+        schedules.filter(
+          (schedule: any) => schedule.schedules_id !== schedules_id
+        ),
         false
       );
       notification.success({
@@ -229,12 +260,6 @@ function Calendar() {
       setLoading(false);
     }
   };
-
-  const colors = [
-    "rgb(229, 115, 115)",
-    "rgb(255, 182, 77)",
-    "rgb(78, 182, 171)",
-  ];
 
   const addOneDay = (date: any) => {
     return moment(date).add(1, "days").toDate();
@@ -303,7 +328,7 @@ function Calendar() {
   };
 
   const calendarEvents = () => {
-    const events = schedules?.map((schedule: any, index: any) => ({
+    const events = schedules?.map((schedule: any) => ({
       title: `Price: ${
         schedule.price
           ? new Intl.NumberFormat("id-ID", {
@@ -316,8 +341,8 @@ function Calendar() {
       end: addOneDay(schedule.end_date),
       allDay: true,
       extendedProps: schedule,
-      backgroundColor: colors[index % colors.length],
-      borderColor: colors[index % colors.length],
+      backgroundColor: scheduleColors[schedule.schedules_id],
+      borderColor: scheduleColors[schedule.schedules_id],
     }));
 
     const nonOverlappingHolidays = holidays.filter(

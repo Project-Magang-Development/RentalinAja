@@ -21,6 +21,7 @@ import Navbar from "@/app/components/Navbar";
 import FooterSection from "@/app/components/footer";
 import Title from "antd/es/typography/Title";
 import Section from "@/app/components/RevealAnimation";
+import PricingSkeleton from "@/app/components/pricingSkeleton";
 
 interface Package {
   package_id: string;
@@ -67,20 +68,7 @@ const Home: React.FC = () => {
   }
 
   if (!packages) {
-    return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          gap: "1rem",
-        }}
-      >
-        <Spin size="large" tip="Loading... " />
-        <p style={{ color: "#6B7CFF" }}>Sedang memuat paket</p>
-      </div>
-    );
+    return <PricingSkeleton />;
   }
 
   const handleCardClick = async (packageId: string) => {
