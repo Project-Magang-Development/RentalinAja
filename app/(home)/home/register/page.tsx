@@ -589,9 +589,9 @@ const RegisterDashboard: React.FC = () => {
                       borderRadius: "20px",
                     }}
                   >
-                    <Select.Option value="motor">Motor</Select.Option>
-                    <Select.Option value="mobil">Mobil</Select.Option>
-                    <Select.Option value="mobilMotor">
+                    <Select.Option value="Motor">Motor</Select.Option>
+                    <Select.Option value="Mobil">Mobil</Select.Option>
+                    <Select.Option value="Motor & Mobil">
                       Motor & Mobil
                     </Select.Option>
                     {/* //TODO: tambahkan option lain */}
