@@ -1,4 +1,5 @@
 "use client";
+import TableSkeleton from "@/app/components/tableSkeleton";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import { Button, Divider, Flex } from "antd";
 import axios from "axios";
@@ -153,7 +154,7 @@ function GetInvoiceComponent() {
   };
 
   if (loading) {
-    return <p>Sedang Menyiapkan invoice...</p>;
+    return <TableSkeleton/>;
   }
 
   return (

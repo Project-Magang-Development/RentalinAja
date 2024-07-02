@@ -107,50 +107,52 @@ export async function POST(req: Request) {
       },
     });
 
-    const updatedOrder = await prisma.merchant.update({
+    await prisma.merchant.update({
       where: { merchant_id: merchantId!.merchant_id },
       data: { used_storage_order: { increment: 1 } },
     });
 
-    let transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USERNAME,
-        pass: process.env.EMAIL_PASSWORD,
-      },
-    });
+    if (order.status == "PAID") {
+      let transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
 
-    await transporter.sendMail({
-      from: '"RentalinAja" <no-reply@gmail.com>',
-      to: merchantId!.MerchantPayment.MerchantPendingPayment.merchant_email,
-      subject: "Ada Yang Order Nih!",
-      html: `
-<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; padding: 40px; color: #333;">
- <div style="max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
-   <div style="background-color: #0275d8; padding: 20px 0;">
-     <h1 style="color: #ffffff; margin: 0; padding: 0 20px;">Ada Yang Order Nih!</h1>
+      await transporter.sendMail({
+        from: '"RentalinAja" <no-reply@gmail.com>',
+        to: merchantId!.MerchantPayment.MerchantPendingPayment.merchant_email,
+        subject: "Ada Yang Order Nih!",
+        html: `
+  <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; padding: 40px; color: #333;">
+   <div style="max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+     <div style="background-color: #0275d8; padding: 20px 0;">
+       <h1 style="color: #ffffff; margin: 0; padding: 0 20px;">Ada Yang Order Nih!</h1>
+     </div>
+     <div style="padding: 20px;">
+       <p style="font-size: 16px;">Hai ${
+         merchantId!.MerchantPayment.MerchantPendingPayment.merchant_name
+       },</p>
+       <p style="font-size: 16px;">Ada order baru dengan detail sebagai berikut:</p>
+       <ul style="text-align: left;">
+         <li>Nama Customer: ${customer_name}</li>
+         <li>Tanggal Mulai: ${start_date}</li>
+         <li>Tanggal Berakhir: ${end_date}</li>
+         <li>Harga: ${totalPrice}</li>
+       </ul>
+       <p style="font-size: 16px;">Kami senang Anda menggunakan layanan kami dan berharap Anda puas dengan pengalaman Anda.</p>
+       <p style="font-size: 16px;">Jika Anda memiliki pertanyaan atau butuh bantuan lebih lanjut, jangan ragu untuk membalas email ini atau menghubungi support kami.</p>
+     </div>
+     <div style="background-color: #f0f0f0; padding: 20px; font-size: 14px; text-align: left;">
+       <p>Salam Hangat,<br/>Tim RentalinAja</p>
+     </div>
    </div>
-   <div style="padding: 20px;">
-     <p style="font-size: 16px;">Hai ${
-       merchantId!.MerchantPayment.MerchantPendingPayment.merchant_name
-     },</p>
-     <p style="font-size: 16px;">Ada order baru dengan detail sebagai berikut:</p>
-     <ul style="text-align: left;">
-       <li>Nama Customer: ${customer_name}</li>
-       <li>Tanggal Mulai: ${start_date}</li>
-       <li>Tanggal Berakhir: ${end_date}</li>
-       <li>Harga: ${totalPrice}</li>
-     </ul>
-     <p style="font-size: 16px;">Kami senang Anda menggunakan layanan kami dan berharap Anda puas dengan pengalaman Anda.</p>
-     <p style="font-size: 16px;">Jika Anda memiliki pertanyaan atau butuh bantuan lebih lanjut, jangan ragu untuk membalas email ini atau menghubungi support kami.</p>
-   </div>
-   <div style="background-color: #f0f0f0; padding: 20px; font-size: 14px; text-align: left;">
-     <p>Salam Hangat,<br/>Tim RentalinAja</p>
-   </div>
- </div>
-</div>
-`,
-    });
+  </div>
+  `,
+      });
+    }
 
     return new NextResponse(JSON.stringify(order), {
       status: 200,
