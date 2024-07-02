@@ -67,7 +67,7 @@ const Schedules: React.FC<SchedulesProps> = ({ apiKey: propApiKey }) => {
   }
 
   return (
-    <Content>
+    <Content style={{ marginTop: "3rem" }}>
       <Row style={{ display: "flex", justifyContent: "center" }}>
         <div
           style={{
