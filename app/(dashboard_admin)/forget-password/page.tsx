@@ -143,8 +143,7 @@ const ForgotPassword = () => {
             </Form.Item>
             <Form.Item>
               <Link
-                href="#"
-                onClick={() => router.push("/dashboard/login")}
+                href="/dashboard/login"
                 style={{
                   display: "block",
                   textAlign: "center",

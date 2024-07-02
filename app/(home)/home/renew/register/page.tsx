@@ -429,7 +429,7 @@ const RegisterRenew = () => {
               >
                 <Form.Item
                   name="merchant_name"
-                  label="Merchant Name"
+                  label="Nama"
                   rules={[
                     {
                       required: true,
@@ -441,7 +441,7 @@ const RegisterRenew = () => {
                 </Form.Item>
                 <Form.Item
                   name="merchant_whatsapp"
-                  label="Merchant WhatsApp"
+                  label="WhatsApp"
                   rules={[
                     {
                       required: true,
@@ -453,7 +453,7 @@ const RegisterRenew = () => {
                 </Form.Item>
                 <Form.Item
                   name="rental_name"
-                  label="Rental Name"
+                  label="Nama Rental"
                   rules={[
                     {
                       required: true,
@@ -465,7 +465,7 @@ const RegisterRenew = () => {
                 </Form.Item>
                 <Form.Item
                   name="rental_type"
-                  label="Rental Type"
+                  label="Tipe Rental"
                   rules={[
                     {
                       required: true,
@@ -477,7 +477,7 @@ const RegisterRenew = () => {
                 </Form.Item>
                 <Form.Item
                   name="merchant_city"
-                  label="Merchant City"
+                  label="Kota"
                   rules={[
                     {
                       required: true,
@@ -489,7 +489,7 @@ const RegisterRenew = () => {
                 </Form.Item>
                 <Form.Item
                   name="merchant_address"
-                  label="Merchant Address"
+                  label="Alamat"
                   rules={[
                     {
                       required: true,
