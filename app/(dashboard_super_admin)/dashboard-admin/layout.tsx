@@ -60,16 +60,16 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     pathname.includes(route)
   );
 
-  useRedirectBasedOnToken(); // Call the custom hook here
+  useEffect(() => {
+    setActiveItem(pathname);
+  }, [pathname]);
+
+  useRedirectBasedOnToken(); 
 
   if (shouldHideSidebar) {
     return <>{children}</>;
   }
 
-  useEffect(() => {
-    // Set activeItem berdasarkan pathname saat halaman dimuat atau berubah
-    setActiveItem(pathname);
-  }, [pathname]);
 
   const handleClick = (key: any) => {
     setActiveItem(key);
@@ -119,7 +119,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   const selectedKeys = determineSelectedKeys(pathname, items);
-  // Tambahkan properti style ke dalam items
   const initialItems = items.map((item: any) => ({
     ...item,
     style: { color: selectedKeys.includes(item.key) ? "#6B7CFF" : "black" },

@@ -115,6 +115,10 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 
   useEffect(() => {
+    setActiveItem(pathname);
+  }, [pathname]);
+
+  useEffect(() => {
     const token = Cookies.get("token");
 
     if (!token) return;
@@ -234,11 +238,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (shouldHideSidebar) {
     return <>{children}</>;
   }
-
-  useEffect(() => {
-    // Set activeItem berdasarkan pathname saat halaman dimuat atau berubah
-    setActiveItem(pathname);
-  }, [pathname]);
 
   const handleClick = (key: any) => {
     setActiveItem(key);
@@ -431,10 +430,16 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         >
           {collapsed ? (
             <span>
-              <BankOutlined />
+              <img loading="lazy" src="logo-rental.svg" alt="" />
             </span>
           ) : (
-            <img src="/logo.png" alt="Company Logo" width={200} height={200} />
+            <img
+              loading="lazy"
+              src="/logo.png"
+              alt="Company Logo"
+              width={200}
+              height={200}
+            />
           )}
         </div>
         <Menu
