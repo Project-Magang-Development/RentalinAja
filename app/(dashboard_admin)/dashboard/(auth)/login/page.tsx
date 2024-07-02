@@ -85,13 +85,16 @@ export default function LoginDashboard() {
       }}
     >
       <img
+        className="buletan1"
         src="/icons/buletan 1.svg"
         alt=""
         style={{
+          zIndex: 0,
           objectFit: "fill",
           position: "absolute",
           top: 50,
-          right: 1000,
+          right: 10,
+          left: -100,
           width: 450,
           height: 450,
         }}

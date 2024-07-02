@@ -20,47 +20,6 @@ import Section from "@/app/components/RevealAnimation";
 const { Content } = Layout;
 const { Title, Paragraph } = Typography;
 
-const RentalInfo = [
-  {
-    imgSrc: "/icons/3user.svg",
-    percentage: "99%",
-    description: "Kepuasan pengguna",
-  },
-  {
-    imgSrc: "/icons/unduh.svg",
-    percentage: "30K",
-    description: "Total berlangganan",
-  },
-  {
-    imgSrc: "/icons/2user.svg",
-    percentage: "10K",
-    description: "Pengguna baru perbulan",
-  },
-];
-
-const featureSection = [
-  {
-    icon: "/icons/feature1.svg",
-    title: "Pilih tanggal dan waktu penyewaan",
-    desc: "Pastikan untuk memilih tanggal dan waktu yang sesuai dengan kebutuhan",
-  },
-  {
-    icon: "/icons/feature2.svg",
-    title: "Temukan kendaraan yang diinginkan",
-    desc: "Pilih kendaraan yang sesuai dengan kebutuhan",
-  },
-  {
-    icon: "/icons/feature3.svg",
-    title: "Lakukan pembayaran",
-    desc: "Lakukan pembayaran biaya sewa kendaraan",
-  },
-  {
-    icon: "/icons/feature4.svg",
-    title: "Penyewaan berhasil",
-    desc: "Pelanggan akan menerima konfirmasi pemesanan  beserta rincian penyewaan kendaraan",
-  },
-];
-
 const bigSizeFont = { fontSize: "32px", fontWeight: "bold" };
 const primaryColor = { backgroundColor: "#6B7CFF" };
 const Home = () => {
@@ -94,7 +53,7 @@ const Home = () => {
         >
           <Content
             className="parent"
-            style={{ paddingInline: "20px", marginBottom: "5rem", zIndex: 1 }}
+            style={{ paddingLeft: "2.8rem", marginBottom: "5rem", zIndex: 1 }}
           >
             <div
               style={{
@@ -104,133 +63,191 @@ const Home = () => {
                 marginBottom: "5rem",
               }}
             >
-              <Flex
-                wrap="wrap-reverse"
-                justify="space-between"
-                gap={10}
-                style={{ zIndex: 1 }}
-              >
-                <Col span={12} xs={24} sm={24} md={12} lg={12}>
-                  <Title
-                    style={{
-                      textAlign: "justify",
-                      ...bigSizeFont,
-                    }}
-                  >
-                    Solusi Kelola Rental Kendaraan yang Tepat untuk Bisnis Anda
-                  </Title>
-                  <Paragraph
-                    style={{
-                      textAlign: "justify",
-                    }}
-                  >
+              <Flex wrap="wrap-reverse">
+                <Col
+                  className="text-utama"
+                  span={24} // Saat layar kecil, teks akan mengambil seluruh lebar
+                  md={12} // Saat layar medium ke atas, teks akan mengambil setengah lebar
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "20px",
+                  }}
+                >
+                  <p style={{ fontSize: "27px", fontWeight: "bold" }}>
+                    Solusi Kelola Rental Kendaraan yang Tepat untuk Bisnis Anda.
+                  </p>
+                  <p style={{ fontSize: "16px", fontWeight: "600" }}>
                     Optimalkan pelayanan pelanggan dengan Sistem Booking
                     RentalinAja. Berikan kemudahan pada pelanggan untuk memesan
                     secara online.
-                  </Paragraph>
+                  </p>
                   <Flex
-                    wrap="wrap"
+                    className="button-utama"
                     gap={20}
-                    style={{
-                      paddingTop: "30px",
-                      maxWidth: "100%",
-                      textAlign: "justify",
-                    }}
+                    style={{ width: "100%", paddingRight: "50%" }}
                   >
-                    <Link href={"/home/pricing"}>
+                    <Link href={"/pricing"}>
                       <Button
+                        block
                         size="large"
                         style={{
                           backgroundColor: "#0A142F",
                           color: "white",
-                          width: "230px",
+                          width: "100%",
                         }}
                       >
-                        Gabung Sekarang!
+                        Gabung Sekarang
                       </Button>
                     </Link>
-                    <Link href={"/home/pricing"}>
+                    <Link href={"/pricing"}>
                       <Button
                         size="large"
-                        style={{
-                          width: "230px",
-                          border: "1px solid #0A142F",
-                          color: "#0A142F",
-                        }}
+                        block
+                        style={{ border: "1px solid #0A142F", width: "100%" }}
                       >
                         Uji Coba Gratis
                       </Button>
                     </Link>
                   </Flex>
                 </Col>
-                {/* Video Embed */}
-                <Col span={10} xs={24} sm={24} md={12} lg={10}>
-                  <YouTubeEmbed videoId="XHTrLYShBRQ" />
+                <Col
+                  span={24} // Saat layar kecil, YouTube embed akan mengambil seluruh lebar
+                  md={12} // Saat layar medium ke atas, YouTube embed akan mengambil setengah lebar
+                  style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  <div
+                    className="embedyt"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      maxWidth: "100%",
+                      minWidth: "35%",
+                    }}
+                  >
+                    <YouTubeEmbed videoId="B-M9947qLtc" />
+                  </div>
                 </Col>
               </Flex>
 
-              {/* Rental Info */}
               <Flex
+                className="icon-3"
+                gap={20}
                 wrap="wrap"
                 style={{
                   marginBlock: "4.3rem",
                 }}
                 justify="center"
+                align="center"
               >
-                <Flex
-                  wrap="wrap"
-                  className="box1"
-                  gap={20}
-                  style={{ marginInline: "20px" }}
-                >
-                  {RentalInfo.map((item, index) => (
-                    <div
-                      key={index}
+                {/* 1 */}
+                <Flex gap={10} wrap="wrap">
+                  <Flex
+                    justify="center"
+                    align="center"
+                    style={{
+                      height: "70px",
+                      width: "70px",
+                      borderRadius: "15px",
+                      backgroundColor: " #D8DCF8",
+                    }}
+                  >
+                    <img width={30} src="icons/3user.svg" alt="" />
+                  </Flex>
+                  <Flex vertical>
+                    <p
                       style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "10px",
+                        fontWeight: "bold",
+                        fontSize: "25px",
+                        color: "#332C5C",
                       }}
                     >
-                      <div
-                        style={{
-                          width: "80px",
-                          height: "80px",
-                          borderRadius: "30px",
-                          backgroundColor: "#DADEF8",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <img
-                          src={item.imgSrc}
-                          alt=""
-                          style={{ width: "35%", height: "auto" }}
-                        />
-                      </div>
-                      <Flex vertical justify="center">
-                        <p
-                          style={{
-                            fontWeight: "bolder",
-                            fontSize: "25px",
-                            color: "#332C5C",
-                          }}
-                        >
-                          {item.percentage}
-                        </p>
-                        <p
-                          style={{
-                            fontWeight: "bolder",
-                            fontSize: "15px",
-                            color: "#5E587A",
-                          }}
-                        >
-                          {item.description}
-                        </p>
-                      </Flex>
-                    </div>
-                  ))}
+                      99%
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: "bold",
+                        color: "#5E587A",
+                      }}
+                    >
+                      Kepuasan pengguna
+                    </p>
+                  </Flex>
+                </Flex>
+                {/* 2 */}
+                <Flex gap={10}>
+                  <Flex
+                    justify="center"
+                    align="center"
+                    style={{
+                      height: "70px",
+                      width: "70px",
+                      borderRadius: "15px",
+                      backgroundColor: " #D8DCF8",
+                    }}
+                  >
+                    <img width={30} src="icons/unduh.svg" alt="" />
+                  </Flex>
+                  <Flex vertical>
+                    <p
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "25px",
+                        color: "#332C5C",
+                      }}
+                    >
+                      30K
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: "bold",
+                        color: "#5E587A",
+                      }}
+                    >
+                      Total berlangganan
+                    </p>
+                  </Flex>
+                </Flex>
+                {/* 3 */}
+                <Flex gap={10}>
+                  <Flex
+                    justify="center"
+                    align="center"
+                    style={{
+                      height: "70px",
+                      width: "70px",
+                      borderRadius: "15px",
+                      backgroundColor: " #D8DCF8",
+                    }}
+                  >
+                    <img width={30} src="icons/2user.svg" alt="" />
+                  </Flex>
+                  <Flex vertical>
+                    <p
+                      style={{
+                        fontWeight: "bold",
+                        fontSize: "25px",
+                        color: "#332C5C",
+                      }}
+                    >
+                      10K
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "15px",
+                        fontWeight: "bold",
+                        color: "#5E587A",
+                      }}
+                    >
+                      Pengguna baru perbulan
+                    </p>
+                  </Flex>
                 </Flex>
               </Flex>
             </div>
@@ -246,7 +263,14 @@ const Home = () => {
                 >
                   Fitur Kami
                 </p>
-                <p style={{ ...bigSizeFont, color: "#332C5C", zIndex: "1" }}>
+                <p
+                  style={{
+                    ...bigSizeFont,
+                    color: "#332C5C",
+                    zIndex: "1",
+                    textAlign: "center",
+                  }}
+                >
                   Dapatkan Solusi terbaik untuk Bisnis Rental Anda
                 </p>
                 <div
@@ -265,6 +289,7 @@ const Home = () => {
         {/* //? Wave background */}
 
         <img
+          className="wave1"
           src="/waves/wave1.svg"
           style={{
             objectFit: "cover",
@@ -274,32 +299,33 @@ const Home = () => {
 
             height: "auto",
             zIndex: 0,
-            top: "170px",
+            left: 0,
+            right: 0,
+            top: "150px",
           }}
         />
         <Flex
-          gap={100}
+          gap={85}
           vertical
           style={{
             zIndex: 1,
-            paddingInline: "3.7rem",
+            paddingInline: "2.8rem",
             marginTop: "3.5rem",
           }}
         >
           <Section>
             <Flex gap={20} justify="center" wrap="wrap">
-              <Flex wrap="wrap" flex={2}>
-                <img
-                  style={{
-                    objectFit: "contain",
-                    maxWidth: "100%",
-                    height: "auto",
-                  }}
-                  src="/image/gambar1.png"
-                  alt=""
-                  loading="lazy"
-                />
-              </Flex>
+              <img
+                width={525}
+                style={{
+                  objectFit: "contain",
+                  maxWidth: "100%",
+                  height: "auto",
+                }}
+                src="/image/gambar1.png"
+                alt=""
+                loading="lazy"
+              />
               <Flex wrap="wrap" flex={2} vertical>
                 <p
                   style={{
@@ -347,58 +373,109 @@ const Home = () => {
 
                 {/* Sectiom Feature */}
                 <Flex
+                  className="section-feature"
                   wrap="wrap"
-                  style={{ paddingBlock: "1rem" }}
+                  style={{ paddingBlock: "0.8rem" }}
                   gap={15}
                   vertical
                 >
-                  {featureSection.map((item, index) => (
-                    <div
+                  {/* 1 */}
+                  <Flex className="booking-feature" gap={10} wrap="wrap">
+                    <Flex
+                      justify="center"
+                      align="center"
                       style={{
-                        display: "flex",
-                        gap: "20px",
-                        alignItems: "center",
+                        height: "70px",
+                        width: "70px",
+                        borderRadius: "20px",
+                        backgroundColor: "#ECF5FF",
                       }}
-                      key={index}
                     >
-                      <div
-                        style={{
-                          flexWrap: "wrap",
-                          flex: "0 0 12%",
-                          height: "60px",
-                          borderRadius: "20px",
-                          backgroundColor: "#ECF5FF",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          padding: "10px",
-                        }}
-                      >
-                        <img
-                          src={item.icon}
-                          alt="icon"
-                          style={{
-                            width: "25px",
-                            height: "auto",
-                          }}
-                        />
-                      </div>
-
-                      <Flex vertical>
-                        <p style={{ fontWeight: "bold", fontSize: "18px" }}>
-                          {item.title}
-                        </p>
-                        <p style={{ color: "#5E587A" }}>{item.desc}</p>
-                      </Flex>
-                    </div>
-                  ))}
+                      <img width={40} src="/icons/feature1.svg" alt="" />
+                    </Flex>
+                    <Flex vertical justify="center">
+                      <p style={{ fontWeight: "bold", fontSize: "20px" }}>
+                        Pilih tanggal dan waktu penyewaan
+                      </p>
+                      <p>
+                        Pastikan untuk memilih tanggal dan waktu yang sesuai
+                        dengan kebutuhan
+                      </p>
+                    </Flex>
+                  </Flex>
+                  {/* 2 */}
+                  <Flex className="booking-feature" gap={10} wrap="wrap">
+                    <Flex
+                      justify="center"
+                      align="center"
+                      style={{
+                        height: "70px",
+                        width: "70px",
+                        borderRadius: "20px",
+                        backgroundColor: "#ECF5FF",
+                      }}
+                    >
+                      <img width={40} src="/icons/feature2.svg" alt="" />
+                    </Flex>
+                    <Flex vertical justify="center">
+                      <p style={{ fontWeight: "bold", fontSize: "20px" }}>
+                        Temukan kendaraan yang diinginkan
+                      </p>
+                      <p>Pilih kendaraan yang sesuai dengan kebutuhan</p>
+                    </Flex>
+                  </Flex>
+                  {/* 3 */}
+                  <Flex className="booking-feature" gap={10} wrap="wrap">
+                    <Flex
+                      justify="center"
+                      align="center"
+                      style={{
+                        height: "70px",
+                        width: "70px",
+                        borderRadius: "20px",
+                        backgroundColor: "#ECF5FF",
+                      }}
+                    >
+                      <img width={40} src="/icons/feature3.svg" alt="" />
+                    </Flex>
+                    <Flex vertical justify="center">
+                      <p style={{ fontWeight: "bold", fontSize: "20px" }}>
+                        Lakukan pembayaran
+                      </p>
+                      <p>Lakukan pembayaran biaya sewa kendaraans</p>
+                    </Flex>
+                  </Flex>
+                  {/* 4 */}
+                  <Flex className="booking-feature" gap={10} wrap="wrap">
+                    <Flex
+                      justify="center"
+                      align="center"
+                      style={{
+                        height: "70px",
+                        width: "70px",
+                        borderRadius: "20px",
+                        backgroundColor: "#ECF5FF",
+                      }}
+                    >
+                      <img width={40} src="/icons/feature4.svg" alt="" />
+                    </Flex>
+                    <Flex vertical justify="center">
+                      <p style={{ fontWeight: "bold", fontSize: "20px" }}>
+                        Penyewaan berhasil
+                      </p>
+                      <p>
+                        Pelanggan akan menerima konfirmasi pemesanan beserta
+                        rincian penyewaan kendaraan
+                      </p>
+                    </Flex>
+                  </Flex>
                 </Flex>
               </Flex>
             </Flex>
           </Section>
           <Section>
-            <Flex gap={10}>
-              <Flex flex={2} vertical>
+            <Flex gap={10} wrap="wrap-reverse" justify="center">
+              <Flex flex={2} vertical wrap="wrap">
                 <p
                   style={{
                     color: "white",
@@ -422,7 +499,6 @@ const Home = () => {
                   }}
                 >
                   SISTEM
-                  {""}
                   <span
                     style={{
                       color: "#6B7CFF",
@@ -436,8 +512,7 @@ const Home = () => {
                     }}
                   >
                     PAYMENT GATEAWAY
-                  </span>{" "}
-                  {""}
+                  </span>
                   <br /> UNTUK KEMUDAHAN BERTRANSAKSI
                 </p>
                 <p>
@@ -445,8 +520,8 @@ const Home = () => {
                   menghubungkan situs web dengan bank atau lembaga keuangan yang
                   memproses pembayaran.
                 </p>
-                <Flex style={{ paddingTop: "1rem" }}>
-                  <Flex flex={2} vertical align="center">
+                <Flex style={{ paddingTop: "1rem" }} wrap="wrap">
+                  <Flex flex={2} vertical align="center" wrap="wrap">
                     {" "}
                     <div
                       style={{
@@ -531,26 +606,25 @@ const Home = () => {
                   </Flex>
                 </Flex>
               </Flex>
-              <Flex flex={1}>
-                <img
-                  src="/image/gambar2.png"
-                  alt="gambar 2"
-                  style={{
-                    objectFit: "contain",
-                    maxWidth: "100%",
-                    height: "auto",
-                  }}
-                  loading="lazy"
-                />
-              </Flex>
+
+              <img
+                width={540}
+                src="/image/gambar2.png"
+                alt="gambar 2"
+                style={{
+                  objectFit: "contain",
+                  maxWidth: "100%",
+                  height: "auto",
+                }}
+                loading="lazy"
+              />
             </Flex>
           </Section>
           {/* Section Feature 3 */}
           <Section>
-            <Flex gap={20} justify="space-between" align="center">
-              <Flex flex={1}>
-                <img src="/image/gambar3.png" alt="" />
-              </Flex>
+            <Flex gap={20} justify="space-between" align="center" wrap="wrap">
+              <img src="/image/gambar3.png" alt="" />
+
               <Flex flex={1} vertical>
                 <p
                   style={{
@@ -620,7 +694,12 @@ const Home = () => {
 
           {/* Section Feature 4 */}
           <Section>
-            <Flex gap={20} justify="space-between" align="center">
+            <Flex
+              gap={20}
+              justify="space-between"
+              align="center"
+              wrap="wrap-reverse"
+            >
               <Flex flex={1} vertical>
                 <p
                   style={{
@@ -667,9 +746,8 @@ const Home = () => {
                   dapat mengatur harga yang diberikan sesuai jadwalnya
                 </p>
               </Flex>
-              <Flex flex={1}>
-                <img src="/image/gambar4.png" alt="" />
-              </Flex>
+
+              <img width={540} src="/image/gambar4.png" alt="" />
             </Flex>
           </Section>
         </Flex>
@@ -679,9 +757,9 @@ const Home = () => {
           justify="center"
           align="center"
           style={{
-            marginTop: "6rem",
+            marginTop: "5rem",
             zIndex: 2,
-            marginBottom: " 2rem",
+
             objectFit: "contain",
           }}
         >
@@ -760,8 +838,8 @@ const Home = () => {
                   backgroundColor: "#9DA8FF",
                   borderRadius: "15px",
                   paddingInline: "40px",
-                  paddingBlock: "30px",
-                  width: "auto",
+                  paddingBlock: "30px ",
+                  width: "100%",
                 }}
               >
                 <img
@@ -874,8 +952,8 @@ const Home = () => {
             backgroundRepeat: "no-repeat",
             backgroundSize: "cover",
             objectFit: "scale-down",
-            width: "100%", // Atur lebar div sesuai kebutuhan
-            height: "570px", // Atur tinggi div sesuai kebutuhan
+            width: "100%",
+            height: "570px",
             alignContent: "center",
             marginBottom: "3rem",
           }}
@@ -952,7 +1030,7 @@ const Home = () => {
                   }}
                 >
                   FAQ
-              </p>
+                </p>
                 <p
                   style={{
                     fontSize: "20px",

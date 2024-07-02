@@ -45,7 +45,11 @@ const fetcher = (url: string) =>
   }).then((res) => res.json());
 
 export default function AdminMerchantDashboard() {
-  const { data: merchants, error, isLoading } = useSWR("/api/merchant/show", fetcher);
+  const {
+    data: merchants,
+    error,
+    isLoading,
+  } = useSWR("/api/merchant/show", fetcher);
   const [pagination, setPagination] = useState({ pageSize: 10, current: 1 });
   const [searchText, setSearchText] = useState("");
 
@@ -93,10 +97,9 @@ export default function AdminMerchantDashboard() {
     console.error("Error fetching merchants:", error);
   }
 
-  if(isLoading) {
-    return <TableSkeleton/>
+  if (isLoading) {
+    return <TableSkeleton />;
   }
-
 
   const columns = [
     {
@@ -180,6 +183,7 @@ export default function AdminMerchantDashboard() {
         />
       </div>
       <Table
+        scroll={{ x: 500 }}
         columns={columns}
         dataSource={filteredMerchants}
         loading={!merchants && !error}
@@ -195,4 +199,3 @@ export default function AdminMerchantDashboard() {
     </div>
   );
 }
-

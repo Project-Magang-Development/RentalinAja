@@ -71,9 +71,11 @@ const Home: React.FC = () => {
     return <PricingSkeleton />;
   }
 
+  // already individual load
   const handleCardClick = async (packageId: string) => {
     try {
       setLoadingButton(packageId);
+      await new Promise((resolve) => setTimeout(resolve, 4000)); // Simulate async operation
       router.push(`/home/register?package=${packageId}`);
     } catch (error) {
       console.log(error);
@@ -82,7 +84,6 @@ const Home: React.FC = () => {
       setLoadingButton(null);
     }
   };
-
   return (
     <>
       <Navbar />
@@ -121,7 +122,7 @@ const Home: React.FC = () => {
                 key={pkg.package_id}
                 style={{
                   margin: "1rem",
-                  padding: "2rem",
+                  padding: "1.2rem",
                   width: "320px",
                   height: "auto",
                   borderRadius: "15px",
@@ -143,16 +144,14 @@ const Home: React.FC = () => {
                 }}
               >
                 <Flex vertical>
-                  <div
-                    style={{ display: "flex", justifyContent: "space-between" }}
-                  >
+                  <Flex gap={20} justify="space-between">
                     <p style={{ fontSize: "17px", fontWeight: "bold" }}>
                       {pkg.package_name}
                     </p>
                     <p style={{ marginTop: "0.1rem", fontSize: "15px" }}>
                       {pkg.duration} Months
                     </p>
-                  </div>
+                  </Flex>
                   <div style={{ marginTop: "0.5rem" }}>
                     <p style={{ fontSize: "25px", fontWeight: "bold" }}>
                       Rp {pkg.package_price.toLocaleString()}
@@ -194,9 +193,11 @@ const Home: React.FC = () => {
                   </ul>
                 </Flex>
                 <Flex style={{ width: "100%" }}>
+                  {/* individual load */}
                   <Button
-                    onClick={() => handleCardClick(pkg.package_id.toString())}
-                    loading={loadingButton === pkg.package_id.toString()}
+                    type="primary"
+                    loading={loadingButton === pkg.package_id}
+                    onClick={() => handleCardClick(pkg.package_id)}
                     block
                     size="large"
                     style={{
@@ -204,7 +205,7 @@ const Home: React.FC = () => {
                       color: "white",
                     }}
                   >
-                    Daftar Sekarang
+                    Daftar sekarang
                   </Button>
                 </Flex>
               </Flex>

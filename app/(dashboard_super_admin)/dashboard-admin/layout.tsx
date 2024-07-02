@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BankOutlined,
   DashboardOutlined,
@@ -30,7 +30,12 @@ const { Header, Content, Footer, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>["items"][number];
 
+const dashboardIconDefault = <img src="/icons/dashboard.svg" alt="Dashboard" />;
+const dashboardIconActive = (
+  <img src="/icons/dashboard-active.svg" alt="Dashboard" />
+);
 const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [activeItem, setActiveItem] = useState("");
   const siderWidthCollapsed = 80;
   const siderWidthExpanded = 200;
   const router = useRouter();
@@ -61,11 +66,30 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <>{children}</>;
   }
 
+  useEffect(() => {
+    // Set activeItem berdasarkan pathname saat halaman dimuat atau berubah
+    setActiveItem(pathname);
+  }, [pathname]);
+
+  const handleClick = (key: any) => {
+    setActiveItem(key);
+  };
+
   const items: MenuItem[] = [
     {
       key: "/dashboard-admin",
-      icon: <DashboardOutlined />,
-      label: <Link href="/dashboard-admin">Dashboard</Link>,
+      icon:
+        activeItem === "/dashboard"
+          ? dashboardIconActive
+          : dashboardIconDefault,
+      label: (
+        <Link
+          href="/dashboard-admin"
+          onClick={() => handleClick("/dashboard-admin")}
+        >
+          Dashboard
+        </Link>
+      ),
     },
     {
       key: "/dashboard-admin/merchant",
@@ -95,6 +119,11 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   const selectedKeys = determineSelectedKeys(pathname, items);
+  // Tambahkan properti style ke dalam items
+  const initialItems = items.map((item: any) => ({
+    ...item,
+    style: { color: selectedKeys.includes(item.key) ? "#6B7CFF" : "black" },
+  }));
 
   const showModalLogout = () => {
     Modal.confirm({
@@ -147,7 +176,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         >
           {collapsed ? (
             <span>
-              <BankOutlined />
+              <img src="/logo-rental.svg" alt="" />
             </span>
           ) : (
             <Image
@@ -161,7 +190,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <Menu
           theme="light"
           mode="inline"
-          items={items}
+          items={initialItems}
           selectedKeys={selectedKeys}
         />
       </Sider>

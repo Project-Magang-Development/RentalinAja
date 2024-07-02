@@ -236,7 +236,7 @@ const Navbar: React.FC<NavbarProps> = ({ children }) => {
               </p>
             </Link>
           </Menu.Item>
-          <Menu.Item key="kontak">
+          <Menu.Item key="Kontak">
             <Link href="/home/Kontak">
               <p
                 style={{

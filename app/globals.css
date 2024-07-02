@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+.custom-select .ant-select-selector {
+  border-radius: 15px !important;
+}
+
 @media (max-width: 768px) {
   .radial {
     display: none;
@@ -15,5 +19,101 @@
 @media (max-width: 768px) {
   .parent {
     padding-inline: 0px;
+  }
+}
+/* responsive layar  */
+@media (max-width: 767px) {
+  .text-utama {
+    text-align: center;
+  }
+
+  .wave1 {
+    top: 800px !important;
+
+    object-fit: "cover";
+    position: "absolute";
+    bottom: "0";
+    width: "100%";
+
+    height: "auto";
+  }
+
+  .button-utama {
+    justify-content: center;
+    padding-right: 0 !important;
+  }
+}
+
+@media (max-width: 559px) {
+  .wave1 {
+    top: 920px !important;
+  }
+}
+
+@media (max-width: 499px) {
+  .icon-3 {
+    padding-left: 40px;
+    justify-content: start !important;
+  }
+  .anticon-user {
+    display: none !important;
+  }
+
+  .anticon-database {
+    display: none !important;
+  }
+
+  .anticon-dollar-circle {
+    display: none !important;
+  }
+}
+
+@media (min-width: 600px) {
+  .embedyt {
+    width: 70% !important;
+  }
+}
+
+@media (max-width: 431px) {
+  .wave1 {
+    top: 1100px !important;
+  }
+}
+
+@media (max-width: 604px) {
+  .booking-feature {
+    justify-content: center;
+  }
+  .section-feature {
+    text-align: "center" !important;
+  }
+  .wave-fitur {
+    display: none;
+  }
+  .parent {
+    padding-inline: 20px !important;
+  }
+}
+@media (max-width: 846px) {
+  .wave-fitur {
+    display: none;
+  }
+  .glass-fitur {
+    margin-block: 0 !important;
+  }
+  .buletan1 {
+    left: -220px !important;
+  }
+}
+
+/* sider trigger style */
+.ant-layout .ant-layout-sider-trigger {
+  background-color: #6b7cff !important;
+  color: white !important;
+}
+
+@media (max-width: 768px) {
+  .right-color {
+    display: none;
   }
 }

@@ -11,48 +11,73 @@ import Section from "@/app/components/RevealAnimation";
 
 const Fitur = () => {
   return (
-    <Flex vertical style={{ overflow: "hidden" }}>
+    <Flex
+      vertical
+      style={{ overflow: "hidden", position: "relative", zIndex: "0" }}
+    >
       <Navbar />
-      <Section>
-        <Flex vertical align="center">
-          <p style={{ fontSize: "25px", fontWeight: "bold", color: "#6B7CFF" }}>
-            Fitur
-          </p>
-          <p style={{ fontSize: "15px", textAlign: "center" }}>
-            Platform kami menawarkan serangkaian layanan untuk
-            <br /> mengoptimalkan operasional bisnis rental Anda
-          </p>
-          <img
-            src="/image/computer.png"
-            alt="Fitur"
-            width={800}
-            style={{ objectFit: "contain" }}
-          />
-        </Flex>
-      </Section>
+
+      <Flex vertical align="center" style={{ zIndex: "3" }}>
+        <p style={{ fontSize: "25px", fontWeight: "bold", color: "#6B7CFF" }}>
+          Fitur
+        </p>
+        <p style={{ fontSize: "15px", textAlign: "center" }}>
+          Platform kami menawarkan serangkaian layanan untuk
+          <br /> mengoptimalkan operasional bisnis rental Anda
+        </p>
+        <img
+          src="/image/computer.png"
+          alt="Fitur"
+          width={800}
+          style={{ objectFit: "contain" }}
+        />
+      </Flex>
+
       <Flex
         vertical
         gap={12}
         justify="center"
         align="center"
         style={{
-          backgroundImage: 'url("/waves/wave5.svg")',
-          backgroundRepeat: "no-repeat",
-          backgroundSize: "cover",
-          backgroundPosition: "0px -50px",
-          objectFit: "scale-down",
-          width: "100%", // Atur lebar div sesuai kebutuhan
-          height: "800px", // Atur tinggi div sesuai kebutuhan
+          position: "relative",
           alignContent: "center",
-          marginBottom: "3rem ",
+          marginBlock: "12rem ",
+          zIndex: "1",
         }}
       >
+        <div
+          className="wave-fitur"
+          style={{
+            position: "absolute",
+            width: "100%",
+            maxWidth: "100%",
+            minWidth: "1200px",
+            objectFit: "contain",
+            zIndex: "-1",
+          }}
+        >
+          <img
+            src="/waves/wave5.svg"
+            alt="Wave"
+            style={{
+              width: "100%",
+              maxWidth: "100%",
+              height: "auto",
+              zIndex: -1,
+            }}
+          />
+        </div>
         <Section>
           <Flex
+            className="glass-fitur"
             gap={15}
             wrap="wrap"
             justify="center"
-            style={{ paddingInline: "1rem" }}
+            style={{
+              paddingInline: "1rem",
+              zIndex: "2",
+              marginBlock: "2.5rem",
+            }}
           >
             <GlassContainer width={350} height={180}>
               <p style={{ fontWeight: "bold", color: "#082653" }}>
@@ -81,7 +106,7 @@ const Fitur = () => {
             gap={15}
             wrap="wrap"
             justify="center"
-            style={{ paddingInline: "1rem" }}
+            style={{ paddingInline: "1rem", zIndex: "99" }}
           >
             <GlassContainer width={450} height={180}>
               <p style={{ fontWeight: "bold", color: "#082653" }}>
@@ -105,7 +130,9 @@ const Fitur = () => {
           </Flex>
         </Section>
       </Flex>
+
       <FooterDaftar />
+
       <Flex
         className="radial"
         justify="center"

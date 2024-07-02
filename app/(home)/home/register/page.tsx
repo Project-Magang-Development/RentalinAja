@@ -58,10 +58,10 @@ const fetcher = async (url: string) => {
 };
 
 const RegisterDashboard: React.FC = () => {
-   const { data: merchantEmail, error } = useSWR(
-     "/api/register/checkEmail",
-     fetcher
-   );
+  const { data: merchantEmail, error } = useSWR(
+    "/api/register/checkEmail",
+    fetcher
+  );
   const searchParams = useSearchParams();
   const packageDataId = searchParams.get("package");
   const [packageData, setPackageData] = useState<any>("");
@@ -202,15 +202,15 @@ const RegisterDashboard: React.FC = () => {
         merchant_city: formData.city,
         merchant_address: formData.street_line1,
         password: formData.password,
-        status, 
+        status,
       };
 
-      if(formData.email == merchantEmail) {
+      if (formData.email == merchantEmail) {
         return notification.error({
           message: "Username yang anda masukkan sudah terdaftar",
-        })
+        });
       }
-      
+
       const createPayment = await axios.post(
         "/api/payment/createPendingPayment",
         payloadPayment,
@@ -287,7 +287,6 @@ const RegisterDashboard: React.FC = () => {
     try {
       const formData = form.getFieldsValue();
 
-      
       if (formData.email === merchantEmail) {
         notification.error({
           message: "Username yang anda masukkan sudah terdaftar",
@@ -318,29 +317,27 @@ const RegisterDashboard: React.FC = () => {
         throw new Error("Failed to create payment invoice");
       }
 
-      if (packageData.package_price === 0) {
-        // const merchantResult = await createMerchant(
-        //   paymentResult.newPayment.pending_id
-        // );
-        console.log("Merchant Dibuat");
-      }
+      // if (packageData.package_price === 0) {
+      //   await createMerchant(paymentResult.newPayment.pending_id);
+      //   console.log("Merchant Dibuat");
+      // }
 
       notification.success({
         message: "Registrasi Berhasil Silahkan Cek Email Anda",
-      })
+      });
       if (invoiceResult.invoice_url) {
         console.log("Invoice URL:", invoiceResult.invoice_url);
         window.location.href = invoiceResult.invoice_url;
       } else {
         if (packageData.package_price > 0) {
           console.log("Terjadi Kesalahan");
-          message.error("Terjadi Kesalahan");
+          message.error("Terjadi Kesalahan", error);
         } else {
           console.log("Tidak ada invoice yang perlu dibuat");
         }
       }
       setLoading(false);
-      router.push('/home/register/success');
+      router.push("/home/register/success");
     } catch (error) {
       console.error("Registration failed:", error);
       message.error("Registration failed.");
@@ -363,15 +360,18 @@ const RegisterDashboard: React.FC = () => {
       >
         {/*//Container untuk Layout Form  */}
         <img
+          width={100}
           src="/icons/wave10.svg"
           style={{
             objectFit: "cover",
             position: "absolute",
             bottom: 0,
+            right: 0,
+            left: 0,
             width: "100%",
-            height: "auto",
-            zIndex: 0,
-            top: "26px",
+            height: "100%",
+            zIndex: -1,
+            top: "0",
           }}
         />
 
@@ -447,8 +447,11 @@ const RegisterDashboard: React.FC = () => {
               style={{
                 backgroundColor: "white",
                 borderRadius: " 20px",
+                marginBottom: "1.5rem",
                 height: "auto",
                 padding: "1rem",
+                boxShadow:
+                  "0 2px 4px 0 rgba(0,0,0,0.2), 0 4px 5px -1px rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12)",
               }}
             >
               <p style={{ fontSize: "20px", fontWeight: "bold" }}>
@@ -665,7 +668,11 @@ const RegisterDashboard: React.FC = () => {
               <Form.Item>
                 <Flex justify="center">
                   <Button
-                    style={{ width: "50%", marginTop: "24px" }}
+                    style={{
+                      width: "50%",
+                      marginTop: "24px",
+                      backgroundColor: "#6B7CFF",
+                    }}
                     type="primary"
                     htmlType="submit"
                     className="register-form-button"

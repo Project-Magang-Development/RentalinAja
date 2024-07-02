@@ -104,17 +104,17 @@ export default function SuperAdminDashboard() {
   const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
   const data = [
     {
-      title: "TOTAL PELANGGAN",
+      title: "Total Pelanggan",
       value: totalMerchants,
       icon: <UserOutlined />,
     },
     {
-      title: "TOTAL PAKET",
+      title: "Total Paket",
       value: totalPackages,
       icon: <DatabaseOutlined />,
     },
     {
-      title: "TOTAL PENDAPATAN",
+      title: "Total Pendapatan",
       value: "Rp " + totalRevenue.toLocaleString(),
       icon: <DollarCircleOutlined />,
     },
@@ -125,7 +125,14 @@ export default function SuperAdminDashboard() {
       <Title level={3}>{currentMonthYearSentence}</Title>
       <Row gutter={16} style={{ margin: "20px 0" }}>
         {data.map((item, index) => (
-          <Col span={6} key={index}>
+          <Col
+            xs={24}
+            sm={12}
+            md={8}
+            lg={6}
+            key={index}
+            style={{ margin: "5px" }}
+          >
             <Card
               bordered={false}
               bodyStyle={{
@@ -174,7 +181,7 @@ export default function SuperAdminDashboard() {
           </Col>
         ))}
         <Col span={24} style={{ marginTop: 40 }}>
-          <Col span={6}>
+          <Col xs={24} sm={12} md={6}>
             <Select
               defaultValue={selectedYear}
               style={{ width: 120, marginBottom: 20 }}
@@ -191,7 +198,7 @@ export default function SuperAdminDashboard() {
             </Select>
           </Col>
           <Row gutter={16} style={{ marginTop: 40 }}>
-            <Col span={12}>
+            <Col xs={24} md={12}>
               <Card
                 title={`Data Merchant Per Bulan Tahun ${selectedYear}`}
                 bordered={true}
@@ -231,7 +238,7 @@ export default function SuperAdminDashboard() {
                 </ResponsiveContainer>
               </Card>
             </Col>
-            <Col span={12}>
+            <Col xs={24} md={12}>
               <Card
                 title={`Data Pendapatan Per Bulan Tahun ${selectedYear}`}
                 bordered={true}

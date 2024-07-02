@@ -44,15 +44,24 @@ const RegisterDashboard: React.FC = () => {
   return (
     <Layout
       className="layout"
-      style={{ minHeight: "100vh", overflow: "hidden" }}
+      style={{
+        minHeight: "100vh",
+        overflow: "hidden",
+        backgroundColor: "white",
+      }}
     >
       <img
+        className="buletan1"
         src="/icons/buletan 1.svg"
         alt=""
         style={{
+          zIndex: 0,
           objectFit: "fill",
           position: "absolute",
           top: 50,
+          right: 10,
+          left: -100,
+          width: 450,
           height: 450,
         }}
       />
@@ -72,12 +81,9 @@ const RegisterDashboard: React.FC = () => {
         src="/icons/panah3.svg"
         alt=""
         style={{
-          objectFit: "cover",
           position: "absolute",
-          top: 258,
-          right: -20,
-          width: 250,
-          height: 250,
+          bottom: 0,
+          right: -10,
         }}
       />
       <Content

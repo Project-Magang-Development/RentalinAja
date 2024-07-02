@@ -563,6 +563,7 @@ export default function AdminDashboard() {
                         return Promise.reject("Saldo anda tidak cukup");
                       }
 
+                      setIsButtonDisabled(false);
                       return Promise.resolve();
                     },
                   },
@@ -581,7 +582,7 @@ export default function AdminDashboard() {
                   }
                   onChange={(value) => {
                     const amountValue = Number(value);
-                    if (amountValue > totalRevenue) {
+                    if (amountValue > balance) {
                       form.setFields([
                         {
                           name: "amount",
@@ -803,4 +804,3 @@ export default function AdminDashboard() {
     </div>
   );
 }
-

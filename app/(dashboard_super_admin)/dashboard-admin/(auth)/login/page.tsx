@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Button, Form, Input, Layout, Typography, message, notification } from "antd";
+import {
+  Button,
+  Form,
+  Input,
+  Layout,
+  Typography,
+  message,
+  notification,
+} from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -28,20 +36,20 @@ export default function LoginDashboardSuperAdmin() {
       });
 
       if (!response.ok) {
-        if(response.status === 404) {
+        if (response.status === 404) {
           notification.error({
-            message: "Email tidak terdaftar"
-          })
+            message: "Email tidak terdaftar",
+          });
         }
-         setLoading(false);
-         return;
+        setLoading(false);
+        return;
       }
 
       const data = await response.json();
-      Cookies.set("tokenAdmin", data.token, {expires: 1});
+      Cookies.set("tokenAdmin", data.token, { expires: 1 });
       notification.success({
-        message: "Login Berhasil!"
-      })
+        message: "Login Berhasil!",
+      });
       setLoading(false);
       router.push("/dashboard-admin");
     } catch (error) {
@@ -50,15 +58,25 @@ export default function LoginDashboardSuperAdmin() {
   };
 
   return (
-    <Layout style={{ minHeight: "100vh", overflow: "hidden" }}>
+    <Layout
+      style={{
+        minHeight: "100vh",
+        overflow: "hidden",
+        backgroundColor: "white",
+      }}
+    >
       <img
+        className="buletan1"
         src="/icons/buletan 1.svg"
         alt=""
         style={{
-
+          zIndex: 0,
           objectFit: "fill",
           position: "absolute",
           top: 50,
+          right: 10,
+          left: -100,
+          width: 450,
           height: 450,
         }}
       />
@@ -66,7 +84,6 @@ export default function LoginDashboardSuperAdmin() {
         src="/icons/buletan 2.svg"
         alt=""
         style={{
-          objectFit: "fill",
           position: "absolute",
           top: -10,
           right: -20,
@@ -78,12 +95,9 @@ export default function LoginDashboardSuperAdmin() {
         src="/icons/panah3.svg"
         alt=""
         style={{
-          objectFit: "cover",
           position: "absolute",
-          top: 258,
-          right: -20,
-          width: 250,
-          height: 250,
+          bottom: 0,
+          right: -10,
         }}
       />
       <Content

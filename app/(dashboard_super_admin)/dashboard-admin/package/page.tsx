@@ -18,7 +18,7 @@ import Title from "antd/es/typography/Title";
 import useSWR from "swr";
 import TableSkeleton from "@/app/components/tableSkeleton";
 import Cookies from "js-cookie";
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 
 interface Package {
   package_id: string;
@@ -175,7 +175,7 @@ export default function AdminPackageDashboard() {
       feature: packageToEdit.package_feature,
       price: packageToEdit.package_price,
       count_order: packageToEdit.count_order,
-      count_vehicle : packageToEdit.count_vehicle,
+      count_vehicle: packageToEdit.count_vehicle,
       duration: packageToEdit.duration,
     });
     setIsModalVisible(true);
@@ -312,11 +312,16 @@ export default function AdminPackageDashboard() {
       <Title level={3}> Data Paket</Title>
       <Divider />
       <Flex>
-        <Button type="primary" onClick={showModal}>
-          Tambah Paket
+        <Button
+          style={{ backgroundColor: "#6B7CFF", color: "white" }}
+          onClick={showModal}
+          icon={<PlusOutlined />}
+        >
+          Tambah Data Paket
         </Button>
       </Flex>
       <Table
+        scroll={{ x: 500 }}
         columns={columns}
         dataSource={packages}
         rowKey="package_id"
@@ -330,7 +335,7 @@ export default function AdminPackageDashboard() {
       />
       <Modal
         title={<div style={{ marginBottom: "16px" }}>{modalTitle}</div>}
-        visible={isModalVisible}
+        open={isModalVisible}
         footer={null}
         onCancel={handleCancel}
       >
@@ -381,7 +386,8 @@ export default function AdminPackageDashboard() {
             rules={[
               {
                 required: true,
-                message: "Tolong Masukan Penyimpanan Data Kendaraan Yang Masuk!",
+                message:
+                  "Tolong Masukan Penyimpanan Data Kendaraan Yang Masuk!",
               },
             ]}
           >

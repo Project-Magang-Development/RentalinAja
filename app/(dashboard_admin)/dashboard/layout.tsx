@@ -71,7 +71,13 @@ const { Content, Footer, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>["items"][number];
 
+const dashboardIconDefault = <img src="/icons/dashboard.svg" alt="Dashboard" />;
+const dashboardIconActive = (
+  <img src="/icons/dashboard-active.svg" alt="Dashboard" />
+);
+
 const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [activeItem, setActiveItem] = useState("");
   const siderWidthCollapsed = 80;
   const siderWidthExpanded = 200;
   const router = useRouter();
@@ -229,11 +235,27 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <>{children}</>;
   }
 
+  useEffect(() => {
+    // Set activeItem berdasarkan pathname saat halaman dimuat atau berubah
+    setActiveItem(pathname);
+  }, [pathname]);
+
+  const handleClick = (key: any) => {
+    setActiveItem(key);
+  };
+
   const items: MenuItem[] = [
     {
       key: "/dashboard",
-      icon: <DashboardOutlined />,
-      label: <Link href="/dashboard">Dashboard</Link>,
+      icon:
+        activeItem === "/dashboard"
+          ? dashboardIconActive
+          : dashboardIconDefault,
+      label: (
+        <Link href="/dashboard" onClick={() => handleClick("/dashboard")}>
+          Dashboard
+        </Link>
+      ),
     },
     {
       key: "/dashboard/vehicle",
@@ -248,7 +270,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <Badge count={newOrdersCount}>
             <a
               onClick={handleOrderClick}
-              style={{ color: "inherit", textDecoration: "none" }}
+              style={{ color: "black", textDecoration: "none" }}
             >
               Order
             </a>
@@ -270,7 +292,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <Badge count={newBookingsCount}>
             <a
               onClick={handleBookingClick}
-              style={{ color: "inherit", textDecoration: "none" }}
+              style={{ color: "black", textDecoration: "none" }}
             >
               Booking
             </a>
@@ -309,6 +331,10 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   const selectedKeys = determineSelectedKeys(pathname, items);
+  const initialItems = items.map((item: any) => ({
+    ...item,
+    style: { color: selectedKeys.includes(item.key) ? "#6B7CFF" : "black" },
+  }));
 
   const confirmLogout = () => {
     Modal.confirm({
@@ -381,7 +407,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   //   return <LayoutSkeleton />;
   // }
 
-
   return (
     <Layout hasSider style={{ minHeight: "100vh" }}>
       <Sider
@@ -415,7 +440,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         <Menu
           theme="light"
           mode="inline"
-          items={items}
+          items={initialItems}
           selectedKeys={selectedKeys}
         />
       </Sider>

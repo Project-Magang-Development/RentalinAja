@@ -65,7 +65,7 @@ const YouTubeEmbed: React.FC<YouTubeEmbedProps> = ({
     >
       <iframe
         ref={playerRef}
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&fs=0&iv_load_policy=3&disablekb=1&playsinline=1$showInfo=0&autohide=1&mute=1&enablejsapi=1`}
+        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}&controls=0&modestbranding=1&rel=0&fs=0&iv_load_policy=3&disablekb=1&playsinline=1&showInfo=0&autohide=1&enablejsapi=1`}
         width={width}
         height={height}
         style={{

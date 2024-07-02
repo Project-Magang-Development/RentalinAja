@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 
 import { Button, Flex } from "antd";
 import Navbar from "@/app/components/Navbar";
@@ -88,13 +88,23 @@ const TentangKami = () => {
               alt="Mobil"
             />
           </Flex>
-          <div className="radial">
+          <div
+            className="radial"
+            style={{
+              position: "absolute",
+              overflow: "hidden",
+              top: "0",
+              left: "0",
+              right: 0,
+              bottom: 0,
+            }}
+          >
             <RadialBlur
               layer={0}
               opacity={0.9}
               height="300px"
               left="90%"
-              top="20%"
+              top="0"
               width="400px"
             />
           </div>

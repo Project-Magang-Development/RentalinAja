@@ -71,6 +71,7 @@ function Kontak() {
             ></div>
             {/* Bagian kanan dengan warna 6B7CFF */}
             <div
+              className="right-color"
               style={{
                 backgroundColor: "#6B7CFF",
                 width: "25%",
@@ -84,7 +85,7 @@ function Kontak() {
             <Flex
               wrap="wrap"
               gap={30}
-              justify="space-between"
+              justify="center"
               align="center"
               style={{
                 position: "relative",
@@ -213,7 +214,6 @@ function Kontak() {
               </Flex>
               <Flex
                 style={{ paddingTop: "2rem" }}
-                flex={1}
                 justify="center"
                 align="center"
               >
