@@ -9,7 +9,6 @@ export async function GET(
     const merchant_id = params.merchant_id;
     const tokenHeader = req.headers.get("Authorization");
     const token = tokenHeader?.split(" ")[1];
-    console.log(merchant_id);
 
     if (!token) {
       return new NextResponse(JSON.stringify({ error: "Token not provided" }), {
