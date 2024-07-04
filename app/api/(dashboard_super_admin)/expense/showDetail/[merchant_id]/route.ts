@@ -24,7 +24,11 @@ export async function GET(
         merchant_id: merchant_id,
       },
       include: {
-        merchant: true,
+        merchant: {
+          include: {
+            MerchantPendingPayment: true,
+          },
+        },
       },
     });
     return NextResponse.json(showDetail);
