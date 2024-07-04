@@ -239,7 +239,7 @@ export default function AdminMerchantDashboard() {
       render: (_: any, merchant: Merchant) => (
         <Space>
           <Button
-            type="primary"
+            style={{ backgroundColor: "#6B7CFF", color: "white" }}
             onClick={() => showHistoryExpanse(merchant.merchant_id)}
           >
             History Penarikan

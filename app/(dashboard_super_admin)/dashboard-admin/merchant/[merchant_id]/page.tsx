@@ -30,20 +30,20 @@ export default function HistoryExpanse() {
   );
 
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 5; 
+  const pageSize = 5;
 
   if (error) {
     return <Alert message="Error loading data" type="error" />;
   }
 
   if (!showDetail) {
-    return <TableSkeleton/>;
+    return <TableSkeleton />;
   }
 
   const merchantName =
     Array.isArray(showDetail) && showDetail.length > 0
       ? showDetail[0].merchant.merchant_email
-      : "Unknown Merchant";
+      : "";
 
   const paginatedData = showDetail.slice(
     (currentPage - 1) * pageSize,
@@ -53,22 +53,26 @@ export default function HistoryExpanse() {
   return (
     <div>
       <Title level={3}>Riwayat Penarikan Merchant {merchantName}</Title>
-      <Row gutter={[16, 16]} justify="center">
-        {Array.isArray(paginatedData) &&
-          paginatedData.map((detail: any) => (
-            <Col span={24} key={detail.id}>
-              <Card>
-                <Title level={4}>
-                  Jumlah:  Rp {detail.amount.toLocaleString()}
-                </Title>
-                <Text>
-                  Ditarik:{" "}
-                  {moment(detail.created_at).format("HH:mm, DD MMMM YYYY")}
-                </Text>
-              </Card>
-            </Col>
-          ))}
-      </Row>
+      {showDetail.length === 0 ? (
+        <Alert message="Tidak Ada Data Penarikan" type="info" />
+      ) : (
+        <Row gutter={[16, 16]} justify="center">
+          {Array.isArray(paginatedData) &&
+            paginatedData.map((detail: any) => (
+              <Col span={24} key={detail.id}>
+                <Card>
+                  <Title level={4}>
+                    Jumlah: Rp {detail.amount.toLocaleString()}
+                  </Title>
+                  <Text>
+                    Ditarik:{" "}
+                    {moment(detail.created_at).format("HH:mm, DD MMMM YYYY")}
+                  </Text>
+                </Card>
+              </Col>
+            ))}
+        </Row>
+      )}
       <Pagination
         current={currentPage}
         pageSize={pageSize}

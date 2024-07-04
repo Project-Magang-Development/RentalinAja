@@ -38,22 +38,26 @@ export default function History() {
     <div>
       <div>
         <Title level={3}>History Penarikan</Title>
-        <Row gutter={[16, 16]} justify="center">
-          {Array.isArray(paginatedData) &&
-            paginatedData.map((detail) => (
-              <Col span={24} key={detail.id}>
-                <Card>
-                  <Title level={4}>
-                    Jumlah: Rp {detail.amount.toLocaleString()}
-                  </Title>
-                  <Text>
-                    Ditarik:{" "}
-                    {moment(detail.created_at).format("HH:mm, DD MMMM YYYY")}
-                  </Text>
-                </Card>
-              </Col>
-            ))}
-        </Row>
+        {showDetail.history.length === 0 ? (
+          <Alert message="Tidak Ada Data Penarikan" type="info" />
+        ) : (
+          <Row gutter={[16, 16]} justify="center">
+            {Array.isArray(paginatedData) &&
+              paginatedData.map((detail) => (
+                <Col span={24} key={detail.id}>
+                  <Card>
+                    <Title level={4}>
+                      Jumlah: Rp {detail.amount.toLocaleString()}
+                    </Title>
+                    <Text>
+                      Ditarik:{" "}
+                      {moment(detail.created_at).format("HH:mm, DD MMMM YYYY")}
+                    </Text>
+                  </Card>
+                </Col>
+              ))}
+          </Row>
+        )}
         <Pagination
           current={currentPage}
           pageSize={pageSize}
