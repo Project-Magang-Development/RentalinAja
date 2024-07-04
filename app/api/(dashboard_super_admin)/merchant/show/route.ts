@@ -8,8 +8,8 @@ export async function GET(req: Request) {
     const tokenHeader = req.headers.get("Authorization");
     const token = tokenHeader?.split(" ")[1];
 
+
     if (email) {
-      // Handle GET request with email parameter
       if (!email) {
         return new NextResponse(
           JSON.stringify({ error: "Email not provided" }),

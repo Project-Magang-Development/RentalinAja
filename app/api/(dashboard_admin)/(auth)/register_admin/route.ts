@@ -101,36 +101,6 @@ export async function POST(req: Request) {
       },
     });
 
-    await transporter.sendMail({
-      from: '"RentalinAja" <no-reply@gmail.com>',
-      to: merchantPendingPayment.merchant_email,
-      subject: "Selamat Datang di RentalinAja",
-      text: "Halo! Terima kasih telah mendaftar. Anda sekarang dapat masuk ke dashboard Anda: http://localhost:3000/dashboard/login",
-      html: `
-        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; padding: 40px; color: #333;">
-          <div style="max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
-            <div style="background-color: #0275d8; padding: 20px 0;">
-              <h1 style="color: #ffffff; margin: 0; padding: 0 20px;">Selamat Datang di RentalinAja!</h1>
-            </div>
-            <div style="padding: 20px;">
-              <p style="font-size: 16px;">Hai ${merchantPendingPayment.merchant_name},</p>
-              <p style="font-size: 16px;">Terima kasih telah mendaftar di RentalinAja. Kami senang Anda bergabung dengan kami. Anda sekarang dapat masuk ke dashboard Anda dengan mengklik tombol di bawah ini:</p>
-              <a href="http://localhost:3000/dashboard/login"
-                style="display: inline-block; background-color: #0275d8; color: #ffffff; padding: 12px 24px; font-size: 18px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
-                Masuk ke Dashboard
-              </a>
-              <p style="font-size: 16px;">Jika tombol di atas tidak bekerja, salin dan tempel tautan berikut ke browser Anda:</p>
-              <p style="font-size: 16px;"><a href="http://localhost:3000/dashboard/login" style="color: #0275d8;">http://localhost:3000/dashboard/login</a></p>
-              <p style="font-size: 16px;">Jika Anda memiliki pertanyaan atau butuh bantuan lebih lanjut, jangan ragu untuk membalas email ini atau menghubungi support kami.</p>
-            </div>
-            <div style="background-color: #f0f0f0; padding: 20px; font-size: 14px; text-align: left;">
-              <p>Salam Hangat,<br/>Tim RentalinAja</p>
-            </div>
-          </div>
-        </div>
-      `,
-    });
-
     return NextResponse.json({
       message: responseMessage,
       user: merchantData,

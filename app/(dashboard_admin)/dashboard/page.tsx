@@ -107,7 +107,7 @@ export default function AdminDashboard() {
   const currentYear = moment().year();
   const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
   // Modal for Pencairan Dana
-  const [form] = useForm<FormValue>();
+  const [form] = Form.useForm<FormValue>();
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const merchantName = useMerchantName();
@@ -122,29 +122,29 @@ export default function AdminDashboard() {
   );
 
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Current month by default
-  useEffect(() => {
-    const fetchBalance = async (month: any, year: any) => {
-      const token = Cookies.get("token");
-      const response = await fetch(
-        `/api/merchant_balance?month=${month}&year=${year}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Response data:", data);
-        setIncomeByMonth(data.incomeByMonth);
-        setExpenseByMonth(data.expenseByMonth);
-        setBalance(data.balance || 0); // Ensure consistency with property name
-      } else {
-        console.error("Failed to fetch balance");
+  const fetchBalance = async (month: any, year: any) => {
+    const token = Cookies.get("token");
+    const response = await fetch(
+      `/api/merchant_balance?month=${month}&year=${year}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    };
+    );
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Response data:", data);
+      setIncomeByMonth(data.incomeByMonth);
+      setExpenseByMonth(data.expenseByMonth);
+      setBalance(data.balance || 0); // Ensure consistency with property name
+    } else {
+      console.error("Failed to fetch balance");
+    }
+  };
 
+  useEffect(() => {
     fetchBalance(selectedMonth, selectedYear);
   }, [selectedMonth, selectedYear]);
 
@@ -187,6 +187,12 @@ export default function AdminDashboard() {
     `/api/booking/${selectedYear}`,
     fetcher
   );
+
+  const {
+    data: merchantData,
+    error: errorMerchantBalance,
+    mutate,
+  } = useSWR("/api/merchant_balance");
 
   const errors = [
     errorTotalVehicles,
@@ -314,7 +320,8 @@ export default function AdminDashboard() {
         message.error("Gagal melakukan update balance");
         throw new Error("Failed to update balance");
       }
-      setIsModalVisible(false);
+      await fetchBalance(selectedMonth, selectedYear);
+
       setConfirmLoading(false);
     } catch (error) {
       console.error("Failed to perform payout:", error);
@@ -328,7 +335,7 @@ export default function AdminDashboard() {
 
       setConfirmLoading(true);
       await performPayout(formValue);
-      setIsModalVisible(false);
+      form.resetFields();
       setConfirmLoading(false);
     } catch (error) {
       console.log("Terjadi kesalahan:", error);

@@ -409,7 +409,7 @@ export default function AdminPackageDashboard() {
               <Button key="back" onClick={handleCancel}>
                 Batal
               </Button>
-              <Button key="submit" type="primary" htmlType="submit">
+              <Button key="submit" htmlType="submit">
                 {editingPackage ? "Update" : "Tambah"}
               </Button>
             </Space>
