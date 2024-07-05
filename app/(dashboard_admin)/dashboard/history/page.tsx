@@ -29,9 +29,18 @@ export default function History() {
     return <TableSkeleton />;
   }
 
+  if (!showDetail.history || showDetail.history.length === 0) {
+    return <Alert message="Tidak Ada Data Penarikan" type="info" />;
+  }
+
   const paginatedData = showDetail.history.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
+  );
+
+  const totalAmount = showDetail.history.reduce(
+    (sum: any, detail: any) => sum + detail.amount,
+    0
   );
 
   return (
@@ -58,6 +67,11 @@ export default function History() {
               ))}
           </Row>
         )}
+        <div style={{ marginTop: "20px", textAlign: "center" }}>
+          <Title level={4}>
+            Total Penarikan: Rp {totalAmount.toLocaleString()}
+          </Title>
+        </div>
         <Pagination
           current={currentPage}
           pageSize={pageSize}
