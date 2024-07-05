@@ -614,22 +614,22 @@ export default function AdminDashboard() {
             {
               title: "TOTAL KENDARAAN",
               value: totalVehicles,
-              icon: <CarOutlined />,
+              icon: <img src="/icons/mobil.svg" alt="" />,
             },
             {
               title: "TOTAL ORDER",
               value: totalOrders,
-              icon: <OrderedListOutlined />,
+              icon: <img src="/icons/order.svg" alt="" />,
             },
             {
               title: "TOTAL BOOKING",
               value: totalBookings,
-              icon: <BookOutlined />,
+              icon: <img src="/icons/sewa.svg" alt="" />,
             },
             {
               title: "TOTAL PENDAPATAN",
               value: "Rp " + totalRevenue.toLocaleString(),
-              icon: <DollarCircleOutlined />,
+              icon: <img src="/icons/pendapatan.svg" alt="" />,
               hasButton: true,
             },
           ].map((item, index) => (
@@ -658,9 +658,11 @@ export default function AdminDashboard() {
                   <h3 style={{ margin: 0, fontWeight: "bold", color: "gray" }}>
                     {item.title}
                   </h3>
-                  {React.cloneElement(item.icon, {
-                    style: { fontSize: "24px", color: "#8260FE" },
-                  })}
+                  <Flex style={{ width: "25%" }}>
+                    {React.cloneElement(item.icon, {
+                      style: { fontSize: "24px", color: "#8260FE" },
+                    })}
+                  </Flex>
                 </div>
                 <div
                   style={{

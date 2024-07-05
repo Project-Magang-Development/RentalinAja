@@ -24,6 +24,7 @@ export async function GET(
         merchant_id: merchant_id,
       },
       include: {
+        payout: true,
         merchant: {
           include: {
             MerchantPendingPayment: true,
@@ -32,7 +33,6 @@ export async function GET(
       },
     });
     return NextResponse.json(showDetail);
-
   } catch (error) {
     console.error("Error accessing database or verifying token:", error);
     return new NextResponse(
