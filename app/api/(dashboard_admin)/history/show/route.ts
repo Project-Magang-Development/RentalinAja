@@ -28,10 +28,13 @@ export async function GET(req: Request) {
         },
       });
     }
-    
+
     const history = await prisma.expense.findMany({
       where: {
         merchant_id: decoded.merchantId,
+      },
+      include: {
+        payout: true,
       },
     });
 
