@@ -171,7 +171,11 @@ function GetInvoiceComponent() {
                 size="middle"
                 shape="round"
                 type="primary"
-                style={{ width: "100%", marginInline: "1rem" }}
+                style={{
+                  width: "100%",
+                  marginInline: "1rem",
+                  backgroundColor: "#6B7CFF",
+                }}
                 icon={<ArrowLeftOutlined />}
               >
                 Kembali
@@ -272,29 +276,41 @@ function GetInvoiceComponent() {
                   <Flex vertical flex={1} align="flex-end">
                     <h4 style={{ fontWeight: "normal ", color: "#4B4B4b" }}>
                       Status:{" "}
-                      <span
-                        style={{
-                          fontWeight: "bold",
-                          fontSize: "1.5rem",
-                          color: (() => {
-                            switch (invoiceData.status) {
-                              case "EXPIRED":
-                                return "#6A6A6A"; // abu
-                              case "PENDING":
-                                return "yellow"; // kuning
-                              case "PAID":
-                              case "SETTLED":
-                                return "#4BB261"; // hijau
-                              default:
-                                return "red"; // merah untuk status lainnya
-                            }
-                          })(),
-                        }}
-                      >
-                        {invoiceData.status === "SETTLED"
-                          ? "PAID"
-                          : invoiceData.status}
-                      </span>
+                      {!invoiceData.status ? (
+                        <span
+                          style={{
+                            color: "#EFAB26",
+                            fontWeight: "bold",
+                            fontSize: "1.5rem",
+                          }}
+                        >
+                          PENDING
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            fontWeight: "bold",
+                            fontSize: "1.5rem",
+                            color: (() => {
+                              switch (invoiceData.status) {
+                                case "EXPIRED":
+                                  return "#6A6A6A"; // abu
+                                case "PENDING":
+                                  return "yellow"; // kuning
+                                case "PAID":
+                                case "SETTLED":
+                                  return "#4BB261"; // hijau
+                                default:
+                                  return "red"; // merah untuk status lainnya
+                              }
+                            })(),
+                          }}
+                        >
+                          {invoiceData.status === "SETTLED"
+                            ? "PAID"
+                            : invoiceData.status}
+                        </span>
+                      )}
                     </h4>
 
                     <p

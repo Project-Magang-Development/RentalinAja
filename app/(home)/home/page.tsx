@@ -129,7 +129,7 @@ const Home = () => {
                       minWidth: "35%",
                     }}
                   >
-                    <YouTubeEmbed videoId="B-M9947qLtc" />
+                    <YouTubeEmbed videoId="KPYTN3bjKZ4" />
                   </div>
                 </Col>
               </Flex>

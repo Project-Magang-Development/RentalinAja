@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Layout, Row, Col, Card, Typography, Button, Steps } from "antd";
+import { Layout, Row, Col, Card, Typography, Button, Steps, Flex } from "antd";
 import {
   CarTwoTone,
   StopOutlined,
@@ -127,7 +127,7 @@ const VehiclePage = () => {
                     boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
                   }}
                 >
-                  <div style={{ padding: "16px 16px" }}>
+                  <Flex vertical style={{ padding: "16px 16px" }}>
                     <Title level={2} style={{ fontWeight: "bold", margin: 0 }}>
                       {schedule.Vehicle.name}
                     </Title>
@@ -137,8 +137,8 @@ const VehiclePage = () => {
                     >
                       {schedule.Vehicle.model} {schedule.Vehicle.year}
                     </Title>
-                  </div>
-                  <div
+                  </Flex>
+                  <Flex
                     style={{
                       position: "relative",
                       width: "100%",
@@ -147,18 +147,19 @@ const VehiclePage = () => {
                   >
                     {Array.isArray(schedule.Vehicle.VehicleImages) &&
                     schedule.Vehicle.VehicleImages.length > 0 ? (
-                      <Image
+                      <img
+                        loading="lazy"
                         src={
                           schedule.Vehicle.VehicleImages.find(
                             (image) => image.index === 0
-                          )?.imageUrl || "/default-image.jpg" 
+                          )?.imageUrl || "/default-image.jpg"
                         }
                         alt="Vehicle Image"
-                        width={500}
-                        height={300}
-                        objectFit="cover"
-                        unoptimized={true}
-                        style={{ borderRadius: "20px" }}
+                        style={{
+                          borderRadius: "20px",
+                          objectFit: "cover",
+                          width: "100%",
+                        }}
                       />
                     ) : (
                       <div
@@ -169,9 +170,9 @@ const VehiclePage = () => {
                         }}
                       />
                     )}
-                  </div>
-                  <div style={{ padding: "" }}>
-                    <div
+                  </Flex>
+                  <Flex vertical>
+                    <Flex
                       style={{
                         display: "flex",
                         justifyContent: "space-between",
@@ -217,7 +218,7 @@ const VehiclePage = () => {
                           {schedule.Vehicle.capacity} People
                         </Title>
                       </div>
-                    </div>
+                    </Flex>
                     <div
                       style={{
                         display: "flex",
@@ -277,7 +278,7 @@ const VehiclePage = () => {
                         Select
                       </Button>
                     </div>
-                  </div>
+                  </Flex>
                 </Card>
               </Col>
             ))}

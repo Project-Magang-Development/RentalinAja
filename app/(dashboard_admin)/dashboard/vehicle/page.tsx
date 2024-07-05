@@ -471,7 +471,11 @@ export default function AdminVehicleDashboard() {
             >
               <RangePicker />
             </Form.Item>
-            <Button type="primary" htmlType="submit">
+            <Button
+              type="primary"
+              htmlType="submit"
+              style={{ backgroundColor: "#6B7CFF" }}
+            >
               Filter
             </Button>
           </Form>
@@ -485,6 +489,7 @@ export default function AdminVehicleDashboard() {
           >
             <Flex justify="space-between" gap={16}>
               <Button
+                style={{ backgroundColor: "#6B7CFF" }}
                 type="primary"
                 onClick={showModal}
                 icon={<PlusOutlined />}

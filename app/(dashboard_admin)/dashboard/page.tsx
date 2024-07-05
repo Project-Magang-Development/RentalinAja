@@ -102,65 +102,8 @@ const fetcher = (url: any) =>
     });
 
 export default function AdminDashboard() {
-  const [selectedYear, setSelectedYear] = useState(moment().year());
-  const currentMonth = moment().format("MMMM");
-  const currentYear = moment().year();
-  const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
-  // Modal for Pencairan Dana
-  const [form] = useForm<FormValue>();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const merchantName = useMerchantName();
-  const merchantEmail = useMerchantEmail();
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const [balance, setBalance] = useState(0);
-  const [incomeByMonth, setIncomeByMonth] = useState<Record<number, number>>(
-    {}
-  );
-  const [expenseByMonth, setExpenseByMonth] = useState<Record<number, number>>(
-    {}
-  );
-
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Current month by default
-  useEffect(() => {
-    const fetchBalance = async (month: any, year: any) => {
-      const token = Cookies.get("token");
-      const response = await fetch(
-        `/api/merchant_balance?month=${month}&year=${year}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Response data:", data);
-        setIncomeByMonth(data.incomeByMonth);
-        setExpenseByMonth(data.expenseByMonth);
-        setBalance(data.balance || 0); // Ensure consistency with property name
-      } else {
-        console.error("Failed to fetch balance");
-      }
-    };
-
-    fetchBalance(selectedMonth, selectedYear);
-  }, [selectedMonth, selectedYear]);
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleMonthChange = (value: any) => {
-    setSelectedMonth(value);
-  };
-  const handleYearChange = (year: any) => {
-    setSelectedYear(year);
-  };
-  const selectedMonthIncome = incomeByMonth[selectedMonth] || 0;
-  const selectedMonthExpense = expenseByMonth[selectedMonth] || 0;
-  const selectedMonthDifference = selectedMonthIncome - selectedMonthExpense;
+  const [selectedYear, setSelectedYear] = useState(moment().year());
 
   const { data: totalVehicles, error: errorTotalVehicles } = useSWR(
     "/api/vehicle/total",
@@ -187,6 +130,54 @@ export default function AdminDashboard() {
     `/api/booking/${selectedYear}`,
     fetcher
   );
+
+  const { data, error } = useSWR(
+    `/api/merchant_balance?month=${selectedMonth}&year=${selectedYear}`,
+    fetcher
+  );
+
+  const currentMonth = moment().format("MMMM");
+  const currentYear = moment().year();
+  const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
+  // Modal for Pencairan Dana
+  const [form] = useForm<FormValue>();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const merchantName = useMerchantName();
+  const merchantEmail = useMerchantEmail();
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [balance, setBalance] = useState(0);
+  const [incomeByMonth, setIncomeByMonth] = useState<Record<number, number>>(
+    {}
+  );
+  const [expenseByMonth, setExpenseByMonth] = useState<Record<number, number>>(
+    {}
+  );
+
+  // mengambil income dan expense untuk ditampilkan
+  useEffect(() => {
+    if (data) {
+      setIncomeByMonth(data.incomeByMonth);
+      setExpenseByMonth(data.expenseByMonth);
+      setBalance(data.balance || 0);
+    }
+  }, [data]);
+  if (error) return <div>Error fetching data</div>;
+  if (!data) return <DashboardSkeleton />;
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleMonthChange = (value: any) => {
+    setSelectedMonth(value);
+  };
+  const handleYearChange = (year: any) => {
+    setSelectedYear(year);
+  };
+  const selectedMonthIncome = incomeByMonth[selectedMonth] || 0;
+  const selectedMonthExpense = expenseByMonth[selectedMonth] || 0;
+  const selectedMonthDifference = selectedMonthIncome - selectedMonthExpense;
 
   const errors = [
     errorTotalVehicles,
@@ -233,7 +224,7 @@ export default function AdminDashboard() {
     "Jumlah Penyewaan": item.count,
   }));
 
-  // xendit payout function
+  //? xendit payout function
   const performPayout = async (formValue: FormValue) => {
     const secretKey = process.env.NEXT_PUBLIC_SECRET_KEY;
     if (!secretKey) {
@@ -245,18 +236,30 @@ export default function AdminDashboard() {
       "base64"
     )}`;
 
-    const generateId = () => {
-      return Math.random().toString(36).substring(2, 9);
+    const generateId = () =>
+      `disb-${Math.random().toString(36).substring(2, 9)}`;
+
+    // Generate unique key for payout
+    const generateIdempotencyKey = () => {
+      const length = 20; // Panjang kunci yang diinginkan
+      const characters =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+      let idempotencyKey = "IdKey-";
+
+      for (let i = 0; i < length; i++) {
+        idempotencyKey += characters.charAt(
+          Math.floor(Math.random() * characters.length)
+        );
+      }
+
+      return idempotencyKey;
     };
 
     try {
-      // Get available_balance from your server
       const token = Cookies.get("token");
       const merchantResponse = await fetch("/api/merchant_balance", {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!merchantResponse.ok) {
@@ -266,54 +269,63 @@ export default function AdminDashboard() {
       const merchantData = await merchantResponse.json();
       const availableBalance = merchantData.available_balance;
 
-      // Check if available_balance is less than payout amount
       const payoutAmount = Number(formValue.amount);
       if (availableBalance < payoutAmount) {
         message.error("Saldo anda tidak cukup");
-        return; // Stop the function execution if balance is insufficient
+        return;
       }
 
+      // Generate reference_id once
+      const referenceId = generateId();
+
+      // Simpan transaksi payout terlebih dahulu
+      const savePayoutResponse = await fetch("/api/payment/withdraw", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          amount: payoutAmount,
+          reference_id: referenceId,
+        }),
+      });
+
+      if (!savePayoutResponse.ok) {
+        message.error("Gagal menyimpan transaksi payout");
+        throw new Error("Failed to save payout transaction");
+      }
+
+      console.log("ini token :", token);
+
       const payoutData = {
-        reference_id: generateId(),
+        reference_id: referenceId,
         channel_code: formValue.banks,
         channel_properties: {
           account_number: formValue.rekening,
           account_holder_name: merchantName,
         },
-        amount: payoutAmount, // Use available_balance as the payout amount
+        amount: payoutAmount,
         description: "Pencairan Dana",
         currency: "IDR",
-        receipt_notification: {
-          // TODO: sesuaikan email nya
-          email_to: [merchantEmail],
-        },
+        receipt_notification: { email_to: [merchantEmail] },
       };
 
       const response = await axios.post(endpoint, payoutData, {
         headers: {
           Authorization: basicAuthHeader,
           "Content-Type": "application/json",
-          "Idempotency-Key": generateId(), // Ensure unique idempotency key
+          "Idempotency-Key": generateIdempotencyKey(),
         },
       });
       message.success({ content: "Pencairan Dana Berhasil", duration: 6 });
 
       console.log("Payout successful:", response.data);
+      console.log("Payout reference_id:", response.data.reference_id);
 
-      // Update available_balance on your server
-      const updateResponse = await fetch("/api/payment/withdraw", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ amount: payoutAmount }),
-      });
+      // Fetch updated balance after successful payout
+      // await fetchBalance(selectedMonth, selectedYear);
 
-      if (!updateResponse.ok) {
-        message.error("Gagal melakukan update balance");
-        throw new Error("Failed to update balance");
-      }
       setIsModalVisible(false);
       setConfirmLoading(false);
     } catch (error) {
@@ -321,6 +333,7 @@ export default function AdminDashboard() {
       throw new Error("Failed to perform payout");
     }
   };
+
   const handleOk = async () => {
     try {
       const formValue = form.getFieldsValue();
@@ -328,7 +341,8 @@ export default function AdminDashboard() {
 
       setConfirmLoading(true);
       await performPayout(formValue);
-      setIsModalVisible(false);
+
+      form.resetFields();
       setConfirmLoading(false);
     } catch (error) {
       console.log("Terjadi kesalahan:", error);
@@ -626,7 +640,7 @@ export default function AdminDashboard() {
               hasButton: true,
             },
           ].map((item, index) => (
-            <Col span={6} key={index}>
+            <Col xs={24} sm={12} md={12} lg={6} xl={6} key={index}>
               <Card
                 bordered={false}
                 bodyStyle={{
@@ -636,6 +650,7 @@ export default function AdminDashboard() {
                   height: "100%",
                 }}
                 style={{
+                  marginTop: "10px",
                   backgroundColor: "white",
                   borderRadius: "10px",
                   boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)",
@@ -663,7 +678,6 @@ export default function AdminDashboard() {
                     display: "flex",
                     justifyContent: "space-between",
                     flexDirection: "row",
-
                     alignItems: "center",
                   }}
                 >
@@ -675,41 +689,39 @@ export default function AdminDashboard() {
                       fontWeight: "bold",
                     }}
                   />
-
-                  {/* //?Button Pencairan Dana */}
                   {item.hasButton && (
-                    <Detail title="Laporan Keuangan">
-                      <Button
-                        size="small"
-                        icon={<ArrowRightOutlined />}
-                        style={{ backgroundColor: "white" }}
-                        onClick={showModal}
-                      />
-                    </Detail>
+                    <Button
+                      size="small"
+                      icon={<ArrowRightOutlined />}
+                      style={{ backgroundColor: "white" }}
+                      onClick={showModal}
+                    />
                   )}
                 </div>
               </Card>
             </Col>
           ))}
           <Col span={24} style={{ marginTop: 40 }}>
-            <Col span={6}>
-              <Select
-                defaultValue={selectedYear}
-                style={{ width: 120, marginBottom: 20 }}
-                onChange={(value) => setSelectedYear(value)}
-              >
-                {Array.from(
-                  new Array(20),
-                  (val, index) => moment().year() - index
-                ).map((year) => (
-                  <Option key={year} value={year}>
-                    {year}
-                  </Option>
-                ))}
-              </Select>
-            </Col>
+            <Row gutter={16}>
+              <Col xs={24} sm={12} md={6}>
+                <Select
+                  defaultValue={selectedYear}
+                  style={{ width: 120, marginBottom: 20 }}
+                  onChange={(value) => setSelectedYear(value)}
+                >
+                  {Array.from(
+                    new Array(20),
+                    (val, index) => moment().year() - index
+                  ).map((year) => (
+                    <Option key={year} value={year}>
+                      {year}
+                    </Option>
+                  ))}
+                </Select>
+              </Col>
+            </Row>
             <Row gutter={16} style={{ marginTop: 40 }}>
-              <Col span={12}>
+              <Col xs={24} lg={12}>
                 <Card
                   title={`Data Sewa Per Bulan Tahun ${selectedYear}`}
                   bordered={true}
@@ -749,7 +761,7 @@ export default function AdminDashboard() {
                   </ResponsiveContainer>
                 </Card>
               </Col>
-              <Col span={12}>
+              <Col xs={24} lg={12}>
                 <Card
                   title={`Data Pendapatan Per Bulan Tahun ${selectedYear}`}
                   bordered={true}
@@ -778,7 +790,7 @@ export default function AdminDashboard() {
                         }}
                       />
                       <Tooltip
-                        formatter={(value: any, name: any, props: any) => [
+                        formatter={(value: any, name: any, props) => [
                           props.payload.TotalPendapatanFormatted,
                           "Total Pendapatan",
                         ]}

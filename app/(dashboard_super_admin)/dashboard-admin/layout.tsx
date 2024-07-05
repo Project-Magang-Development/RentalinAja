@@ -41,6 +41,11 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
 
+  useEffect(() => {
+    // Set activeItem berdasarkan pathname saat halaman dimuat atau berubah
+    setActiveItem(pathname);
+  }, [pathname]);
+
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -65,11 +70,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   if (shouldHideSidebar) {
     return <>{children}</>;
   }
-
-  useEffect(() => {
-    // Set activeItem berdasarkan pathname saat halaman dimuat atau berubah
-    setActiveItem(pathname);
-  }, [pathname]);
 
   const handleClick = (key: any) => {
     setActiveItem(key);
