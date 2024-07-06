@@ -114,6 +114,7 @@ export default function LoginDashboard() {
         src="/icons/panah3.svg"
         alt=""
         style={{
+          zIndex: 0,
           position: "absolute",
           bottom: 0,
           right: -10,
@@ -130,6 +131,7 @@ export default function LoginDashboard() {
       >
         <div
           style={{
+            zIndex: 1,
             maxWidth: 300,
             padding: "40px 20px",
             backgroundColor: "#fff",

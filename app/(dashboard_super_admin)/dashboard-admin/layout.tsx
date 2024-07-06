@@ -79,7 +79,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     {
       key: "/dashboard-admin",
       icon:
-        activeItem === "/dashboard"
+        activeItem === "/dashboard-admin"
           ? dashboardIconActive
           : dashboardIconDefault,
       label: (
