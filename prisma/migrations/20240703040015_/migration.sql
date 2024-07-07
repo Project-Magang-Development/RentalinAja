@@ -117,6 +117,7 @@ CREATE TABLE `Vehicle` (
 CREATE TABLE `VehicleImage` (
     `vehicles_image_id` VARCHAR(191) NOT NULL,
     `vehicles_id` VARCHAR(191) NOT NULL,
+    `index` INTEGER NOT NULL,
     `imageUrl` LONGTEXT NOT NULL,
 
     PRIMARY KEY (`vehicles_image_id`)

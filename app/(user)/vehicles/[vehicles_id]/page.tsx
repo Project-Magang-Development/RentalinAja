@@ -295,6 +295,7 @@ export default function DetailVehiclePage() {
   };
 
   const handleOk = async () => {
+    setLoading(true)
     try {
       if (!invoiceData) {
         console.error("Invoice data is not available");
@@ -310,11 +311,14 @@ export default function DetailVehiclePage() {
       console.log(result);
 
       if (result && result.invoice_url) {
+        setLoading(false)
         window.location.href = result.invoice_url;
       }
     } catch (error) {
+      setLoading(false)
       console.error(error);
     } finally {
+      setLoading(false)
       setIsModalVisible(false);
     }
   };
@@ -603,6 +607,7 @@ export default function DetailVehiclePage() {
           <Button
             key="submit"
             type="primary"
+            loading={loading}
             onClick={handleOk}
             style={{
               backgroundColor: "#6B7CFF",

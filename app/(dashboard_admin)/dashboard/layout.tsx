@@ -63,6 +63,10 @@ const Avatar = dynamic(() => import("antd").then((mod) => mod.Avatar), {
   loading: () => <Spin size="small" />,
 });
 
+const HistoryOutlined = dynamic(() =>
+  import("@ant-design/icons").then((icon) => icon.HistoryOutlined)
+);
+
 const Dropdown = dynamic(() => import("antd").then((mod) => mod.Dropdown), {
   ssr: false,
   loading: () => <Spin size="small" />,
@@ -109,6 +113,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     "/dashboard/order",
     "/dashboard/calendar/[vehicles_id]",
     "/dashboard/subscription",
+    "/dashboard/history",
   ];
   const shouldHideCompanyName = disableCompanyName.some((route) =>
     pathname.includes(route)
@@ -267,20 +272,22 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       label:
         newOrdersCount > 0 ? (
           <Badge count={newOrdersCount}>
-            <a
+            <Link
+              href="/dashboard/order"
               onClick={handleOrderClick}
               style={{ color: "black", textDecoration: "none" }}
             >
               Order
-            </a>
+            </Link>
           </Badge>
         ) : (
-          <a
+          <Link
+            href="/dashboard/order"
             onClick={handleOrderClick}
             style={{ color: "inherit", textDecoration: "none" }}
           >
             Order
-          </a>
+          </Link>
         ),
     },
     {
@@ -289,20 +296,22 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       label:
         newBookingsCount > 0 ? (
           <Badge count={newBookingsCount}>
-            <a
+            <Link
+              href="/dashboard/booking"
               onClick={handleBookingClick}
               style={{ color: "black", textDecoration: "none" }}
             >
               Booking
-            </a>
+            </Link>
           </Badge>
         ) : (
-          <a
+          <Link
+            href="/dashboard/booking"
             onClick={handleBookingClick}
             style={{ color: "inherit", textDecoration: "none" }}
           >
             Booking
-          </a>
+          </Link>
         ),
     },
   ];
@@ -393,6 +402,12 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           onClick: () => showSubscription(),
         },
         {
+          key: "history",
+          label: "Riwayat Penarikan",
+          icon: <HistoryOutlined />,
+          onClick: () => router.push("/dashboard/history"),
+        },
+        {
           key: "logout",
           label: "Keluar",
           icon: <LogoutOutlined />,
@@ -430,10 +445,16 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         >
           {collapsed ? (
             <span>
-              <BankOutlined />
+              <img src="/logo-rental.svg" alt="" />
             </span>
           ) : (
-            <img src="/logo.png" alt="Company Logo" width={200} height={200} />
+            <img
+              loading="lazy"
+              src="/logo.png"
+              alt="Company Logo"
+              width={200}
+              height={200}
+            />
           )}
         </div>
         <Menu

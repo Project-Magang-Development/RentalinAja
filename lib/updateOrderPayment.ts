@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import axios from "axios";
+import nodemailer from "nodemailer";
 
 const prisma = new PrismaClient();
 
@@ -56,11 +56,21 @@ const postPayment = async (invoiceData: any) => {
     throw error;
   }
 };
+
 export async function updateOrderFinish(externalId: string, newStatus: string) {
   try {
     // Check if the record exists
     const transaction = await prisma.order.findUnique({
       where: { external_id: externalId },
+      include: {
+        Merchant: {
+          include: {
+            MerchantPayment: {
+              include: { MerchantPendingPayment: true },
+            },
+          },
+        },
+      },
     });
 
     if (!transaction) {
@@ -71,6 +81,15 @@ export async function updateOrderFinish(externalId: string, newStatus: string) {
     const updatedTransaction = await prisma.order.update({
       where: { external_id: externalId },
       data: { status: newStatus },
+      include: {
+        Merchant: {
+          include: {
+            MerchantPayment: {
+              include: { MerchantPendingPayment: true },
+            },
+          },
+        },
+      },
     });
 
     console.log("Status pembayaran berhasil diperbarui:", updatedTransaction);
@@ -109,14 +128,54 @@ export async function updateOrderFinish(externalId: string, newStatus: string) {
         throw new Error("Failed to record income");
       }
 
-      console.log("Merchant balance updated successfully");
+      // Send email notification to merchant
+      let transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL_USERNAME,
+          pass: process.env.EMAIL_PASSWORD,
+        },
+      });
+
+      await transporter.sendMail({
+        from: '"RentalinAja" <no-reply@gmail.com>',
+        to: updatedTransaction.Merchant.MerchantPayment.MerchantPendingPayment
+          .merchant_email,
+        subject: "Ada Yang Order Nih!",
+        html: `
+          <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; text-align: center; padding: 40px; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+              <div style="background-color: #0275d8; padding: 20px 0;">
+                <h1 style="color: #ffffff; margin: 0; padding: 0 20px;">Ada Yang Order Nih!</h1>
+              </div>
+              <div style="padding: 20px;">
+                <p style="font-size: 16px;">Hai ${updatedTransaction.Merchant.MerchantPayment.MerchantPendingPayment.merchant_name},</p>
+                <p style="font-size: 16px;">Ada order baru dengan detail sebagai berikut:</p>
+                <ul style="text-align: left;">
+                  <li>Nama Customer: ${updatedTransaction.customer_name}</li>
+                  <li>Tanggal Mulai: ${updatedTransaction.start_date}</li>
+                  <li>Tanggal Berakhir: ${updatedTransaction.end_date}</li>
+                  <li>Harga: ${updatedTransaction.total_amount}</li>
+                </ul>
+                <p style="font-size: 16px;">Kami senang Anda menggunakan layanan kami dan berharap Anda puas dengan pengalaman Anda.</p>
+                <p style="font-size: 16px;">Jika Anda memiliki pertanyaan atau butuh bantuan lebih lanjut, jangan ragu untuk membalas email ini atau menghubungi support kami.</p>
+              </div>
+              <div style="background-color: #f0f0f0; padding: 20px; font-size: 14px; text-align: left;">
+                <p>Salam Hangat,<br/>Tim RentalinAja</p>
+              </div>
+            </div>
+          </div>
+        `,
+      });
+
+      console.log("Email notification sent to merchant.");
     }
 
     return updatedTransaction;
   } catch (error) {
     console.error(
       "Terjadi kesalahan dalam memperbarui status pembayaran:",
-      error || error
+      error
     );
     throw new Error("Terjadi kesalahan dalam memperbarui status pembayaran");
   } finally {

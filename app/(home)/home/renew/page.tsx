@@ -31,7 +31,7 @@ const fetcher = async (url: string) => {
 };
 
 const RenewPage: React.FC = () => {
-   const [loadingButton, setLoadingButton] = useState<string | null>(null);
+  const [loadingButton, setLoadingButton] = useState<string | null>(null);
   const [features, setFeatures] = useState<string[][]>([]);
   const { data: packages, error } = useSWR<Package[]>(
     "/api/showPackage",
@@ -42,12 +42,12 @@ const RenewPage: React.FC = () => {
   useEffect(() => {
     if (packages) {
       const filteredPackages = packages.filter(
-        (pkg) => pkg.package_name.toLowerCase() !== "free"
+        (pkg) => pkg.package_price !== 0
       );
       const featureList = filteredPackages.map((pkg) =>
         pkg.package_feature ? pkg.package_feature.split(",") : []
       );
-      setFeatures(featureList); 
+      setFeatures(featureList);
     }
   }, [packages]);
 
@@ -103,7 +103,7 @@ const RenewPage: React.FC = () => {
           }}
         >
           {packages
-            .filter((pkg) => pkg.package_name.toLowerCase() !== "free")
+            .filter((pkg) => pkg.package_price !== 0)
             .map((pkg, index) => (
               <Flex
                 vertical

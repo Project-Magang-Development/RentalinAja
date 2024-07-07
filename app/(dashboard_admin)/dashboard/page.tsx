@@ -102,8 +102,65 @@ const fetcher = (url: any) =>
     });
 
 export default function AdminDashboard() {
-  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Current month by default
   const [selectedYear, setSelectedYear] = useState(moment().year());
+  const currentMonth = moment().format("MMMM");
+  const currentYear = moment().year();
+  const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
+  // Modal for Pencairan Dana
+  const [form] = Form.useForm<FormValue>();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const merchantName = useMerchantName();
+  const merchantEmail = useMerchantEmail();
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [balance, setBalance] = useState(0);
+  const [incomeByMonth, setIncomeByMonth] = useState<Record<number, number>>(
+    {}
+  );
+  const [expenseByMonth, setExpenseByMonth] = useState<Record<number, number>>(
+    {}
+  );
+
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Current month by default
+  const fetchBalance = async (month: any, year: any) => {
+    const token = Cookies.get("token");
+    const response = await fetch(
+      `/api/merchant_balance?month=${month}&year=${year}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Response data:", data);
+      setIncomeByMonth(data.incomeByMonth);
+      setExpenseByMonth(data.expenseByMonth);
+      setBalance(data.balance || 0); // Ensure consistency with property name
+    } else {
+      console.error("Failed to fetch balance");
+    }
+  };
+
+  useEffect(() => {
+    fetchBalance(selectedMonth, selectedYear);
+  }, [selectedMonth, selectedYear]);
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleMonthChange = (value: any) => {
+    setSelectedMonth(value);
+  };
+  const handleYearChange = (year: any) => {
+    setSelectedYear(year);
+  };
+  const selectedMonthIncome = incomeByMonth[selectedMonth] || 0;
+  const selectedMonthExpense = expenseByMonth[selectedMonth] || 0;
+  const selectedMonthDifference = selectedMonthIncome - selectedMonthExpense;
 
   const { data: totalVehicles, error: errorTotalVehicles } = useSWR(
     "/api/vehicle/total",
@@ -131,53 +188,11 @@ export default function AdminDashboard() {
     fetcher
   );
 
-  const { data, error } = useSWR(
-    `/api/merchant_balance?month=${selectedMonth}&year=${selectedYear}`,
-    fetcher
-  );
-
-  const currentMonth = moment().format("MMMM");
-  const currentYear = moment().year();
-  const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
-  // Modal for Pencairan Dana
-  const [form] = useForm<FormValue>();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const merchantName = useMerchantName();
-  const merchantEmail = useMerchantEmail();
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const [balance, setBalance] = useState(0);
-  const [incomeByMonth, setIncomeByMonth] = useState<Record<number, number>>(
-    {}
-  );
-  const [expenseByMonth, setExpenseByMonth] = useState<Record<number, number>>(
-    {}
-  );
-
-  // mengambil income dan expense untuk ditampilkan
-  useEffect(() => {
-    if (data) {
-      setIncomeByMonth(data.incomeByMonth);
-      setExpenseByMonth(data.expenseByMonth);
-      setBalance(data.balance || 0);
-    }
-  }, [data]);
-  if (error) return <div>Error fetching data</div>;
-  if (!data) return <DashboardSkeleton />;
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleMonthChange = (value: any) => {
-    setSelectedMonth(value);
-  };
-  const handleYearChange = (year: any) => {
-    setSelectedYear(year);
-  };
-  const selectedMonthIncome = incomeByMonth[selectedMonth] || 0;
-  const selectedMonthExpense = expenseByMonth[selectedMonth] || 0;
-  const selectedMonthDifference = selectedMonthIncome - selectedMonthExpense;
+  const {
+    data: merchantData,
+    error: errorMerchantBalance,
+    mutate,
+  } = useSWR("/api/merchant_balance");
 
   const errors = [
     errorTotalVehicles,
@@ -341,7 +356,6 @@ export default function AdminDashboard() {
 
       setConfirmLoading(true);
       await performPayout(formValue);
-
       form.resetFields();
       setConfirmLoading(false);
     } catch (error) {
@@ -621,22 +635,22 @@ export default function AdminDashboard() {
             {
               title: "TOTAL KENDARAAN",
               value: totalVehicles,
-              icon: <CarOutlined />,
+              icon: <img src="/icons/mobil.svg" alt="" />,
             },
             {
               title: "TOTAL ORDER",
               value: totalOrders,
-              icon: <OrderedListOutlined />,
+              icon: <img src="/icons/order.svg" alt="" />,
             },
             {
               title: "TOTAL BOOKING",
               value: totalBookings,
-              icon: <BookOutlined />,
+              icon: <img src="/icons/sewa.svg" alt="" />,
             },
             {
               title: "TOTAL PENDAPATAN",
               value: "Rp " + totalRevenue.toLocaleString(),
-              icon: <DollarCircleOutlined />,
+              icon: <img src="/icons/pendapatan.svg" alt="" />,
               hasButton: true,
             },
           ].map((item, index) => (
@@ -666,9 +680,11 @@ export default function AdminDashboard() {
                   <h3 style={{ margin: 0, fontWeight: "bold", color: "gray" }}>
                     {item.title}
                   </h3>
-                  {React.cloneElement(item.icon, {
-                    style: { fontSize: "24px", color: "#8260FE" },
-                  })}
+                  <Flex style={{ width: "25%" }}>
+                    {React.cloneElement(item.icon, {
+                      style: { fontSize: "24px", color: "#8260FE" },
+                    })}
+                  </Flex>
                 </div>
                 <div
                   style={{
