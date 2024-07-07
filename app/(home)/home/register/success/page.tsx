@@ -75,13 +75,18 @@ const SuccesPage = () => {
                   style={{
                     marginTop: 10,
                     textAlign: "center",
+                    zIndex: "2",
                   }}
                 >
                   Terima kasih telah mendaftarkan Rental Anda
                 </Title>
                 <Link href="/home">
                   <Button
-                    style={{ backgroundColor: "#6B7CFF", color: "white" }}
+                    style={{
+                      backgroundColor: "#6B7CFF",
+                      color: "white",
+                      zIndex: "2",
+                    }}
                     icon={<LeftOutlined />}
                   >
                     Halaman Utama
@@ -93,7 +98,7 @@ const SuccesPage = () => {
                 src="/image/success.png"
                 alt=""
                 width={400}
-                style={{ zIndex: 1 }}
+                style={{ zIndex: 2 }}
               />
             </Flex>
           </div>

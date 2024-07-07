@@ -9,7 +9,7 @@ import { CheckCircleFilled } from "@ant-design/icons";
 import Title from "antd/es/typography/Title";
 
 const { Content, Footer } = Layout;
-const {  Step } = Steps;
+const { Step } = Steps;
 
 const SuccesPage = () => {
   return (

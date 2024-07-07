@@ -36,6 +36,9 @@ export async function GET(req: Request) {
       include: {
         payout: true,
       },
+      orderBy: {
+        created_at: "desc", // Mengurutkan berdasarkan waktu, descending
+      },
     });
 
     return NextResponse.json({ status: 200, history });

@@ -85,8 +85,8 @@ export default function DetailVehiclePage() {
     setLoading(true);
     try {
       const response = await fetch(`/api/vehicle/detail/${vehicles_id}`, {
+        method: "GET",
         headers: {
-          method: "GET",
           "Content-Type": "application/json",
         },
       });
@@ -95,9 +95,29 @@ export default function DetailVehiclePage() {
         throw new Error("Failed to fetch vehicle details");
       }
 
-      const data = await response.json();
+      const data: Vehicle = await response.json();
       if (data.Schedules && data.Schedules.length > 0) {
-        setSelectedSchedule(data.Schedules[0]);
+        if (startDate && endDate) {
+          const urlStartDate = new Date(startDate);
+          const urlEndDate = new Date(endDate);
+
+          const matchingSchedule = data.Schedules.find((schedule: Schedule) => {
+            const scheduleStartDate = new Date(schedule.start_date);
+            const scheduleEndDate = new Date(schedule.end_date);
+            return (
+              scheduleStartDate.getTime() === urlStartDate.getTime() &&
+              scheduleEndDate.getTime() === urlEndDate.getTime()
+            );
+          });
+
+          if (matchingSchedule) {
+            setSelectedSchedule(matchingSchedule);
+          } else {
+            setSelectedSchedule(data.Schedules[0]); // fallback if no matching schedule is found
+          }
+        } else {
+          setSelectedSchedule(data.Schedules[0]);
+        }
       }
       setVehicle(data);
     } catch (error) {
@@ -262,8 +282,10 @@ export default function DetailVehiclePage() {
         ...data,
         order_id: data.order_id || Math.floor(Math.random() * 1000000),
         total_amount: selectedSchedule.price,
+
         external_id: externalId,
       };
+      console.log(data.total_amount);
 
       const result = await createInvoice(newData, externalId);
       console.log(result);
@@ -295,7 +317,7 @@ export default function DetailVehiclePage() {
   };
 
   const handleOk = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
       if (!invoiceData) {
         console.error("Invoice data is not available");
@@ -311,14 +333,14 @@ export default function DetailVehiclePage() {
       console.log(result);
 
       if (result && result.invoice_url) {
-        setLoading(false)
+        setLoading(false);
         window.location.href = result.invoice_url;
       }
     } catch (error) {
-      setLoading(false)
+      setLoading(false);
       console.error(error);
     } finally {
-      setLoading(false)
+      setLoading(false);
       setIsModalVisible(false);
     }
   };
@@ -496,7 +518,11 @@ export default function DetailVehiclePage() {
                       </div>
                     </div>
 
-                    <Flex justify="space-between" style={{ marginTop: "40px" }}>
+                    <Flex
+                      gap={10}
+                      justify="space-between"
+                      style={{ marginTop: "40px" }}
+                    >
                       {selectedSchedule?.price && (
                         <>
                           <p

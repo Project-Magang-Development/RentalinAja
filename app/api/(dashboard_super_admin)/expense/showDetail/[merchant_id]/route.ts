@@ -31,6 +31,9 @@ export async function GET(
           },
         },
       },
+      orderBy: {
+        created_at: "desc",
+      },
     });
     return NextResponse.json(showDetail);
   } catch (error) {
