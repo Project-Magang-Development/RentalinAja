@@ -17,7 +17,7 @@ import Cookies from "js-cookie";
 const { Content } = Layout;
 const { Title } = Typography;
 
-export default function LoginDashboardSuperAdmin() {
+const LoginDashboardSuperAdmin: React.FC = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
@@ -53,7 +53,7 @@ export default function LoginDashboardSuperAdmin() {
       setLoading(false);
       router.push("/dashboard-admin");
     } catch (error) {
-      setLoading(false)
+      setLoading(false);
       notification.error({
         message: "Login Gagal!",
       });
@@ -172,4 +172,6 @@ export default function LoginDashboardSuperAdmin() {
       </Content>
     </Layout>
   );
-}
+};
+
+export default LoginDashboardSuperAdmin;

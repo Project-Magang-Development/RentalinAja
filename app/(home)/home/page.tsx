@@ -623,7 +623,7 @@ const Home = () => {
           {/* Section Feature 3 */}
           <Section>
             <Flex gap={20} justify="space-between" align="center" wrap="wrap">
-              <img src="/image/gambar3.png" alt="" />
+              <img width={550} src="/image/gambar3.png" alt="" />
 
               <Flex flex={1} vertical>
                 <p

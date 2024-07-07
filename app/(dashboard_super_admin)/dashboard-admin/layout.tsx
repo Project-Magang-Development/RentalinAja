@@ -41,11 +41,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
-    // Set activeItem berdasarkan pathname saat halaman dimuat atau berubah
-    setActiveItem(pathname);
-  }, [pathname]);
-
   const [collapsed, setCollapsed] = useState(false);
   const {
     token: { colorBgContainer, borderRadiusLG },
@@ -75,11 +70,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return <>{children}</>;
   }
 
-  useEffect(() => {
-    // Set activeItem berdasarkan pathname saat halaman dimuat atau berubah
-    setActiveItem(pathname);
-  }, [pathname]);
-
   const handleClick = (key: any) => {
     setActiveItem(key);
   };
@@ -88,7 +78,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     {
       key: "/dashboard-admin",
       icon:
-        activeItem === "/dashboard-admin"
+        activeItem === "/dashboard"
           ? dashboardIconActive
           : dashboardIconDefault,
       label: (

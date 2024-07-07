@@ -102,65 +102,8 @@ const fetcher = (url: any) =>
     });
 
 export default function AdminDashboard() {
-  const [selectedYear, setSelectedYear] = useState(moment().year());
-  const currentMonth = moment().format("MMMM");
-  const currentYear = moment().year();
-  const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
-  // Modal for Pencairan Dana
-  const [form] = Form.useForm<FormValue>();
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const merchantName = useMerchantName();
-  const merchantEmail = useMerchantEmail();
-  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const [balance, setBalance] = useState(0);
-  const [incomeByMonth, setIncomeByMonth] = useState<Record<number, number>>(
-    {}
-  );
-  const [expenseByMonth, setExpenseByMonth] = useState<Record<number, number>>(
-    {}
-  );
-
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // Current month by default
-  const fetchBalance = async (month: any, year: any) => {
-    const token = Cookies.get("token");
-    const response = await fetch(
-      `/api/merchant_balance?month=${month}&year=${year}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    if (response.ok) {
-      const data = await response.json();
-      console.log("Response data:", data);
-      setIncomeByMonth(data.incomeByMonth);
-      setExpenseByMonth(data.expenseByMonth);
-      setBalance(data.balance || 0); // Ensure consistency with property name
-    } else {
-      console.error("Failed to fetch balance");
-    }
-  };
-
-  useEffect(() => {
-    fetchBalance(selectedMonth, selectedYear);
-  }, [selectedMonth, selectedYear]);
-
-  const showModal = () => {
-    setIsModalVisible(true);
-  };
-
-  const handleMonthChange = (value: any) => {
-    setSelectedMonth(value);
-  };
-  const handleYearChange = (year: any) => {
-    setSelectedYear(year);
-  };
-  const selectedMonthIncome = incomeByMonth[selectedMonth] || 0;
-  const selectedMonthExpense = expenseByMonth[selectedMonth] || 0;
-  const selectedMonthDifference = selectedMonthIncome - selectedMonthExpense;
+  const [selectedYear, setSelectedYear] = useState(moment().year());
 
   const { data: totalVehicles, error: errorTotalVehicles } = useSWR(
     "/api/vehicle/total",
@@ -188,11 +131,53 @@ export default function AdminDashboard() {
     fetcher
   );
 
-  const {
-    data: merchantData,
-    error: errorMerchantBalance,
-    mutate,
-  } = useSWR("/api/merchant_balance");
+  const { data, error } = useSWR(
+    `/api/merchant_balance?month=${selectedMonth}&year=${selectedYear}`,
+    fetcher
+  );
+
+  const currentMonth = moment().format("MMMM");
+  const currentYear = moment().year();
+  const currentMonthYearSentence = ` ${currentMonth} - ${currentYear}`;
+  // Modal for Pencairan Dana
+  const [form] = useForm<FormValue>();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const merchantName = useMerchantName();
+  const merchantEmail = useMerchantEmail();
+  const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [balance, setBalance] = useState(0);
+  const [incomeByMonth, setIncomeByMonth] = useState<Record<number, number>>(
+    {}
+  );
+  const [expenseByMonth, setExpenseByMonth] = useState<Record<number, number>>(
+    {}
+  );
+
+  // mengambil income dan expense untuk ditampilkan
+  useEffect(() => {
+    if (data) {
+      setIncomeByMonth(data.incomeByMonth);
+      setExpenseByMonth(data.expenseByMonth);
+      setBalance(data.balance || 0);
+    }
+  }, [data]);
+  if (error) return <div>Error fetching data</div>;
+  if (!data) return <DashboardSkeleton />;
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleMonthChange = (value: any) => {
+    setSelectedMonth(value);
+  };
+  const handleYearChange = (year: any) => {
+    setSelectedYear(year);
+  };
+  const selectedMonthIncome = incomeByMonth[selectedMonth] || 0;
+  const selectedMonthExpense = expenseByMonth[selectedMonth] || 0;
+  const selectedMonthDifference = selectedMonthIncome - selectedMonthExpense;
 
   const errors = [
     errorTotalVehicles,

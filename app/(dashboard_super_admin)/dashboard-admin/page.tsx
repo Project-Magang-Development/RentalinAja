@@ -15,11 +15,8 @@ import {
 import moment from "moment";
 import "moment/locale/id";
 import {
-  BookOutlined,
-  CarOutlined,
   DatabaseOutlined,
   DollarCircleOutlined,
-  OrderedListOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import Title from "antd/es/typography/Title";
@@ -47,10 +44,10 @@ const fetcher = (url: any) =>
       throw error;
     });
 
-export default function SuperAdminDashboard() {
+const SuperAdminDashboard = () => {
+  const [selectedYear, setSelectedYear] = useState(moment().year());
   const currentMonth = moment().format("MMMM");
   const currentYear = moment().year();
-  const [selectedYear, setSelectedYear] = useState(moment().year());
 
   const { data: totalMerchants, error: errorTotalMerchants } = useSWR(
     "/api/merchant/totalMerchant",
@@ -267,7 +264,7 @@ export default function SuperAdminDashboard() {
                       }}
                     />
                     <Tooltip
-                      formatter={(value: any, name: any, props: any) => [
+                      formatter={(value: any, name: any, props) => [
                         props.payload.TotalPendapatanFormatted,
                         "Total Pendapatan",
                       ]}
@@ -291,4 +288,6 @@ export default function SuperAdminDashboard() {
       </Row>
     </>
   );
-}
+};
+
+export default SuperAdminDashboard;
