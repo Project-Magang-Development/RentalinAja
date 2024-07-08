@@ -54,6 +54,19 @@ CREATE TABLE `MerchantPendingPayment` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `Payout` (
+    `id` VARCHAR(191) NOT NULL,
+    `reference_id` VARCHAR(191) NOT NULL,
+    `merchant_id` VARCHAR(191) NOT NULL,
+    `amount` INTEGER NOT NULL,
+    `status` VARCHAR(191) NOT NULL DEFAULT 'PENDING',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    UNIQUE INDEX `Payout_reference_id_key`(`reference_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `Income` (
     `id` VARCHAR(191) NOT NULL,
     `merchant_id` VARCHAR(191) NOT NULL,
@@ -67,6 +80,7 @@ CREATE TABLE `Income` (
 CREATE TABLE `Expense` (
     `id` VARCHAR(191) NOT NULL,
     `merchant_id` VARCHAR(191) NOT NULL,
+    `reference_id` VARCHAR(191) NOT NULL,
     `amount` INTEGER NOT NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
@@ -199,6 +213,9 @@ ALTER TABLE `Income` ADD CONSTRAINT `Income_merchant_id_fkey` FOREIGN KEY (`merc
 
 -- AddForeignKey
 ALTER TABLE `Expense` ADD CONSTRAINT `Expense_merchant_id_fkey` FOREIGN KEY (`merchant_id`) REFERENCES `Merchant`(`merchant_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Expense` ADD CONSTRAINT `Expense_reference_id_fkey` FOREIGN KEY (`reference_id`) REFERENCES `Payout`(`reference_id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `MerchantPayment` ADD CONSTRAINT `MerchantPayment_pending_id_fkey` FOREIGN KEY (`pending_id`) REFERENCES `MerchantPendingPayment`(`pending_id`) ON DELETE RESTRICT ON UPDATE CASCADE;

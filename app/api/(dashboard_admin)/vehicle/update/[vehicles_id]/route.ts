@@ -34,15 +34,25 @@ export async function PUT(req: Request) {
     }
 
     const body = await req.json();
-    const { name, capacity, model, year, no_plat, imageUrl } = body;
+    const {
+      name,
+      capacity,
+      model,
+      year,
+      no_plat,
+      mainImage,
+      additionalImages,
+    } = body;
+
     if (
       !name ||
       !capacity ||
       !model ||
       !year ||
       !no_plat ||
-      !Array.isArray(imageUrl) ||
-      imageUrl.length === 0
+      !mainImage ||
+      !additionalImages ||
+      !Array.isArray(additionalImages)
     ) {
       return new NextResponse(
         JSON.stringify({
@@ -58,67 +68,77 @@ export async function PUT(req: Request) {
       );
     }
 
-    try {
-      const vehicle = await prisma.vehicle.findUnique({
-        where: { vehicles_id: String(vehicles_id) },
-        include: { VehicleImages: true }, 
-      });
+    const imageUrl = [mainImage, ...additionalImages];
 
-      if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
-        return new NextResponse(
-          JSON.stringify({ error: "Vehicle not found or access denied" }),
-          {
-            status: 404,
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      }
+    const vehicle = await prisma.vehicle.findUnique({
+      where: { vehicles_id: String(vehicles_id) },
+      include: { VehicleImages: true },
+    });
 
-      const updatedVehicle = await prisma.vehicle.update({
-        where: { vehicles_id: String(vehicles_id) },
-        data: {
-          name,
-          capacity,
-          model,
-          year,
-          no_plat,
-          VehicleImages: {
-            deleteMany: {}, 
-            createMany: {
-              data: imageUrl.map((url: string) => ({ imageUrl: url })),
-            },
-          },
-          merchant_id: decoded.merchantId,
-        },
-        include: { VehicleImages: true }, // Sertakan juga VehicleImages dalam respons
-      });
-
+    if (!vehicle || vehicle.merchant_id !== decoded.merchantId) {
       return new NextResponse(
-        JSON.stringify({
-          message: "Vehicle updated successfully",
-          vehicle: updatedVehicle,
-        }),
+        JSON.stringify({ error: "Vehicle not found or access denied" }),
         {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-    } catch (error) {
-      console.error("Error accessing database or verifying token:", error);
-      return new NextResponse(
-        JSON.stringify({ error: "Internal Server Error or Invalid Token" }),
-        {
-          status: 500,
+          status: 404,
           headers: {
             "Content-Type": "application/json",
           },
         }
       );
     }
+
+    const updatedVehicle = await prisma.vehicle.update({
+      where: { vehicles_id: String(vehicles_id) },
+      data: {
+        name,
+        capacity,
+        model,
+        year,
+        no_plat,
+        merchant_id: decoded.merchantId,
+      },
+      include: { VehicleImages: true },
+    });
+
+    await prisma.vehicleImage.deleteMany({
+      where: { vehicles_id: String(vehicles_id) },
+    });
+
+    await Promise.all(
+      imageUrl.map((url, index) =>
+        prisma.vehicleImage.create({
+          data: {
+            imageUrl: url,
+            index: index as number,
+            vehicles_id: updatedVehicle.vehicles_id,
+          },
+        })
+      )
+    );
+
+    return new NextResponse(
+      JSON.stringify({
+        message: "Vehicle updated successfully",
+        vehicle: updatedVehicle,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Error accessing database or verifying token:", error);
+    return new NextResponse(
+      JSON.stringify({ error: "Internal Server Error or Invalid Token" }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   } finally {
     await prisma.$disconnect().catch((error) => {
       console.error("Error disconnecting from database:", error);
