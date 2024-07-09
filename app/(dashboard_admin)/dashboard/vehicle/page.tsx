@@ -42,6 +42,12 @@ interface Vehicle {
   price: number;
   imageUrl: string[];
   status: string;
+  VehicleImages: {
+    vehicles_image_id: string;
+    vehicles_id: string;
+    index: number;
+    imageUrl: string;
+  }[];
 }
 
 const fetcher = (url: any) =>
@@ -117,22 +123,23 @@ export default function AdminVehicleDashboard() {
   };
 
   useEffect(() => {
-    if (editingVehicle && Array.isArray(editingVehicle.imageUrl)) {
-      const mainImageFile: UploadFile<any> | null = editingVehicle.imageUrl[0]
+    if (editingVehicle && Array.isArray(editingVehicle.VehicleImages)) {
+      const mainImageFile: UploadFile<any> | null = editingVehicle
+        .VehicleImages[0]
         ? {
             uid: "-1",
             name: "mainImage.png",
             status: "done",
-            url: editingVehicle.imageUrl[0],
+            url: editingVehicle.VehicleImages[0].imageUrl,
           }
         : null;
       setMainImage(mainImageFile);
       setFileList(
-        editingVehicle.imageUrl.slice(1).map((url, index) => ({
+        editingVehicle.VehicleImages.slice(1).map((image, index) => ({
           uid: `${index}`,
           name: `image${index + 1}.png`,
           status: "done",
-          url,
+          url: image.imageUrl,
         }))
       );
     } else {
@@ -178,9 +185,9 @@ export default function AdminVehicleDashboard() {
       setEditingVehicle(vehicleToEdit);
       form.setFieldsValue({
         ...vehicleToEdit,
-        imageUrl: Array.isArray(vehicleToEdit.imageUrl)
-          ? vehicleToEdit.imageUrl.map((url: string) => ({ url }))
-          : [],
+        imageUrl: vehicleToEdit.VehicleImages.map(
+          (image: any) => image.imageUrl
+        ),
       });
       setIsModalVisible(true);
     }
