@@ -491,7 +491,7 @@ export default function DetailVehiclePage() {
                         </Text>
                       </div>
                       <div style={{ flex: 1, paddingLeft: "10px" }}>
-                        <Text style={{ color: "#888" }}>Kapasitas: </Text>
+                        <Text style={{ color: "#888" }}>Capacity: </Text>
                         <Text strong style={{ color: "#1F1F1F" }}>
                           {vehicle.capacity} People
                         </Text>
@@ -505,7 +505,7 @@ export default function DetailVehiclePage() {
                       }}
                     >
                       <div style={{ flex: 1, paddingRight: "10px" }}>
-                        <Text style={{ color: "#888" }}>Tahun: </Text>
+                        <Text style={{ color: "#888" }}>Year: </Text>
                         <Text strong style={{ color: "#1F1F1F" }}>
                           {vehicle.year}
                         </Text>

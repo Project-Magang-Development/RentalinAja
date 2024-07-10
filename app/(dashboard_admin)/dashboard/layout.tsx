@@ -86,7 +86,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const siderWidthExpanded = 200;
   const router = useRouter();
   const pathname = usePathname();
-  const companyName = useCompanyName();
+  const companyName = useCompanyName() || "Merchant";
   const merchantName = useMerchantName();
   const apiKey = useApiKey();
   const merchantId = useMerchantId();
