@@ -60,15 +60,13 @@ export default function Home() {
           <Row justify="center" style={{ marginTop: "40px" }}>
             <Col span={12}>
               <Card title="Book Your Vehicle">
-                <Scheduler apiKey="bb2b768e26d5cc8cb1adad56d4cbb54379c9aba505f2e6cde7024596cdaaab43" />
+                <Scheduler apiKey="3318e7207af0cfa2351dc718364904446d5757b6296c9b4e97250dff2ec35ade" />
               </Card>
             </Col>
           </Row>
         </div>
       </Content>
-      <Footer style={{ textAlign: "center" }}>
-        RentalinAja ©2024
-      </Footer>
+      <Footer style={{ textAlign: "center" }}>RentalinAja ©2024</Footer>
     </Layout>
   );
 }

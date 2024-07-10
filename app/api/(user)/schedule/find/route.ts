@@ -55,6 +55,9 @@ export async function POST(req: Request) {
 
     const availableSchedules = await prisma.schedule.findMany({
       where: {
+        Merchant: {
+          status_subscriber: "Aktif"
+        },
         AND: [
           {
             Vehicle: {

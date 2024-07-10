@@ -55,7 +55,6 @@ const createMerchant = async (invoiceData: any) => {
         data: {
           start_date: startDate,
           end_date: endDate,
-          api_key: generateApiKey(),
           package_id: plan,
           pending_id: pending_id,
           merchant_payment_id: newMerchantPayment.merchant_payment_id,
