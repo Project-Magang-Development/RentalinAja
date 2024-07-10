@@ -372,26 +372,13 @@ export default function AdminPackageDashboard() {
           </Form.Item>
           <Form.Item
             name="count_vehicle"
-            rules={[
-              {
-                required: true,
-                message: "Tolong Masukan Penyimpanan Data Order Yang Masuk!",
-              },
-            ]}
           >
-            <Input placeholder="Penyimpanan Data Order Yang Masuk (Boleh Kosong)" />
+            <Input placeholder="Penyimpanan Data Order Yang Masuk" />
           </Form.Item>
           <Form.Item
             name="count_order"
-            rules={[
-              {
-                required: true,
-                message:
-                  "Tolong Masukan Penyimpanan Data Kendaraan Yang Masuk!",
-              },
-            ]}
           >
-            <Input placeholder="Penyimpanan Data Kendaraan Yang Masuk (Boleh Kosong)" />
+            <Input placeholder="Penyimpanan Data Kendaraan Yang Masuk" />
           </Form.Item>
           <Form.Item
             name="duration"

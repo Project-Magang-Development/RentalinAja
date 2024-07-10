@@ -64,8 +64,6 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     setActiveItem(pathname);
   }, [pathname]);
 
-  useRedirectBasedOnToken();
-
   if (shouldHideSidebar) {
     return <>{children}</>;
   }
@@ -130,7 +128,7 @@ const Sidebar: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       okText: "Ya",
       cancelText: "Tidak",
       onOk: () => {
-        Cookies.remove("adminToken");
+        Cookies.remove("tokenAdmin");
         message.success("Anda telah berhasil keluar.");
         window.location.href = "/dashboard-admin/login";
       },
