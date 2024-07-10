@@ -113,7 +113,7 @@ export default function DetailVehiclePage() {
           if (matchingSchedule) {
             setSelectedSchedule(matchingSchedule);
           } else {
-            setSelectedSchedule(data.Schedules[0]); // fallback if no matching schedule is found
+            setSelectedSchedule(data.Schedules[0]); 
           }
         } else {
           setSelectedSchedule(data.Schedules[0]);

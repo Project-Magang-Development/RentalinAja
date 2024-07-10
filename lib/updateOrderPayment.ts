@@ -155,7 +155,7 @@ export async function updateOrderFinish(externalId: string, newStatus: string) {
                   <li>Nama Customer: ${updatedTransaction.customer_name}</li>
                   <li>Tanggal Mulai: ${updatedTransaction.start_date}</li>
                   <li>Tanggal Berakhir: ${updatedTransaction.end_date}</li>
-                  <li>Harga: ${updatedTransaction.total_amount}</li>
+                  <li>Harga: ${updatedTransaction.total_amount.toLocaleString()}</li>
                 </ul>
                 <p style="font-size: 16px;">Kami senang Anda menggunakan layanan kami dan berharap Anda puas dengan pengalaman Anda.</p>
                 <p style="font-size: 16px;">Jika Anda memiliki pertanyaan atau butuh bantuan lebih lanjut, jangan ragu untuk membalas email ini atau menghubungi support kami.</p>
