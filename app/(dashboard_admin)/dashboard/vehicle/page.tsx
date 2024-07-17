@@ -124,18 +124,20 @@ export default function AdminVehicleDashboard() {
 
   useEffect(() => {
     if (editingVehicle && Array.isArray(editingVehicle.VehicleImages)) {
-      const mainImageFile: UploadFile<any> | null = editingVehicle
-        .VehicleImages[0]
+      const sortedImages = [...editingVehicle.VehicleImages].sort(
+        (a, b) => a.index - b.index
+      );
+      const mainImageFile: UploadFile<any> | null = sortedImages[0]
         ? {
             uid: "-1",
             name: "mainImage.png",
             status: "done",
-            url: editingVehicle.VehicleImages[0].imageUrl,
+            url: sortedImages[0].imageUrl,
           }
         : null;
       setMainImage(mainImageFile);
       setFileList(
-        editingVehicle.VehicleImages.slice(1).map((image, index) => ({
+        sortedImages.slice(1).map((image, index) => ({
           uid: `${index}`,
           name: `image${index + 1}.png`,
           status: "done",
